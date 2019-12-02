@@ -26,24 +26,31 @@
 \section{Problem formulation}
 
 \paragraph{Structured dynamics}
-We consider a system with continuous state space $\Real^p$ and dynamics in the form:
+We consider a system with dynamics in the form:
 
 \begin{equation}
 \label{eq:dynamics}
 \dot{x}(t)=A(\theta)x(t)+B_u u(t) + B_\omega \omega(t),\;t\geq0,
 \end{equation}
+with a state $x\in\Real^p$, control $u\in\Real^m$, parameter $\theta$ that belongs to some compact set $\Theta \subset \Real^d$, $A(\theta)\in\Real^{p\times p}$ and where $\omega\in\Real^q$ is a bounded disturbance: $\underline{\omega}(t)\leq \omega(t)\leq\overline{\omega}(t)$ for all $t\geq0$.
 \todo[inline]{EL: merge notations of the system with and without command $u$}
-where $\theta$ belongs to some compact set $\Theta \subset \Real^d$, $A(\theta)\in\Real^{p\times p}$ and $\omega$ is a bounded disturbance: $\underline{\omega}(t)\leq \omega(t)\leq\overline{\omega}(t)$ for all $t\geq0$.
 
-\paragraph{Robust objective}
+\paragraph{Objective}
 
-We wish to find a sequence of commands $\pi=(u(t))_{t\geq 0}$ that maximises the robust control objective $v^r$:
+We wish to find a sequence of commands $\pi=(u_t)_{t\geq 0}$ that maximises a cumulative objective $V^\pi$:
 \todo[inline]{EL: since the interval dynamics will be deterministic, use open-loop policies, ie sequences of actions $\mathbf{u}$ instead of closed-loop policies $\pi$}
 
+\todo[inline]{EL: the prediction is done in continuous time and the control in discrete time. How to handle the change in notations?}
+
 \begin{equation}
-\label{eq:robust-control}
-\max_\pi \underbrace{\min_{\theta \in \Theta} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar \dot{x}(t) = A(\theta) x(t) + B_u u(t) + B_\omega\omega(t), u_t = \pi(x_t)\right]}_{v^r(\pi)}
+\max_\pi V^\pi
 \end{equation}
+where
+\begin{equation}
+\label{eq:optimal-control}
+V^\pi = \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar \eqref{eq:dynamics}, u_t = \pi(x_t)\right]
+\end{equation}
+and $r$ is a bounded reward function.
 
 \section{Model Estimation}
 
@@ -55,11 +62,11 @@ Having observed a history of transitions $\cD = \{(x(t_n), u(t_n), x(t_n+dt))\}_
 \end{align}
 
 This involves the trilemma of confidence intervals, where one of three things must be true:
-\begin{itemize}
+\begin{enumerate}
     \item $A(\theta)$ is in $\cC_\delta$
     \item We got data that was very ($\leq\delta$) unlikely under all possible values $A(\theta)$
     \item Our model is wrong
-\end{itemize}
+\end{enumerate}
 
 \begin{assumption}[Linear Parametrization]
 \label{assum:linear_param}
@@ -199,6 +206,15 @@ where $x(t)\in\Real$ with $x(0)\in[\underline{x}_{0},\overline{x}_{0}]=[1.0, 1.1
 \section{Control}
 
 In this section, we still assume that we have a high-confidence polytope $\cP$ that verifies \eqref{eq:polytope} with probability $1-\delta$.
+
+
+The \textbf{robust control} objective $v^r$:
+\todo[inline]{EL: since the interval dynamics will be deterministic, use open-loop policies, ie sequences of actions $\mathbf{u}$ instead of closed-loop policies $\pi$}
+
+\begin{equation}
+\label{eq:robust-control}
+\max_\pi \underbrace{\min_{\theta \in \Theta} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar \dot{x}(t) = A(\theta) x(t) + B_u u(t) + B_\omega\omega(t), u_t = \pi(x_t)\right]}_{v^r(\pi)}
+\end{equation}
 
 
 \begin{definition}[Surrogate objective]
