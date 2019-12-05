@@ -12,6 +12,7 @@
 \usepackage{caption}
 \usepackage{blkarray}
 \usepackage{todonotes}
+\usepackage{mathtools}
 
 \input{mathdef.tex}
 
@@ -30,10 +31,20 @@ We consider a system with dynamics in the form:
 
 \begin{equation}
 \label{eq:dynamics}
-\dot{x}(t)=A(\theta)x(t)+B_u u(t) + B_\omega \omega(t),\;t\geq0,
+\dot{x}(t)=A(\theta)x(t) + B u(t) + D \omega(t),\;t\geq0,
 \end{equation}
-with a state $x\in\Real^p$, control $u\in\Real^m$, parameter $\theta$ that belongs to some compact set $\Theta \subset \Real^d$, $A(\theta)\in\Real^{p\times p}$ and where $\omega\in\Real^q$ is a bounded disturbance: $\underline{\omega}(t)\leq \omega(t)\leq\overline{\omega}(t)$ for all $t\geq0$.
-\todo[inline]{EL: merge notations of the system with and without command $u$}
+with state $x\in\Real^p$, control $u\in\Real^q$, and disturbance $\omega\in\Real^s$. The dynamics $A(\theta)\in\Real^{p\times p}$  is parametrised by $\theta$ that belongs to a compact set $\Theta \subset \Real^d$. The control matrix $B\in\Real^{p\times q}$ and disturbance matrix $D\in\Real^{p\times s}$ are known.
+
+We also have access to a measurement of the form
+$
+    \dot{x}(t) + C\eta(t)
+$
+that we will actually denote (since the control $u(t)$ is known) as:
+\begin{equation}
+\label{eq:measurement}
+    y(t) = \dot{x}(t) - Bu(t) + C\eta(t)
+\end{equation}
+where $\eta(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known. Assumptions over the disturbance $\omega$ and noise $\eta$ will be detailed further.
 
 \paragraph{Objective}
 
@@ -48,14 +59,14 @@ We wish to find a sequence of commands $\pi=(u_t)_{t\geq 0}$ that maximises a cu
 where
 \begin{equation}
 \label{eq:optimal-control}
-V^\pi = \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar \eqref{eq:dynamics}, u_t = \pi(x_t)\right]
+V^\pi = \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t = \pi(x_t),\,\eqref{eq:dynamics}\right]
 \end{equation}
-and $r$ is a bounded reward function.
+and $r:\Real^p\rightarrow[0,1]$ is a bounded reward function.
 
 \section{Model Estimation}
 
 \paragraph{Objective}% The model estimation procedure is dedicated to building a confidence region around the unknown true model $A(\theta)$. 
-Having observed a history of transitions $\cD = \{(x(t_n), u(t_n), x(t_n+dt))\}_{n\in[N]}$, and given a confidence level $\delta\in[0, 1]$, our goal is to find a confidence region $\cC_\delta$ as tight as possible and such that it holds that:
+Having observed at times $(t_n)_{n\in[N]}$ a history of transitions $\cD = \{(x_n = x(t_n), u_n = u(t_n), y_n = y(t_n))\}_{n\in[N]}$, and given a confidence level $\delta\in[0, 1]$, our goal is to find a confidence region $\cC_\delta$ as tight as possible and such that it holds that:
 \begin{align}
 \probability{A(\theta)\in \cC_\delta} \geq 1-\delta
 \label{eq:polytope}
@@ -68,50 +79,205 @@ This involves the trilemma of confidence intervals, where one of three things mu
     \item Our model is wrong
 \end{enumerate}
 
-\begin{assumption}[Linear Parametrization]
-\label{assum:linear_param}
+% \paragraph{Tensor notations}
+% We adopt the notations of [Tensor Decompositions and Applications]:
+% Given a tensor $A\in\Real^{I_1\times\cdots\times I_l}$ and matrix $M\in\Real^{I_n\times J}$, the $n$-mode product of $A$ by $M$ is a tensor of $\Real^{I_1\times\cdots\times I_l}$  defined by:
+% \begin{equation*}
+%     (A\times_n M)_{i_1,\cdots,i_{n-1},j,i_{n+1},\cdots,i_l} = \sum_{k=1}^{I_n} A_{i_1,\cdots,i_{n-1},k,i_{n+1},\cdots,i_l}B_{k,j}
+% \end{equation*}
+
 We further assume that the dynamics $A(\theta)$ enjoy the following additional structure:
+\begin{assumption}[Linear Parametrisation]
+\label{assumpt:linear_param}
+There exists a known tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
 \begin{equation}
-    A(\theta) = \theta^T \phi
+    A(\theta) = \theta^T \phi \eqdef \sum_{i=1}^d \theta_i\phi_i
 \end{equation}
-where $\phi\in \Real^{d \times p \times p}$.
+where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$.
 \end{assumption}
 
-We stack the $N$ observations and noises of $\dot{x}(t), x(t), B_u u(t)$ and $B_\omega \omega(t)$ in $\cD$ as $\dot{X}_{[N]}, X_{[N]}, U_{[N]}, \eta_{[N]}^T \in\Real^{p\times N}$, we obtain the regression problem: 
+\begin{assumption}[Noise Model]
+\label{assumpt:noise}
+At each time $t\geq0$ the measurement noise $\eta(t)$ and disturbance $\omega(t)$  are independent Gaussians with respective means $0_r, 0_s$ and covariances $\Sigma_r, \Sigma_s$:
+\begin{equation*}
+    \eta(t)\sim \cN(0_r,\Sigma_r),\quad\omega(t)\sim \cN(0_s,\Sigma_s)
+\end{equation*}
+We further require that the matrix $\Sigma_p = C\Sigma_r C^T + D\Sigma_s D^T \in \Real^{p\times p}$ is full-rank.
+\end{assumption}
 
-\[\dot{X}_{[N]} = \theta^T\phi X_{[N]} + U_{[N]} + \eta_{[N]}\]
+Note that the full-rank condition in \autoref{assumpt:noise} would be harder to fulfil were it formulated only for the disturbance $D\Sigma_s D^T$, whereas it would be quite reasonable to assume, for instance, that $r=p$, which is sufficient.
 
-This can be rewritten in a canonical form as:
+\begin{proposition}[Maximum Likelihood Estimate]
+\label{prop:mle}
+The maximum likelihood estimate for $\theta$ minimises a weighted mean square error:
+\begin{equation*}
+    \argmax_{\theta\in\Real^d} \probability{\cD\condbar\eqref{eq:dynamics};\Sigma} = \argmin_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\theta^T\phi x_n\|_{\Sigma_p^{-1}}^2
+\end{equation*}
+\end{proposition}
+\begin{proof}
+For $n\in[N]$, at time $t_n$, we have
+\begin{align*}
+    \probability{y_n, x_n} 
+    &= \probability{y_n|x_n}\probability{x_n}\\
+    &= \probability{y_n = \dot{x}_n - Bu_n +C\eta_n|x_n,u_n}\probability{x_n}\\
+    &= \probability{A(\theta)x_n + B u_n + D \omega_n - Bu_n +C\eta_n = y_n|x_n}\probability{x_n}\\
+    &= \probability{C\eta_n + D \omega_n = y_n- \theta^T \phi x_n |x_n}\probability{x_n}\\
+    &= \cN(y_n - \theta^T \phi x_n; 0_p,\Sigma_p)\probability{x_n}
+\end{align*}
+By independence of the noise at different times, we have:
+\begin{align*}
+    \log\probability{\cD;\Sigma} &= \log\prod_{n=1}^N\probability{y_n, x_n}\\
+    &= \sum_{n=1}^N\log \cN(y_n- \theta^T \phi x_n;0_p,\Sigma_p) + \log\probability{x_n}\\
+    &= \sum_{n=1}^N -\frac{1}{2} \|y_n -\theta^T\phi x_n\|_{\Sigma_p^{-1}}^2 - \log\left((2\pi)^{p/2} \det(\Sigma_p)^{1/2}\right) + \log\probability{x_n}
+\end{align*}
+\end{proof}
+
+
+We stack the observations $y(t_n), x(t_n)$ in $\cD$, as $Y_{[N]}, X_{[N]}\in\Real^{N\times p}$ and the noises $C\eta(t_n)+D\omega(t_n)$ as $\Omega_{[N]} \in\Real^{N\times p}$ to obtain the regression problem:
+
 \begin{equation}
     \label{eq:regression}
-    Y_{[N]} = \Phi_{[N]} \theta + \eta_{[N]},
+    Y_{[N]} = \Phi_{[N]} \theta + \Omega_{[N]},
 \end{equation}
-with $Y_{[N]} = \dot{X}_{[N]}^T - U_{[N]}^T  \in\Real^{N\times p}, \Phi_{[N]} = (\phi X_{[N]})^T\in \Real^{N\times p\times d}$; and the assumptions on the noise $\eta_{[N]} \in\Real^{N\times p}$ will be described further.
+with $\Phi_{[N]} = X_{[N]}\phi^T\in \Real^{N\times p\times d}$.
 
-\paragraph{Regularized solution} Since we expect that $\Phi x(t)$ may have zero-coordinates on long time intervals (i.e. some features are not always active), we consider the $l_2$ regularization with parameter $\lambda\in\Real^+_*$:
+% As detailed in \autoref{prop:mle}, we wish to solve:
+% \begin{equation*}
+%     \min_{\theta\in\Real^d} \|Y_{[N]} -\Phi_{[N]}\theta\|_{\Sigma_p^{-1}}^2
+% \end{equation*}
 
+% where we denote $\|z\|_S^2 = z S z^T$ for $z\in\Real^{N\times p}$ and $S\in\Real^{p\times p}$.
+
+\subsection{Scalar formulation}
+
+\begin{proposition}[Decoupling the noise]
+Without loss of generality, up to a change of basis, we can assume that $\Sigma_d$ is diagonal.
+\end{proposition}
+\begin{proof}
+Since $\Sigma_p$ is a symmetric real matrix, it is diagonalisable: there exists $Q\in\cO(p)$ and a diagonal matrix $R$ such that $\Sigma_p = QRQ^{-1}$. Hence, from \eqref{eq:dynamics} and \eqref{eq:measurement}:
+\begin{align*}
+    Q^{-1}y'(t) &= \sum_{i=1}^d \theta_i Q^{-1}\phi_i x(t) + Q^{-1}(C\eta(t) + D\omega(t))
+\end{align*}
+By rewriting $y \leftarrow Q^{-1}y, \phi_i\leftarrow Q^{-1}\phi_i, C\leftarrow Q^{-1}C$, and $D\leftarrow Q^{-1}D$ we recover \eqref{eq:dynamics} and \eqref{eq:measurement} in their original form, while now having $C\Sigma_rC^T + D\Sigma_rD^T = R$.
+\end{proof}
+
+In order to solve the regression problem \eqref{eq:regression} can simply reshape the two first $N\times p$ dimensions into a single $Np$ dimension. Since $\Sigma_p$ is diagonal, the noises on each row of $\Omega$ are independent, the problem becomes a standard scalar regression problem with heteroscedastic noise (if $\Sigma_p$ is not proportional to $I_p$), and the Lemma 5 of \citet{kirschner18heteroscedastic} can be applied.
+
+\begin{lemma}[Confidence ellipsoid \citep{kirschner18heteroscedastic}]
+Assuming that $\Sigma_p$ is diagonal and $\|\theta\|_2\leq S$, it holds with probability $1-\delta$ that:
 \begin{equation*}
-    \min_{\theta\in\Real^d} \|Y - \Phi \Theta\|_2^2 + \lambda\|\theta\|_2^2
+    \|\theta - \theta_{Np,\lambda}\|_{G_{Np,\lambda}} \leq \sqrt{2\log \frac{\text{det}(G_{Np,\lambda})^{1/2}\text{det}(\lambda I)^{-1/2}}{\delta}} + \lambda^{1/2}S
 \end{equation*}
+where
+\begin{align*}
+    \Phi_{[Np]}& \in\Real^{Np\times d},\, Y_{[Np]}\in \Real^{Np} \text{ are the flattened versions of $\Phi_{[N]}$, $Y_{[N]}$};\\
+    \tilde{\Phi}_{[Np]} &= \Phi_{[Np]} [\underbrace{\cdots \Sigma_p^{-1} \cdots}_{\text{$N$ times}}]^T, \qquad  \tilde{Y}_{[Np]} = Y_{[Np]} [\underbrace{\cdots \Sigma_p^{-1} \cdots}_{\text{$N$ times}}]^T;\\
+    G_{Np, \lambda} &= \tilde{\Phi}^T_{[Np]}\tilde{\Phi}_{[Np]} + \lambda I_d;\\
+    \theta_{Np,\lambda} &= G_{Np, \lambda}^{-1} \tilde{\Phi}^T_{[Np]}\tilde{Y}_{[Np]}.
+\end{align*}
+\end{lemma}
 
-The solution can be obtained by differentiation:
+\subsection{Vector formulation}
+In the general case, we denote the weighted version of the Frobenius inner product Frobenius norm as $\inp{M}{N}_{F,\Sigma} = \Tr (M^T \Sigma N)$ and $\|M\|_{F,\Sigma}^2 = \inp{M}{M}_{F,\Sigma}$.
 
+\paragraph{Regularized solution} Since we expect that $\phi x(t)$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider instead the weighted $l_2$ regularised problem with parameter $\lambda\in\Real^+_*$ and weights $\Sigma_d\in\Real^{d\times d}$:
+
+\begin{equation}
+    \label{eq:regression_min}
+    \min_{\theta\in\Real^d} \|(Y_{[N]} -\Phi_{[N]}\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2
+\end{equation}
+
+%For simplicity, we abuse notations and replace $Y_{[N]}$ and $\Phi_{[N]}$ by their transposed forms $Y_{[N]}^T\in\Real^{p\timesN}$ and $\Phi_{[N]}^T\in\Real^{d\times p\times N}$.
+
+The solution can be obtained as:
+
+\begin{theorem}
+\begin{equation}
+    \label{eq:vector_rls}
+    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{Y_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
+\end{equation}
+where $\Phi_{[N],i}\in\Real^{p\times d}$ is the $i^\text{th}$ component of $\Phi_{[N]}$ along the first component, and
 \begin{equation*}
-    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \Phi^T_{[N]}Y_{[N]} + \lambda I, \quad \text{where } G_{N, \lambda} = X^T_{[N]}X_{[N]} + \lambda I.
-\end{equation*}
-
-\paragraph{Confidence ellipsoid}
-
-We consider the noise vector $\eta(t) = B_\omega \omega(t)\in\Real^p$. Since $\omega$ is bounded, $\eta$ is also bounded by $R=\sup_{t\geq 0}\|B_\omega \omega(t)\|_2^2$, and hence $\eta(t)$ is a $R$-subgaussian vector: $\eta(t)\sim \text{SubG}_p(R)$.
-
-This also implies that each component $\eta_i(t)$ for $i\in[p]$ is itself $R$-subgaussian. Consequently, by flattening the two first $N\times p$ dimensions of $Y_{[N]}, \Phi_{[N]}$ and $\eta_{[N]}$ to a single $Np$ dimension in \eqref{eq:regression}, we recover the conditions of scalar linear regression. We can apply the following theorem:
-
-\begin{theorem}[Theorem 2 of \citet{Abbasi2011}] Assuming that $\|\theta\|_2\leq S$, it holds with probability $1-\delta$ that:
-\begin{equation*}
-    \|\theta - \theta_{N,\lambda}\|_{G_{N,\lambda}} \leq R\sqrt{2\log \frac{\text{det}(G_{N,\lambda})^{1/2}\text{det}(\lambda I)^{-1/2}}{\delta}} + \lambda^{1/2}S
+    G_{N, \lambda} = \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i,j\in[d]^2} + \lambda \Sigma_d \in \Real^{d\times d}.
 \end{equation*}
 \end{theorem}
 
+\begin{proof}
+In this proof, we drop the $[N]$ subscripts for simplicity.
+Let $i\in[d]$ and denote $Y_{-i} = Y - \sum_{j\in[d], j\neq i} \theta_j\Phi_{j}$. 
+
+We differentiate the objective $J(\theta) = \|(Y -\Phi\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta_i$:
+\begin{align*}
+    J(\theta) &= \|(Y - \sum_{j=1}^d\theta_j\Phi_{j})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
+    &=  \|(Y_{-i} - \theta_i\Phi_{i})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
+    &= \Tr\left((Y_{-i} - \theta_i\Phi_{i})\Sigma_p^{-1}(Y_{-i} - \theta_i\Phi_{i})^T\right) + \lambda\|\theta\|_{\Sigma_d}^2\\
+    &= \theta_i^2\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_{i}^T\right) 
+    -\theta_i\Tr\left(\Phi_{i}\Sigma_p^{-1}Y_{-i}^T\right) 
+    -\theta_i\Tr\left(Y_{-i}\Sigma_p^{-1}\Phi_{i}^T\right)
+    + \Tr\left(Y_{-i}\Sigma_p^{-1}Y_{-i}^T\right)
+    \\
+    &\quad+ \lambda\|\theta\|_{\Sigma_d}^2
+\end{align*}
+
+Hence, 
+\begin{align*}
+    \nabla_{\theta_i} J(\theta) &= 2\theta_i\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_{i}^T\right)
+    -2\Tr\left(\Phi_{i}\Sigma_p^{-1}Y_{-i}^T\right) 
+    +2\lambda\theta^T\Sigma_{d,i}\\
+    &= 2\theta_i\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_{i}^T\right)
+    +2\sum_{j\neq i}\theta_j\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_j^T\right) 
+    -2\Tr\left(\Phi_{i}\Sigma_p^{-1}Y^T\right) 
+    +2\lambda\theta^T\Sigma_{d,i}\\
+    &= 2\theta^T\begin{bmatrix}
+    \Tr\left(\Phi_i \Sigma_p^{-1} \Phi_j^T\right)
+    \end{bmatrix}_{j\in[d]}
+    -2\Tr\left(\Phi_{i}\Sigma_p^{-1}Y^T\right) 
+    +2\lambda\theta^T\Sigma_{d,i}\\
+\end{align*}
+
+Since, $\nabla_{\theta}J(\theta) = 0 \iff \forall i,\, \nabla_{\theta_i}J(\theta) = 0$, we obtain the following optimality condition:
+
+\begin{align*}
+    \forall i,  \theta^T\left(\lambda\Sigma_{d,i} + \begin{bmatrix}
+    \Tr\left(\Phi_i \Sigma_p^{-1} \Phi_j^T\right)
+    \end{bmatrix}_{j\in[d]}\right)
+     = \Tr\left(\Phi_{i}\Sigma_p^{-1}Y^T\right)
+\end{align*}
+By transposing and arranging the $[d]$ equations in matrix form,
+\begin{align*}
+    \left(\lambda\Sigma_{d} + \begin{bmatrix}
+    \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
+    \end{bmatrix}_{i,j\in[d]^2}\right)\theta
+     = \begin{bmatrix}\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
+\end{align*}
+
+\end{proof}
+
+\paragraph{Confidence ellipsoid}
+
+In order to study the concentration of $\theta_{N,\lambda}$, we reinject the expression of $Y$ into \eqref{eq:vector_rls}:
+\begin{align*}
+    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\sum_{i=j}^d\theta_j\Phi_{[N],j}^T  + \Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
+    &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
+    G_{N, \lambda}^{-1} \sum_{i=j}^d\theta_j\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
+    &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
+    G_{N, \lambda}^{-1}\left(G_{N, \lambda}-\lambda\Sigma_d\right)\theta\\
+    &= \theta + G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} -
+    G_{N, \lambda}^{-1}\lambda\Sigma_d\theta
+\end{align*}
+
+Hence, for all $x\in\Real^d$,
+\begin{align*}
+    x^T\theta_{N,\lambda}  -x^T\theta &= x^T G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} 
+    - x^T G_{N, \lambda}^{-1}\lambda\Sigma_d\theta\\
+    &= \inp{x}{\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
+\end{align*}
+
+Using the Cauchy-Schwartz inequality, we get:
+\begin{align*}
+    |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
+\end{align*}
+\todo[inline]{The first term is a $\Real^d$ vector whose coefficients are inner product of matrices (a sum along time and $p$ dimensions). How to analyze its concentration?}
 
 \paragraph{Confidence polytope}
 
@@ -146,15 +312,14 @@ In order to use the interval predictor from \citep{leurent2019interval}, we also
 \label{lem:metzler} Let $D\in\Xi\subset\Real^{n\times n}$ be a matrix variable satisfying the interval constraints $\Xi=\{D\in\Real^{n\times n}:\,D_{a}-\Delta\le D\le D_{a}+\Delta\}$ for some $D_{a}^{\text{T}}=D_{a}\in\Real^{n\times n}$ and $\Delta\in\Real_{+}^{n\times n}$. If for some constant $\mu\in\Real_{+}$ and a diagonal matrix $\Upsilon\in\Real^{n\times n}$ the Metzler matrix $Y=\mu E_{n\times n}-\Upsilon$ has the same eigenvalues as the matrix $D_{a}$, then there is an orthogonal matrix $S\in\Real^{n\times n}$ such that the matrices $S^{\text{T}}DS$ are Metzler for all $D\in\Xi$ provided that $\mu>n||\Delta||_{max}$.\textup{ }
 \end{lemma}
 
-
 \begin{theorem}[Interval Predictor \citep{leurent2019interval}]
 \label{thm:predictor}
 Assuming that \eqref{eq:polytope} is satisfied for the system \eqref{eq:dynamics}, then the interval predictor:
 \begin{eqnarray}
 \dot{\underline{x}}(t) & = & A_{0}\underline{x}(t)-\Delta A_{+}\underline{x}^{-}(t)-\Delta A_{-}\overline{x}^{+}(t)\nonumber \\
- &  & +B^{+}\underline{\omega}(t)-B^{-}\overline{\omega}(t),\nonumber\\
+ &  & +Bu(t)+D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\nonumber\\
 \dot{\overline{x}}(t) & = & A_{0}\overline{x}(t)+\Delta A_{+}\overline{x}^{+}(t)+\Delta A_{-}\underline{x}^{-}(t) \label{eq:interval_predictor} \\
- &  & +B^{+}\overline{\omega}(t)-B^{-}\underline{\omega}(t),\nonumber \\
+ &  & +Bu(t)+D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber \\
  &  & \underline{x}(0)=\underline{x}_{0},\;\overline{x}(0)=\overline{x}_{0}\nonumber 
 \end{eqnarray}
 ensures the inclusion property \eqref{eq:interval_property}. If there exist diagonal matrices $P$, $Q$, $Q_{+}$, $Q_{-}$, $Z_{+}$, $Z_{-}$, $\Psi_{+}$, $\Psi_{-}$, $\Psi$, $\Gamma\in\Real^{2n\times 2n}$ such that the following LMIs are satisfied:

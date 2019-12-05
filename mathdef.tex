@@ -137,6 +137,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newcommand{\transpose}{^\mathsf{\scriptscriptstyle T}}
 \newcommand{\transp}{\mathsf{\scriptscriptstyle T}}
+\DeclareMathOperator{\Tr}{Tr}
+\DeclarePairedDelimiterX{\inp}[2]{\langle}{\rangle}{#1, #2}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Statistic operators      %
@@ -165,9 +167,11 @@
 \newtheorem{definition}{Definition}
 \newtheorem{lemma}{Lemma}
 \newtheorem{proposition}{Proposition}
+\providecommand*\propositionautorefname{Proposition}
 \newtheorem{remark}{Remark}
 \newtheorem{property}{Property}
 \newtheorem{assumption}{Assumption}
+\providecommand*\assumptionautorefname{Assumption}
 \newtheorem{conjecture}{Conjecture}
 
 \newtheorem*{definition*}{Definition}
