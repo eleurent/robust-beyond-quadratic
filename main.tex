@@ -8,11 +8,13 @@
 \usepackage{hyperref}
 \usepackage{booktabs}
 \usepackage[linesnumbered,ruled,vlined]{algorithm2e}
-\usepackage{natbib}
 \usepackage{caption}
 \usepackage{blkarray}
 \usepackage{todonotes}
 \usepackage{mathtools}
+\usepackage[backend=biber,style=authoryear,natbib=true,url=false]{biblatex}
+
+\addbibresource{references.bib}
 
 \input{mathdef.tex}
 
@@ -178,7 +180,7 @@ where
 \end{lemma}
 
 \subsection{Vector formulation}
-In the general case, we denote the weighted version of the Frobenius inner product Frobenius norm as $\inp{M}{N}_{F,\Sigma} = \Tr (M^T \Sigma N)$ and $\|M\|_{F,\Sigma}^2 = \inp{M}{M}_{F,\Sigma}$.
+In the general case, we denote the weighted version of the Frobenius inner product and Frobenius norm as $\inp{M}{N}_{F,\Sigma} = \Tr (M^T \Sigma N)$ and $\|M\|_{F,\Sigma}^2 = \inp{M}{M}_{F,\Sigma}$.
 
 \paragraph{Regularized solution} Since we expect that $\phi x(t)$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider instead the weighted $l_2$ regularised problem with parameter $\lambda\in\Real^+_*$ and weights $\Sigma_d\in\Real^{d\times d}$:
 
@@ -191,12 +193,12 @@ In the general case, we denote the weighted version of the Frobenius inner produ
 
 The solution can be obtained as:
 
-\begin{theorem}
+\begin{theorem}[Regularized solution] The solution to \eqref{eq:regression_min} is:
 \begin{equation}
     \label{eq:vector_rls}
     \theta_{N,\lambda} = G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{Y_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
 \end{equation}
-where $\Phi_{[N],i}\in\Real^{p\times d}$ is the $i^\text{th}$ component of $\Phi_{[N]}$ along the first component, and
+where $\Phi_{[N],i}\in\Real^{p\times d}$ is the $i^\text{th}$ component of $\Phi_{[N]}$ along the first dimension, and
 \begin{equation*}
     G_{N, \lambda} = \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i,j\in[d]^2} + \lambda \Sigma_d \in \Real^{d\times d}.
 \end{equation*}
@@ -277,7 +279,7 @@ Using the Cauchy-Schwartz inequality, we get:
 \begin{align*}
     |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
 \end{align*}
-\todo[inline]{The first term is a $\Real^d$ vector whose coefficients are inner product of matrices (a sum along time and $p$ dimensions). How to analyze its concentration?}
+\todo[inline]{EL: The first term is a $\Real^d$ vector whose coefficients are inner product of matrices (a sum along both the time $N$ and $p$ dimensions). How to analyze its concentration? For comparison, in \citep{Abbasi2011} $X^T\eta$ was a  $\Real^d$ vector whose coefficients were inner product of vectors $(X_i^T\eta)_i\in[d]$ (a sum over time $N$)}
 
 \paragraph{Confidence polytope}
 
@@ -637,7 +639,7 @@ Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \em
 In both cases, the obtained polytope centre $A_0$ is non-Metzler.
 We use lemma \ref{lem:metzler} to compute a similarity transformation of coordinates. Precisely, we ensure that the polytope is chosen so that its centre $A_0$ is diagonalisable having real eigenvalues, and perform an eigendecomposition to compute its change of basis matrix $S$. The transformed system $Z'=S^{-1}(Z-Z_c)$ verifies \eqref{eq:polytope} with $A_0$ Metlzer as required to apply the interval predictor of Theorem~\ref{thm:predictor}. Finally, the obtained predictor is transformed back to the original coordinates $Z$ by using the interval arithmetic of Lemma~\ref{lem:interval}.
 
-\bibliographystyle{plainnat}
-\bibliography{references}
+
+\printbibliography
 
 \end{document}
