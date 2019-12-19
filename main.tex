@@ -115,6 +115,11 @@ The maximum likelihood estimate for $\theta$ minimises a weighted mean square er
 \begin{equation*}
     \argmax_{\theta\in\Real^d} \probability{\cD\condbar\eqref{eq:dynamics};\Sigma} = \argmin_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\theta^T\phi x_n\|_{\Sigma_p^{-1}}^2
 \end{equation*}
+
+By rewriting $\Phi_n = [\cdots \phi_i x_n \cdots]\in\Real^{p\times d}$,
+\begin{equation*}
+    \argmax_{\theta\in\Real^d} \probability{\cD\condbar\eqref{eq:dynamics};\Sigma} = \argmin_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n \theta\|_{\Sigma_p^{-1}}^2
+\end{equation*}
 \end{proposition}
 \begin{proof}
 For $n\in[N]$, at time $t_n$, we have
@@ -135,7 +140,7 @@ By independence of the noise at different times, we have:
 \end{proof}
 
 
-We stack the observations $y(t_n), x(t_n)$ in $\cD$, as $Y_{[N]}, X_{[N]}\in\Real^{N\times p}$ and the noises $C\eta(t_n)+D\omega(t_n)$ as $\Omega_{[N]} \in\Real^{N\times p}$ to obtain the regression problem:
+We stack the observations $y_n, x_n$ in $\cD$, as $Y_{[N]}, X_{[N]}\in\Real^{N\times p}$ and the noises $C\eta(t_n)+D\omega(t_n)$ as $\Omega_{[N]} \in\Real^{N\times p}$ to obtain the regression problem:
 
 \begin{equation}
     \label{eq:regression}
@@ -167,128 +172,262 @@ In order to solve the regression problem \eqref{eq:regression} can simply reshap
 
 \begin{lemma}[Confidence ellipsoid \citep{kirschner18heteroscedastic}]
 Assuming that $\Sigma_p$ is diagonal and $\|\theta\|_2\leq S$, it holds with probability $1-\delta$ that:
-\begin{equation*}
+\begin{equation}
+    \label{eq:confidence-ellipsoid}
     \|\theta - \theta_{Np,\lambda}\|_{G_{Np,\lambda}} \leq \sqrt{2\log \frac{\text{det}(G_{Np,\lambda})^{1/2}\text{det}(\lambda I)^{-1/2}}{\delta}} + \lambda^{1/2}S
-\end{equation*}
+\end{equation}
 where
 \begin{align*}
-    \Phi_{[Np]}& \in\Real^{Np\times d},\, Y_{[Np]}\in \Real^{Np} \text{ are the flattened versions of $\Phi_{[N]}$, $Y_{[N]}$};\\
-    \tilde{\Phi}_{[Np]} &= \Phi_{[Np]} [\underbrace{\cdots \Sigma_p^{-1} \cdots}_{\text{$N$ times}}]^T, \qquad  \tilde{Y}_{[Np]} = Y_{[Np]} [\underbrace{\cdots \Sigma_p^{-1} \cdots}_{\text{$N$ times}}]^T;\\
+    \Phi_{[Np]}& \in\Real^{Np\times d},\, Y_{[Np]}\in \Real^{Np\times 1} \text{ are the reshaped versions of $\Phi_{[N]}$, $Y_{[N]}$};\\
+    \tilde{\Phi}_{[Np]} &= [\underbrace{\cdots \Sigma_p^{-\frac{1}{2}} \cdots}_{\text{$N$ times}}]^T \Phi_{[Np]} , \qquad  \tilde{Y}_{[Np]} = [\underbrace{\cdots \Sigma_p^{-\frac{1}{2}} \cdots}_{\text{$N$ times}}]^TY_{[Np]};\\
     G_{Np, \lambda} &= \tilde{\Phi}^T_{[Np]}\tilde{\Phi}_{[Np]} + \lambda I_d;\\
     \theta_{Np,\lambda} &= G_{Np, \lambda}^{-1} \tilde{\Phi}^T_{[Np]}\tilde{Y}_{[Np]}.
 \end{align*}
 \end{lemma}
 
+{\color{gray}
 \subsection{Vector formulation}
-In the general case, we denote the weighted version of the Frobenius inner product and Frobenius norm as $\inp{M}{N}_{F,\Sigma} = \Tr (M^T \Sigma N)$ and $\|M\|_{F,\Sigma}^2 = \inp{M}{M}_{F,\Sigma}$.
+
+% In the general case, we denote the weighted version of the Frobenius inner product and Frobenius norm as $\inp{M}{N}_{F,\Sigma} = \Tr (M^T \Sigma N)$ and $\|M\|_{F,\Sigma}^2 = \inp{M}{M}_{F,\Sigma}$.
 
 \paragraph{Regularized solution} Since we expect that $\phi x(t)$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider instead the weighted $l_2$ regularised problem with parameter $\lambda\in\Real^+_*$ and weights $\Sigma_d\in\Real^{d\times d}$:
 
+
 \begin{equation}
     \label{eq:regression_min}
-    \min_{\theta\in\Real^d} \|(Y_{[N]} -\Phi_{[N]}\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2
+    \min_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2
 \end{equation}
 
-%For simplicity, we abuse notations and replace $Y_{[N]}$ and $\Phi_{[N]}$ by their transposed forms $Y_{[N]}^T\in\Real^{p\timesN}$ and $\Phi_{[N]}^T\in\Real^{d\times p\times N}$.
 
 The solution can be obtained as:
 
 \begin{theorem}[Regularized solution] The solution to \eqref{eq:regression_min} is:
 \begin{equation}
     \label{eq:vector_rls}
-    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{Y_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
+    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^T \Sigma_p^{-1} y_n
 \end{equation}
-where $\Phi_{[N],i}\in\Real^{p\times d}$ is the $i^\text{th}$ component of $\Phi_{[N]}$ along the first dimension, and
+where 
 \begin{equation*}
-    G_{N, \lambda} = \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i,j\in[d]^2} + \lambda \Sigma_d \in \Real^{d\times d}.
+    G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^T\Sigma_p^{-1}\Phi_{n}  + \lambda \Sigma_d \in \Real^{d\times d}.
 \end{equation*}
 \end{theorem}
 
+
 \begin{proof}
-In this proof, we drop the $[N]$ subscripts for simplicity.
-Let $i\in[d]$ and denote $Y_{-i} = Y - \sum_{j\in[d], j\neq i} \theta_j\Phi_{j}$. 
-
-We differentiate the objective $J(\theta) = \|(Y -\Phi\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta_i$:
-\begin{align*}
-    J(\theta) &= \|(Y - \sum_{j=1}^d\theta_j\Phi_{j})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
-    &=  \|(Y_{-i} - \theta_i\Phi_{i})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
-    &= \Tr\left((Y_{-i} - \theta_i\Phi_{i})\Sigma_p^{-1}(Y_{-i} - \theta_i\Phi_{i})^T\right) + \lambda\|\theta\|_{\Sigma_d}^2\\
-    &= \theta_i^2\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_{i}^T\right) 
-    -\theta_i\Tr\left(\Phi_{i}\Sigma_p^{-1}Y_{-i}^T\right) 
-    -\theta_i\Tr\left(Y_{-i}\Sigma_p^{-1}\Phi_{i}^T\right)
-    + \Tr\left(Y_{-i}\Sigma_p^{-1}Y_{-i}^T\right)
-    \\
-    &\quad+ \lambda\|\theta\|_{\Sigma_d}^2
-\end{align*}
-
-Hence, 
-\begin{align*}
-    \nabla_{\theta_i} J(\theta) &= 2\theta_i\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_{i}^T\right)
-    -2\Tr\left(\Phi_{i}\Sigma_p^{-1}Y_{-i}^T\right) 
-    +2\lambda\theta^T\Sigma_{d,i}\\
-    &= 2\theta_i\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_{i}^T\right)
-    +2\sum_{j\neq i}\theta_j\Tr\left(\Phi_{i}\Sigma_p^{-1}\Phi_j^T\right) 
-    -2\Tr\left(\Phi_{i}\Sigma_p^{-1}Y^T\right) 
-    +2\lambda\theta^T\Sigma_{d,i}\\
-    &= 2\theta^T\begin{bmatrix}
-    \Tr\left(\Phi_i \Sigma_p^{-1} \Phi_j^T\right)
-    \end{bmatrix}_{j\in[d]}
-    -2\Tr\left(\Phi_{i}\Sigma_p^{-1}Y^T\right) 
-    +2\lambda\theta^T\Sigma_{d,i}\\
-\end{align*}
-
-Since, $\nabla_{\theta}J(\theta) = 0 \iff \forall i,\, \nabla_{\theta_i}J(\theta) = 0$, we obtain the following optimality condition:
+We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
 
 \begin{align*}
-    \forall i,  \theta^T\left(\lambda\Sigma_{d,i} + \begin{bmatrix}
-    \Tr\left(\Phi_i \Sigma_p^{-1} \Phi_j^T\right)
-    \end{bmatrix}_{j\in[d]}\right)
-     = \Tr\left(\Phi_{i}\Sigma_p^{-1}Y^T\right)
-\end{align*}
-By transposing and arranging the $[d]$ equations in matrix form,
-\begin{align*}
-    \left(\lambda\Sigma_{d} + \begin{bmatrix}
-    \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
-    \end{bmatrix}_{i,j\in[d]^2}\right)\theta
-     = \begin{bmatrix}\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
+    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^T\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{\Sigma_d}^2\\
+    &= -2\sum_{n=1}^N y_n^T\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^T(\Phi_n^T\Sigma^{-1}\Phi_n) +  2 \lambda \theta^T \Sigma_d
 \end{align*}
 
+Hence,
+\begin{align*}
+    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^T\Sigma_p^{-1}\Phi_n + \Sigma_d\right)\theta = \sum_{n=1}^N y_n^T\Sigma_p^{-1}\Phi_n
+\end{align*}
 \end{proof}
 
 \paragraph{Confidence ellipsoid}
 
-In order to study the concentration of $\theta_{N,\lambda}$, we reinject the expression of $Y$ into \eqref{eq:vector_rls}:
+In order to study the concentration of $\theta_{N,\lambda}$, we substitute the expression of $y_n$ into \eqref{eq:vector_rls}:
 \begin{align*}
-    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\sum_{i=j}^d\theta_j\Phi_{[N],j}^T  + \Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
-    &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
-    G_{N, \lambda}^{-1} \sum_{i=j}^d\theta_j\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
-    &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
-    G_{N, \lambda}^{-1}\left(G_{N, \lambda}-\lambda\Sigma_d\right)\theta\\
-    &= \theta + G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} -
-    G_{N, \lambda}^{-1}\lambda\Sigma_d\theta
+    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^T \Sigma_p^{-1} (\Phi_n\theta +\eta_n)\\
+    &= \theta - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n
 \end{align*}
 
 Hence, for all $x\in\Real^d$,
 \begin{align*}
-    x^T\theta_{N,\lambda}  -x^T\theta &= x^T G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} 
-    - x^T G_{N, \lambda}^{-1}\lambda\Sigma_d\theta\\
-    &= \inp{x}{\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
+    x^T\theta_{N,\lambda}  -x^T\theta &= x^T G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n
+    - \lambda x^T G_{N, \lambda}^{-1}\Sigma_d\theta\\
+    &= \inp{x}{\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
 \end{align*}
 
 Using the Cauchy-Schwartz inequality, we get:
 \begin{align*}
-    |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
+    |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
 \end{align*}
-\todo[inline]{EL: The first term is a $\Real^d$ vector whose coefficients are inner product of matrices (a sum along both the time $N$ and $p$ dimensions). How to analyze its concentration? For comparison, in \citep{Abbasi2011} $X^T\eta$ was a  $\Real^d$ vector whose coefficients were inner product of vectors $(X_i^T\eta)_i\in[d]$ (a sum over time $N$)}
 
+
+\begin{lemma}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
+Let $\{F_t\}_{t=0}$ be a filtration.
+Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and $\eta_t$ is $\Sigma_p$-SubGaussian:
+\begin{equation*}
+    \forall u\in\Real^p, \expectedvalue \left[ \exp{\left( u^T \eta_t\right)}\condbar F_{t-1}\right] \leq \exp{\left( u^T \Sigma_p u\right)}
+\end{equation*}
+
+Let $\{X_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $X_t$ is $F_t$-measurable. Assume that $V$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
+
+\begin{equation*}
+    \overline{V}_t = V + \sum_{s=1}^t X_s^T \Sigma_p^{-1} X_s \in \Real^{d\times d} \qquad S_t = \sum_{s=1}^t X_s^T\Sigma_p^{-1}\eta_s \in \Real^{d}
+\end{equation*}
+Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$
+
+\begin{align*}
+    \|S_t\|_{\overline{V_t}} \leq \cdots
+\end{align*}
+
+\end{lemma}
+\begin{proof}
+
+Let 
+\begin{equation*}
+    V_t = \sum_{s=1}^t X_s^T \Sigma_p^{-1} X_s \in \Real^{d\times d}
+\end{equation*}
+And for any $z\in\Real^d$,
+\begin{equation*}
+    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{V_t}\right)}
+\end{equation*}
+\begin{equation*}
+    D_t^z = \exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}
+\end{equation*}
+Then,
+\begin{align*}
+    M_t^z = \exp{\left(\sum_{s=1}^t z^T X_s^T \Sigma_p^{-1} \eta_s - \frac{1}{2} (X_s z)^T\Sigma_p^{-1}(X_s z) \right)} = \prod_{s=1}^{t} D_s^z
+\end{align*}
+and using the Sub-Gaussianity of $\eta_t$
+\begin{align*}
+    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] &= \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)} \expectedvalue\left[\exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
+    &\leq \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}\exp{\left((z^T X_t^T \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} X_t z)\right)}\\
+    &= 1
+\end{align*}
+\begin{align*}
+    \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
+\end{align*}
+
+\end{proof}
+
+% \begin{equation}
+%     \label{eq:regression_min}
+%     \min_{\theta\in\Real^d} \|(Y_{[N]} -\Phi_{[N]}\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2
+% \end{equation}
+
+% The solution can be obtained as:
+
+% \begin{theorem}[Regularized solution] The solution to \eqref{eq:regression_min} is:
+% \begin{equation}
+%     \label{eq:vector_rls}
+%     \theta_{N,\lambda} = G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{Y_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
+% \end{equation}
+% where $\Phi_{[N],i}\in\Real^{N\times p}$ is the $i^\text{th}$ component of $\Phi_{[N]}$ along the last dimension $i\in[d]$, and
+% \begin{equation*}
+%     G_{N, \lambda} = \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i,j\in[d]^2} + \lambda \Sigma_d \in \Real^{d\times d}.
+% \end{equation*}
+% \end{theorem}
+
+% \begin{proof}
+% In this proof, we drop the $[N]$ subscripts for simplicity.
+% Let $i\in[d]$ and denote $Y_{-i} = Y - \sum_{j\in[d], j\neq i} \theta_j\Phi_{j}$. 
+
+% We differentiate the objective $J(\theta) = \|(Y -\Phi\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta_i$:
+% \begin{align*}
+%     J(\theta) &= \|(Y - \sum_{j=1}^d\theta_j\Phi_{j})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
+%     &=  \|(Y_{-i} - \theta_i\Phi_{i})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
+%     &= \inp{(Y_{-i} - \theta_i\Phi_{i})^T}{(Y_{-i} - \theta_i\Phi_{i})^T}_{F,\Sigma_p^{-1}} + \lambda\|\theta\|_{\Sigma_d}^2\\
+%     &= \theta_i^2\inp{\Phi_{i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
+%     -\theta_i\inp{\Phi_{i}^T}{Y_{-i}^T}_{F,\Sigma_p^{-1}}
+%     -\theta_i\inp{Y_{-i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
+%     + \inp{Y_{-i}^T}{Y_{-i}^T}_{F,\Sigma_p^{-1}}
+%     \\
+%     &\quad+ \lambda\|\theta\|_{\Sigma_d}^2
+% \end{align*}
+
+% Hence, 
+% \begin{align*}
+%     \nabla_{\theta_i} J(\theta) &= 2\theta_i\inp{\Phi_{i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
+%     -2\inp{\Phi_{i}^T}{Y_{-i}^T}_{F,\Sigma_p^{-1}}
+%     +2\lambda\theta^T\Sigma_{d,i}\\
+%     &= 2\theta_i\inp{\Phi_{i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
+%     +2\sum_{j\neq i}\theta_j\inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
+%     -2\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}
+%     +2\lambda\theta^T\Sigma_{d,i}\\
+%     &= 2\theta^T\begin{bmatrix}
+%     \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
+%     \end{bmatrix}_{j\in[d]}
+%     -2\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}
+%     +2\lambda\theta^T\Sigma_{d,i}\\
+% \end{align*}
+
+% Since, $\nabla_{\theta}J(\theta) = 0 \iff \forall i,\, \nabla_{\theta_i}J(\theta) = 0$, we obtain the following optimality condition:
+
+% \begin{align*}
+%     \forall i,  \theta^T\left(\lambda\Sigma_{d,i} + \begin{bmatrix}
+%     \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
+%     \end{bmatrix}_{j\in[d]}\right)
+%      = \inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}
+% \end{align*}
+% By transposing and arranging the $[d]$ equations in matrix form,
+% \begin{align*}
+%     \left(\lambda\Sigma_{d} + \begin{bmatrix}
+%     \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
+%     \end{bmatrix}_{i,j\in[d]^2}\right)\theta
+%      = \begin{bmatrix}\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
+% \end{align*}
+
+% \end{proof}
+
+% \paragraph{Confidence ellipsoid}
+
+% In order to study the concentration of $\theta_{N,\lambda}$, we reinject the expression of $Y$ into \eqref{eq:vector_rls}:
+% \begin{align*}
+%     \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\sum_{i=j}^d\theta_j\Phi_{[N],j}^T  + \Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
+%     &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
+%     G_{N, \lambda}^{-1} \sum_{i=j}^d\theta_j\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
+%     &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
+%     G_{N, \lambda}^{-1}\left(G_{N, \lambda}-\lambda\Sigma_d\right)\theta\\
+%     &= \theta + G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} -
+%     G_{N, \lambda}^{-1}\lambda\Sigma_d\theta
+% \end{align*}
+
+% Hence, for all $x\in\Real^d$,
+% \begin{align*}
+%     x^T\theta_{N,\lambda}  -x^T\theta &= x^T G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} 
+%     - x^T G_{N, \lambda}^{-1}\lambda\Sigma_d\theta\\
+%     &= \inp{x}{\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
+% \end{align*}
+
+% Using the Cauchy-Schwartz inequality, we get:
+% \begin{align*}
+%     |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
+% \end{align*}
+
+% \todo[inline]{EL: The first term is a $\Real^d$ vector whose coefficients are inner product of matrices (a sum along both the time $N$ and state dimension $p$). How to analyze its concentration? For comparison, in \citep{Abbasi2011} $X^T\eta$ was a $\Real^d$ vector whose coefficients were inner product of vectors $(X_i^T\eta)_i\in[d]$ (a sum over time $N$)}
+
+% \begin{lemma}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
+% Let $\{F_t\}_{t=0}$ be a filtration.
+% Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and $\eta_t$ is Gaussian with mean $0_p$ and covariance $\Sigma_p$.
+
+% Let $\{X_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $X_t$ is $F_t$-measurable. Assume that $V$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
+
+% \begin{equation*}
+%     V_t = V + \sum_{s=1}^t X_s X_s^t \qquad S_t = \sum_{s=1}^t X_s^T\eta_s
+% \end{equation*}
+% Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$
+% \todo[inline]{EL: Which kind of concentration?}
+% \end{lemma}
+% \begin{proof}
+% \todo[inline]{TODO}
+% \end{proof}
+}
 \paragraph{Confidence polytope}
 
-Given a confidence ellipsoid $C_\delta$, we can enclose it by a polytope $P_\delta$:
+\begin{proposition}
+We can enclose the confidence ellipsoid $C_\delta$ obtained in $\eqref{eq:confidence-ellipsoid}$ within a polytope $P_\delta$:
 \[\cC_\delta \subset \cP_\delta\]
 where $\cP_\delta$ can be written as:
 \begin{equation}
-     \exists A_0,\Delta A_{1:p}: \cP_\delta = \left\{ A_{0}+\sum_{i=1}^{p}\lambda_{i}\Delta A_{i}: \lambda\in[0, 1]^p,  \sum_{i=1}^{p}\lambda_{i}=1\right\}.
+     \cP_\delta = \left\{ A_{0}+\sum_{i=1}^{2^d}\lambda_{i}\Delta A_{i}: \lambda\in[0, 1]^{2^d},  \sum_{i=1}^{2^d}\lambda_{i}=1\right\}.
 \end{equation}
+with 
+\begin{align*}
+    &G_{N,\lambda}^{-1} = PDP^{-1}\\
+    &h_k \text{ is the }k^\text{th}\text{ element of }\{-1,1\}^d\text{, for } k\in[2^d]\\
+    &\Delta\theta_k = 2 C_{n,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k \\
+    &A_0 = \theta_{N,\lambda}^T\Phi\\
+    &\Delta A_k = \Delta\theta_k^T\Phi\\
+\end{align*}
+\end{proposition}
+
+
 
 
 \section{State Prediction}
