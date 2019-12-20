@@ -421,11 +421,22 @@ with
 \begin{align*}
     &G_{N,\lambda}^{-1} = PDP^{-1}\\
     &h_k \text{ is the }k^\text{th}\text{ element of }\{-1,1\}^d\text{, for } k\in[2^d]\\
-    &\Delta\theta_k = 2 C_{n,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k \\
+    &\Delta\theta_k = C_{N,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k \\
     &A_0 = \theta_{N,\lambda}^T\Phi\\
     &\Delta A_k = \Delta\theta_k^T\Phi\\
 \end{align*}
 \end{proposition}
+\begin{proof}
+The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
+\begin{align*}
+    \theta\in\cC_\delta &\implies
+    (\theta-\theta_{N,\lambda})^T G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies (\theta'-\theta'_{N,\lambda})^T D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
+    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
+\end{align*}
+This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
+\end{proof}
 
 
 
