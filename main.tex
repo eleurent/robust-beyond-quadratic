@@ -1,4 +1,6 @@
 \documentclass{article}
+\usepackage[cm]{fullpage}
+
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{amsthm}
@@ -18,13 +20,32 @@
 
 \input{mathdef.tex}
 
-\title{An Integrated Framework for Robust Estimation, Prediction and Control}
+\title{Robust Estimation, Prediction and Control with Dynamics Structure}
 \author{Edouard Leurent, Denis Efimov, Odalric-Ambrym Maillard}
 \date{November 2019}
 
 \begin{document}
 
 \maketitle
+
+\section{Related Work}
+
+For LQ systems, where parameters A,B are unknown and no structure is available.
+\begin{itemize}
+    \item OFU: \citep{abbasi-yadkori11a}. Summary: $\theta=(A~B)$, ellipsoid in Frobenius norm + controllability constraint, choose and stabilize (Ricatti) an optimistic candidate, cumulative regret in $O(\sqrt{T}\log\frac{1}{\delta})$.
+    \item PSRL with TS: \citep{abeille18a}. Summary: RLS estimate + normal perturbation in the ellipsoid + rejection sampling over a controllability constraint, with frequent update, cumulative regret in $\tilde{O}(\sqrt{T})$
+    \item Offline estimation and control synthesis: \citep{Dean2017}. Summary: Estimation procedure of $N$ episodes of duration $T$ with gaussian excitation, ellipsoid in L2 norm, robust controller with System Level Synthesis, simple regret in $O(\sqrt{\frac{\log(1/\delta)}{N}})$
+    \item \citep{Dean2018}
+\end{itemize}
+
+Differences with our work:
+\begin{itemize}
+    \item We with to act in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
+    \item Thus, we do not wish to explore actively the more promising regions as in OFU, nor the more likely region as in TS, nor act randomly as in Coarse-ID.
+    \item We have linear dynamics but our cost is not quadratic (to accurately represent planning task with discrete/branching decisions: e.g. take or give way)
+    \item Our optimisation problem amounts to discrete controller selection, instead of continuous controller synthesis
+    
+\end{itemize}
 
 \section{Problem formulation}
 
@@ -39,14 +60,14 @@ with state $x\in\Real^p$, control $u\in\Real^q$, and disturbance $\omega\in\Real
 
 We also have access to a measurement of the form
 $
-    \dot{x}(t) + C\eta(t)
+    \dot{x}(t) + C\nu(t)
 $
 that we will actually denote (since the control $u(t)$ is known) as:
 \begin{equation}
 \label{eq:measurement}
-    y(t) = \dot{x}(t) - Bu(t) + C\eta(t)
+    y(t) = \dot{x}(t) - Bu(t) + C\nu(t)
 \end{equation}
-where $\eta(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known. Assumptions over the disturbance $\omega$ and noise $\eta$ will be detailed further.
+where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known. Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further.
 
 \paragraph{Objective}
 
@@ -67,19 +88,19 @@ and $r:\Real^p\rightarrow[0,1]$ is a bounded reward function.
 
 \section{Model Estimation}
 
-\paragraph{Objective}% The model estimation procedure is dedicated to building a confidence region around the unknown true model $A(\theta)$. 
+\paragraph{Objective}
 Having observed at times $(t_n)_{n\in[N]}$ a history of transitions $\cD = \{(x_n = x(t_n), u_n = u(t_n), y_n = y(t_n))\}_{n\in[N]}$, and given a confidence level $\delta\in[0, 1]$, our goal is to find a confidence region $\cC_\delta$ as tight as possible and such that it holds that:
 \begin{align}
 \probability{A(\theta)\in \cC_\delta} \geq 1-\delta
 \label{eq:polytope}
 \end{align}
 
-This involves the trilemma of confidence intervals, where one of three things must be true:
-\begin{enumerate}
-    \item $A(\theta)$ is in $\cC_\delta$
-    \item We got data that was very ($\leq\delta$) unlikely under all possible values $A(\theta)$
-    \item Our model is wrong
-\end{enumerate}
+% This involves the trilemma of confidence intervals, where one of three things must be true:
+% \begin{enumerate}
+%     \item $A(\theta)$ is in $\cC_\delta$
+%     \item We got data that was very ($\leq\delta$) unlikely under all possible values $A(\theta)$
+%     \item Our model is wrong
+% \end{enumerate}
 
 % \paragraph{Tensor notations}
 % We adopt the notations of [Tensor Decompositions and Applications]:
@@ -89,108 +110,19 @@ This involves the trilemma of confidence intervals, where one of three things mu
 % \end{equation*}
 
 We further assume that the dynamics $A(\theta)$ enjoy the following additional structure:
-\begin{assumption}[Linear Parametrisation]
+\begin{assumption}[Linear parametrisation]
 \label{assumpt:linear_param}
 There exists a known tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
 \begin{equation}
-    A(\theta) = \theta^T \phi \eqdef \sum_{i=1}^d \theta_i\phi_i
+    A(\theta) = \theta^\transp \phi \eqdef \sum_{i=1}^d \theta_i\phi_i
 \end{equation}
 where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$.
+
+For all $n\geq 0$, we also denote $\Phi_n = [\phi_1 x_n \cdots \phi_d x_n]\in\Real^{p\times d}$.
 \end{assumption}
 
-\begin{assumption}[Noise Model]
-\label{assumpt:noise}
-At each time $t\geq0$ the measurement noise $\eta(t)$ and disturbance $\omega(t)$  are independent Gaussians with respective means $0_r, 0_s$ and covariances $\Sigma_r, \Sigma_s$:
-\begin{equation*}
-    \eta(t)\sim \cN(0_r,\Sigma_r),\quad\omega(t)\sim \cN(0_s,\Sigma_s)
-\end{equation*}
-We further require that the matrix $\Sigma_p = C\Sigma_r C^T + D\Sigma_s D^T \in \Real^{p\times p}$ is full-rank.
-\end{assumption}
 
-Note that the full-rank condition in \autoref{assumpt:noise} would be harder to fulfil were it formulated only for the disturbance $D\Sigma_s D^T$, whereas it would be quite reasonable to assume, for instance, that $r=p$, which is sufficient.
-
-\begin{proposition}[Maximum Likelihood Estimate]
-\label{prop:mle}
-The maximum likelihood estimate for $\theta$ minimises a weighted mean square error:
-\begin{equation*}
-    \argmax_{\theta\in\Real^d} \probability{\cD\condbar\eqref{eq:dynamics};\Sigma} = \argmin_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\theta^T\phi x_n\|_{\Sigma_p^{-1}}^2
-\end{equation*}
-
-By rewriting $\Phi_n = [\cdots \phi_i x_n \cdots]\in\Real^{p\times d}$,
-\begin{equation*}
-    \argmax_{\theta\in\Real^d} \probability{\cD\condbar\eqref{eq:dynamics};\Sigma} = \argmin_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n \theta\|_{\Sigma_p^{-1}}^2
-\end{equation*}
-\end{proposition}
-\begin{proof}
-For $n\in[N]$, at time $t_n$, we have
-\begin{align*}
-    \probability{y_n, x_n} 
-    &= \probability{y_n|x_n}\probability{x_n}\\
-    &= \probability{y_n = \dot{x}_n - Bu_n +C\eta_n|x_n,u_n}\probability{x_n}\\
-    &= \probability{A(\theta)x_n + B u_n + D \omega_n - Bu_n +C\eta_n = y_n|x_n}\probability{x_n}\\
-    &= \probability{C\eta_n + D \omega_n = y_n- \theta^T \phi x_n |x_n}\probability{x_n}\\
-    &= \cN(y_n - \theta^T \phi x_n; 0_p,\Sigma_p)\probability{x_n}
-\end{align*}
-By independence of the noise at different times, we have:
-\begin{align*}
-    \log\probability{\cD;\Sigma} &= \log\prod_{n=1}^N\probability{y_n, x_n}\\
-    &= \sum_{n=1}^N\log \cN(y_n- \theta^T \phi x_n;0_p,\Sigma_p) + \log\probability{x_n}\\
-    &= \sum_{n=1}^N -\frac{1}{2} \|y_n -\theta^T\phi x_n\|_{\Sigma_p^{-1}}^2 - \log\left((2\pi)^{p/2} \det(\Sigma_p)^{1/2}\right) + \log\probability{x_n}
-\end{align*}
-\end{proof}
-
-
-We stack the observations $y_n, x_n$ in $\cD$, as $Y_{[N]}, X_{[N]}\in\Real^{N\times p}$ and the noises $C\eta(t_n)+D\omega(t_n)$ as $\Omega_{[N]} \in\Real^{N\times p}$ to obtain the regression problem:
-
-\begin{equation}
-    \label{eq:regression}
-    Y_{[N]} = \Phi_{[N]} \theta + \Omega_{[N]},
-\end{equation}
-with $\Phi_{[N]} = X_{[N]}\phi^T\in \Real^{N\times p\times d}$.
-
-% As detailed in \autoref{prop:mle}, we wish to solve:
-% \begin{equation*}
-%     \min_{\theta\in\Real^d} \|Y_{[N]} -\Phi_{[N]}\theta\|_{\Sigma_p^{-1}}^2
-% \end{equation*}
-
-% where we denote $\|z\|_S^2 = z S z^T$ for $z\in\Real^{N\times p}$ and $S\in\Real^{p\times p}$.
-
-\subsection{Scalar formulation}
-
-\begin{proposition}[Decoupling the noise]
-Without loss of generality, up to a change of basis, we can assume that $\Sigma_d$ is diagonal.
-\end{proposition}
-\begin{proof}
-Since $\Sigma_p$ is a symmetric real matrix, it is diagonalisable: there exists $Q\in\cO(p)$ and a diagonal matrix $R$ such that $\Sigma_p = QRQ^{-1}$. Hence, from \eqref{eq:dynamics} and \eqref{eq:measurement}:
-\begin{align*}
-    Q^{-1}y'(t) &= \sum_{i=1}^d \theta_i Q^{-1}\phi_i x(t) + Q^{-1}(C\eta(t) + D\omega(t))
-\end{align*}
-By rewriting $y \leftarrow Q^{-1}y, \phi_i\leftarrow Q^{-1}\phi_i, C\leftarrow Q^{-1}C$, and $D\leftarrow Q^{-1}D$ we recover \eqref{eq:dynamics} and \eqref{eq:measurement} in their original form, while now having $C\Sigma_rC^T + D\Sigma_rD^T = R$.
-\end{proof}
-
-In order to solve the regression problem \eqref{eq:regression} can simply reshape the two first $N\times p$ dimensions into a single $Np$ dimension. Since $\Sigma_p$ is diagonal, the noises on each row of $\Omega$ are independent, the problem becomes a standard scalar regression problem with heteroscedastic noise (if $\Sigma_p$ is not proportional to $I_p$), and the Lemma 5 of \citet{kirschner18heteroscedastic} can be applied.
-
-\begin{lemma}[Confidence ellipsoid \citep{kirschner18heteroscedastic}]
-Assuming that $\Sigma_p$ is diagonal and $\|\theta\|_2\leq S$, it holds with probability $1-\delta$ that:
-\begin{equation}
-    \label{eq:confidence-ellipsoid}
-    \|\theta - \theta_{Np,\lambda}\|_{G_{Np,\lambda}} \leq \sqrt{2\log \frac{\text{det}(G_{Np,\lambda})^{1/2}\text{det}(\lambda I)^{-1/2}}{\delta}} + \lambda^{1/2}S
-\end{equation}
-where
-\begin{align*}
-    \Phi_{[Np]}& \in\Real^{Np\times d},\, Y_{[Np]}\in \Real^{Np\times 1} \text{ are the reshaped versions of $\Phi_{[N]}$, $Y_{[N]}$};\\
-    \tilde{\Phi}_{[Np]} &= [\underbrace{\cdots \Sigma_p^{-\frac{1}{2}} \cdots}_{\text{$N$ times}}]^T \Phi_{[Np]} , \qquad  \tilde{Y}_{[Np]} = [\underbrace{\cdots \Sigma_p^{-\frac{1}{2}} \cdots}_{\text{$N$ times}}]^TY_{[Np]};\\
-    G_{Np, \lambda} &= \tilde{\Phi}^T_{[Np]}\tilde{\Phi}_{[Np]} + \lambda I_d;\\
-    \theta_{Np,\lambda} &= G_{Np, \lambda}^{-1} \tilde{\Phi}^T_{[Np]}\tilde{Y}_{[Np]}.
-\end{align*}
-\end{lemma}
-
-{\color{gray}
-\subsection{Vector formulation}
-
-% In the general case, we denote the weighted version of the Frobenius inner product and Frobenius norm as $\inp{M}{N}_{F,\Sigma} = \Tr (M^T \Sigma N)$ and $\|M\|_{F,\Sigma}^2 = \inp{M}{M}_{F,\Sigma}$.
-
-\paragraph{Regularized solution} Since we expect that $\phi x(t)$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider instead the weighted $l_2$ regularised problem with parameter $\lambda\in\Real^+_*$ and weights $\Sigma_d\in\Real^{d\times d}$:
+\paragraph{Regularised least square} Since we expect that $\Phi_n$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider the weighted $L_2$-regularised regression problem with weights  $\Sigma_p\in\Real^{p\times p}$ and $\Sigma_d\in\Real^{d\times d}$ and parameter $\lambda\in\Real^+_*$:
 
 
 \begin{equation}
@@ -201,216 +133,70 @@ where
 
 The solution can be obtained as:
 
-\begin{theorem}[Regularized solution] The solution to \eqref{eq:regression_min} is:
+\begin{theorem}[Regularised solution]
+\label{thm:regularized_solution}
+The solution to \eqref{eq:regression_min} is:
 \begin{equation}
     \label{eq:vector_rls}
-    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^T \Sigma_p^{-1} y_n
+    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} y_n
 \end{equation}
 where 
 \begin{equation*}
-    G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^T\Sigma_p^{-1}\Phi_{n}  + \lambda \Sigma_d \in \Real^{d\times d}.
+    G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^\transp\Sigma_p^{-1}\Phi_{n}  + \lambda \Sigma_d \in \Real^{d\times d}.
 \end{equation*}
 \end{theorem}
 
-
-\begin{proof}
-We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
-
+Denote $\eta(t) = C\nu(t) + D\omega(t)$. By substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain:
+\begin{lemma}[Regression error]
+\label{lem:regression-error}
 \begin{align*}
-    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^T\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{\Sigma_d}^2\\
-    &= -2\sum_{n=1}^N y_n^T\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^T(\Phi_n^T\Sigma^{-1}\Phi_n) +  2 \lambda \theta^T \Sigma_d
+    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta 
 \end{align*}
+\end{lemma}
 
-Hence,
-\begin{align*}
-    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^T\Sigma_p^{-1}\Phi_n + \Sigma_d\right)\theta = \sum_{n=1}^N y_n^T\Sigma_p^{-1}\Phi_n
-\end{align*}
-\end{proof}
+Depending on the assumption we take over the noise $\eta_n$ and the true parameter $\theta$, we can bound the regression error $\theta_{N,\lambda} - \theta$ in different ways.
 
-\paragraph{Confidence ellipsoid}
+\subsection{Sub-Gaussian noise}
 
-In order to study the concentration of $\theta_{N,\lambda}$, we substitute the expression of $y_n$ into \eqref{eq:vector_rls}:
-\begin{align*}
-    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^T \Sigma_p^{-1} (\Phi_n\theta +\eta_n)\\
-    &= \theta - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n
-\end{align*}
+We say that a random vector $x\in\Real^k$ is sub-Gaussian with covariance proxy $\Sigma$, and denote $x\sim Sub_G(\Sigma)$, if $\expectedvalue[x] = 0_k$ and:
+\[
+\forall u\in\Real^k, \expectedvalue \left[ \exp{\left( u^\transp x\right)}\right] \leq \exp{\left( \frac{1}{2} u^\transp \Sigma u\right)}
+\]
 
-Hence, for all $x\in\Real^d$,
-\begin{align*}
-    x^T\theta_{N,\lambda}  -x^T\theta &= x^T G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n
-    - \lambda x^T G_{N, \lambda}^{-1}\Sigma_d\theta\\
-    &= \inp{x}{\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
-\end{align*}
-
-Using the Cauchy-Schwartz inequality, we get:
-\begin{align*}
-    |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^T \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
-\end{align*}
-
-
-\begin{lemma}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
-Let $\{F_t\}_{t=0}$ be a filtration.
-Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and $\eta_t$ is $\Sigma_p$-SubGaussian:
+\begin{assumption}[Sub-Gaussian Noise Model]
+\label{assumpt:noise}
+At each time $t\geq0$ the sum $\eta(t)$ of projected measurement noise $\nu(t)$ and disturbance $\omega(t)$ is a Sub-Gaussian noises with covariance proxy $\Sigma_p \in \Real^{p\times p}$:
 \begin{equation*}
-    \forall u\in\Real^p, \expectedvalue \left[ \exp{\left( u^T \eta_t\right)}\condbar F_{t-1}\right] \leq \exp{\left( u^T \Sigma_p u\right)}
+    \eta(t) = C\nu(t) + D\omega(t) \sim Sub_G(\Sigma_p)
 \end{equation*}
 
-Let $\{X_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $X_t$ is $F_t$-measurable. Assume that $V$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
+For instance, this is the case of $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$.
+\end{assumption}
+
+\begin{lemma}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
+\label{lem:concentration}
+Let $\{F_t\}_{t=0}$ be a filtration.
+Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and conditionally $\Sigma_p$-SubGaussian.
+
+Let $\{\Phi_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $\Phi_t$ is $F_t$-measurable. Assume that $G$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
 
 \begin{equation*}
-    \overline{V}_t = V + \sum_{s=1}^t X_s^T \Sigma_p^{-1} X_s \in \Real^{d\times d} \qquad S_t = \sum_{s=1}^t X_s^T\Sigma_p^{-1}\eta_s \in \Real^{d}
+    \overline{G}_t = G + \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \qquad S_t = \sum_{s=1}^t \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}
 \end{equation*}
 Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$
 
 \begin{align*}
-    \|S_t\|_{\overline{V_t}} \leq \cdots
+    \|S_t\|_{\overline{G_t}} \leq \cdots
 \end{align*}
-
 \end{lemma}
-\begin{proof}
 
-Let 
-\begin{equation*}
-    V_t = \sum_{s=1}^t X_s^T \Sigma_p^{-1} X_s \in \Real^{d\times d}
-\end{equation*}
-And for any $z\in\Real^d$,
-\begin{equation*}
-    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{V_t}\right)}
-\end{equation*}
-\begin{equation*}
-    D_t^z = \exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}
-\end{equation*}
-Then,
-\begin{align*}
-    M_t^z = \exp{\left(\sum_{s=1}^t z^T X_s^T \Sigma_p^{-1} \eta_s - \frac{1}{2} (X_s z)^T\Sigma_p^{-1}(X_s z) \right)} = \prod_{s=1}^{t} D_s^z
-\end{align*}
-and using the Sub-Gaussianity of $\eta_t$
-\begin{align*}
-    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] &= \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)} \expectedvalue\left[\exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
-    &\leq \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}\exp{\left((z^T X_t^T \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} X_t z)\right)}\\
-    &= 1
-\end{align*}
-\begin{align*}
-    \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
-\end{align*}
+\begin{theorem}[Confidence ellipsoid]
+\label{thm:confidence_ellipsoid}
+\todo[inline]{TODO}
+\end{theorem}
 
-\end{proof}
-
-% \begin{equation}
-%     \label{eq:regression_min}
-%     \min_{\theta\in\Real^d} \|(Y_{[N]} -\Phi_{[N]}\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2
-% \end{equation}
-
-% The solution can be obtained as:
-
-% \begin{theorem}[Regularized solution] The solution to \eqref{eq:regression_min} is:
-% \begin{equation}
-%     \label{eq:vector_rls}
-%     \theta_{N,\lambda} = G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{Y_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
-% \end{equation}
-% where $\Phi_{[N],i}\in\Real^{N\times p}$ is the $i^\text{th}$ component of $\Phi_{[N]}$ along the last dimension $i\in[d]$, and
-% \begin{equation*}
-%     G_{N, \lambda} = \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i,j\in[d]^2} + \lambda \Sigma_d \in \Real^{d\times d}.
-% \end{equation*}
-% \end{theorem}
-
-% \begin{proof}
-% In this proof, we drop the $[N]$ subscripts for simplicity.
-% Let $i\in[d]$ and denote $Y_{-i} = Y - \sum_{j\in[d], j\neq i} \theta_j\Phi_{j}$. 
-
-% We differentiate the objective $J(\theta) = \|(Y -\Phi\theta)^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta_i$:
-% \begin{align*}
-%     J(\theta) &= \|(Y - \sum_{j=1}^d\theta_j\Phi_{j})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
-%     &=  \|(Y_{-i} - \theta_i\Phi_{i})^T\|_{F,\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2\\
-%     &= \inp{(Y_{-i} - \theta_i\Phi_{i})^T}{(Y_{-i} - \theta_i\Phi_{i})^T}_{F,\Sigma_p^{-1}} + \lambda\|\theta\|_{\Sigma_d}^2\\
-%     &= \theta_i^2\inp{\Phi_{i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
-%     -\theta_i\inp{\Phi_{i}^T}{Y_{-i}^T}_{F,\Sigma_p^{-1}}
-%     -\theta_i\inp{Y_{-i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
-%     + \inp{Y_{-i}^T}{Y_{-i}^T}_{F,\Sigma_p^{-1}}
-%     \\
-%     &\quad+ \lambda\|\theta\|_{\Sigma_d}^2
-% \end{align*}
-
-% Hence, 
-% \begin{align*}
-%     \nabla_{\theta_i} J(\theta) &= 2\theta_i\inp{\Phi_{i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
-%     -2\inp{\Phi_{i}^T}{Y_{-i}^T}_{F,\Sigma_p^{-1}}
-%     +2\lambda\theta^T\Sigma_{d,i}\\
-%     &= 2\theta_i\inp{\Phi_{i}^T}{\Phi_{i}^T}_{F,\Sigma_p^{-1}}
-%     +2\sum_{j\neq i}\theta_j\inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
-%     -2\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}
-%     +2\lambda\theta^T\Sigma_{d,i}\\
-%     &= 2\theta^T\begin{bmatrix}
-%     \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
-%     \end{bmatrix}_{j\in[d]}
-%     -2\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}
-%     +2\lambda\theta^T\Sigma_{d,i}\\
-% \end{align*}
-
-% Since, $\nabla_{\theta}J(\theta) = 0 \iff \forall i,\, \nabla_{\theta_i}J(\theta) = 0$, we obtain the following optimality condition:
-
-% \begin{align*}
-%     \forall i,  \theta^T\left(\lambda\Sigma_{d,i} + \begin{bmatrix}
-%     \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
-%     \end{bmatrix}_{j\in[d]}\right)
-%      = \inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}
-% \end{align*}
-% By transposing and arranging the $[d]$ equations in matrix form,
-% \begin{align*}
-%     \left(\lambda\Sigma_{d} + \begin{bmatrix}
-%     \inp{\Phi_{i}^T}{\Phi_{j}^T}_{F,\Sigma_p^{-1}}
-%     \end{bmatrix}_{i,j\in[d]^2}\right)\theta
-%      = \begin{bmatrix}\inp{\Phi_{i}^T}{Y^T}_{F,\Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}
-% \end{align*}
-
-% \end{proof}
-
-% \paragraph{Confidence ellipsoid}
-
-% In order to study the concentration of $\theta_{N,\lambda}$, we reinject the expression of $Y$ into \eqref{eq:vector_rls}:
-% \begin{align*}
-%     \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \begin{bmatrix}\inp{\Phi_{[N],i}^T}{\sum_{i=j}^d\theta_j\Phi_{[N],j}^T  + \Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
-%     &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
-%     G_{N, \lambda}^{-1} \sum_{i=j}^d\theta_j\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Phi_{[N],j}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\\
-%     &= G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} + 
-%     G_{N, \lambda}^{-1}\left(G_{N, \lambda}-\lambda\Sigma_d\right)\theta\\
-%     &= \theta + G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} -
-%     G_{N, \lambda}^{-1}\lambda\Sigma_d\theta
-% \end{align*}
-
-% Hence, for all $x\in\Real^d$,
-% \begin{align*}
-%     x^T\theta_{N,\lambda}  -x^T\theta &= x^T G_{N, \lambda}^{-1}\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]} 
-%     - x^T G_{N, \lambda}^{-1}\lambda\Sigma_d\theta\\
-%     &= \inp{x}{\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
-% \end{align*}
-
-% Using the Cauchy-Schwartz inequality, we get:
-% \begin{align*}
-%     |x^T\theta_{N,\lambda}  -x^T\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\begin{bmatrix}\inp{\Phi_{[N],i}^T}{\Omega_{[N]}^T}_{F, \Sigma_p^{-1}}\end{bmatrix}_{i\in[d]}\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
-% \end{align*}
-
-% \todo[inline]{EL: The first term is a $\Real^d$ vector whose coefficients are inner product of matrices (a sum along both the time $N$ and state dimension $p$). How to analyze its concentration? For comparison, in \citep{Abbasi2011} $X^T\eta$ was a $\Real^d$ vector whose coefficients were inner product of vectors $(X_i^T\eta)_i\in[d]$ (a sum over time $N$)}
-
-% \begin{lemma}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
-% Let $\{F_t\}_{t=0}$ be a filtration.
-% Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and $\eta_t$ is Gaussian with mean $0_p$ and covariance $\Sigma_p$.
-
-% Let $\{X_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $X_t$ is $F_t$-measurable. Assume that $V$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
-
-% \begin{equation*}
-%     V_t = V + \sum_{s=1}^t X_s X_s^t \qquad S_t = \sum_{s=1}^t X_s^T\eta_s
-% \end{equation*}
-% Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$
-% \todo[inline]{EL: Which kind of concentration?}
-% \end{lemma}
-% \begin{proof}
-% \todo[inline]{TODO}
-% \end{proof}
-}
-\paragraph{Confidence polytope}
-
-\begin{proposition}
+\begin{lemma}[Confidence polytope]
+\label{lem:confidence_polytope}
 We can enclose the confidence ellipsoid $C_\delta$ obtained in $\eqref{eq:confidence-ellipsoid}$ within a polytope $P_\delta$:
 \[\cC_\delta \subset \cP_\delta\]
 where $\cP_\delta$ can be written as:
@@ -422,24 +208,31 @@ with
     &G_{N,\lambda}^{-1} = PDP^{-1}\\
     &h_k \text{ is the }k^\text{th}\text{ element of }\{-1,1\}^d\text{, for } k\in[2^d]\\
     &\Delta\theta_k = C_{N,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k \\
-    &A_0 = \theta_{N,\lambda}^T\Phi\\
-    &\Delta A_k = \Delta\theta_k^T\Phi\\
+    &A_0 = \theta_{N,\lambda}^\transp\Phi\\
+    &\Delta A_k = \Delta\theta_k^\transp\Phi\\
 \end{align*}
-\end{proposition}
-\begin{proof}
-The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
-\begin{align*}
-    \theta\in\cC_\delta &\implies
-    (\theta-\theta_{N,\lambda})^T G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
-    &\implies (\theta'-\theta'_{N,\lambda})^T D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
-    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
-    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
-\end{align*}
-This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
-\end{proof}
+\end{lemma}
 
+\begin{figure}
+    \centering
+    \includegraphics[trim={3.8cm, 2cm, 5cm, 3.8cm}, clip, width=0.6\textwidth]{img/ellipsoid_to_polytope}
+    \caption{From the confidence ellipsoid $\cC_\delta$ to its enclosing polytope $\cP_\delta$}
+    \label{fig:ellipsoid_to_polytope}
+\end{figure}
 
+\subsection{Bounded noise}
 
+\begin{assumption}[Bounded noise]
+The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
+\[\|\eta\|_\infty < \infty\]
+\end{assumption}
+
+Then, 
+\[
+\|\theta_{N,\lambda} - \theta\|_1 \leq \|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty + \lambda\|G_{N, \lambda}^{-1}\Sigma_d\theta\|_1
+\]
+
+This $L_1$-ball is a polytope with $2d$ vertices, that we denote $\cP$.
 
 \section{State Prediction}
 
@@ -504,41 +297,38 @@ A_{0} & 0\\
 }then the predictor \eqref{eq:interval_predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
 \end{theorem}
 
-\begin{example*}
-Consider a scalar system:
-\[
-\dot{x}(t)=-\theta(t)x(t)+d(t),\;t\geq0,
-\]
-where $x(t)\in\Real$ with $x(0)\in[\underline{x}_{0},\overline{x}_{0}]=[1.0, 1.1]$, $\theta(t)\in\Pi=[\underline{\theta},\overline{\theta}]=[0.5,1.5]$ and $d(t)\in[\underline{d},\overline{d}]=[-0.1,0.1]$ for all $t\geq0$. The \autoref{fig:predictor_example} shows the state-interval obtained with \eqref{eq:interval_predictor}.
+% \begin{example*}
+% Consider a scalar system:
+% \[
+% \dot{x}(t)=-\theta(t)x(t)+d(t),\;t\geq0,
+% \]
+% where $x(t)\in\Real$ with $x(0)\in[\underline{x}_{0},\overline{x}_{0}]=[1.0, 1.1]$, $\theta(t)\in\Pi=[\underline{\theta},\overline{\theta}]=[0.5,1.5]$ and $d(t)\in[\underline{d},\overline{d}]=[-0.1,0.1]$ for all $t\geq0$. The \autoref{fig:predictor_example} shows the state-interval obtained with \eqref{eq:interval_predictor}.
 
-\begin{figure}
-\begin{centering}
-\includegraphics[width=\linewidth]{img/interval_predictor}
-\par\end{centering}
-\caption{Several trajectories for different values of $\theta\in\Theta$ are shown in blue. The result of prediction by \eqref{eq:interval_predictor} is in red: the predictor is stable and produces tight bounds.}
-\label{fig:predictor_example}
-\end{figure}
-\end{example*}
+% \begin{figure}
+% \begin{centering}
+% \includegraphics[width=\linewidth]{img/interval_predictor}
+% \par\end{centering}
+% \caption{Several trajectories for different values of $\theta\in\Theta$ are shown in blue. The result of prediction by \eqref{eq:interval_predictor} is in red: the predictor is stable and produces tight bounds.}
+% \label{fig:predictor_example}
+% \end{figure}
+% \end{example*}
 
 \section{Control}
 
-In this section, we still assume that we have a high-confidence polytope $\cP$ that verifies \eqref{eq:polytope} with probability $1-\delta$.
-
-
-The \textbf{robust control} objective $v^r$:
+We consider the robust control objective $v^r$:
 \todo[inline]{EL: since the interval dynamics will be deterministic, use open-loop policies, ie sequences of actions $\mathbf{u}$ instead of closed-loop policies $\pi$}
 
 \begin{equation}
 \label{eq:robust-control}
-\max_\pi \underbrace{\min_{\theta \in \Theta} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar \dot{x}(t) = A(\theta) x(t) + B_u u(t) + B_\omega\omega(t), u_t = \pi(x_t)\right]}_{v^r(\pi)}
+\max_\pi \underbrace{\min_{A(\theta) \in \cP} \left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t = \pi(x_t), \omega(t)\right]}_{v^r(\pi)}
 \end{equation}
 
 
 \begin{definition}[Surrogate objective]
-We modify the robust objective $v^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the polytopic approximation $\cP_\delta$ of $A(\Theta)$: 
+We approximate the robust objective $v^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the polytopic approximation $\cP_\delta$ of $A(\Theta)$: 
 
 \begin{equation}
-\hat{v^r}(\pi) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \pi), \overline{x}(t, \pi)]}  r(x)
+\hat{v}^r(\pi) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \pi), \overline{x}(t, \pi)]}  r(x)
 \end{equation}
 where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
@@ -566,11 +356,16 @@ where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined 
 
 \begin{property}[Lower bound]
 \label{prop:lower-bound}
-With high probability, the surrogate objective $\hat{v^r}$ is a lower bound of the true objective $v^r$:
+With high probability, the surrogate objective $\hat{v}^r$ is a lower bound of the true objective $v^r$:
 
 \begin{equation}
-\probability{\forall \pi, \hat{v^r}(\pi) \leq v^r(\pi)} \geq 1-\delta
+\hat{v}^r(\pi) \leq v^r(\pi)
 \end{equation}
+
+If we assume that $R$ is $L$-Lipschitz, then we can bound the other side:
+\begin{equation*}
+     \hat{v}^r(\pi) \leq v^r(\pi) \leq \hat{v}^r(\pi) + L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
+\end{equation*}
 \end{property}
 
 \begin{proof}
@@ -587,11 +382,18 @@ v^r(\pi) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\s
 \end{align*}
 \end{proof}
 
-The robust objective error $v^r - \hat{v^r}$ stems from two terms: the approximation of the reachable set by the polytopic and interval approximations and the loss of time-dependency between the states within a single trajectory. If both these approximations are tight enough, maximizing the lower bound $\hat{v^r}$ will increase the true objective $v^r$, which is the idea behind Algorithm \ref{algo:irc}.
+The robust objective error $v^r - \hat{v^r}$ stems from two terms: the approximation of the reachable set by the polytopic and interval approximations and the loss of time-dependency between the states within a single trajectory. If both these approximations are tight enough, maximising the lower bound $\hat{v^r}$ will increase the true objective $v^r$, which is the idea behind Algorithm \ref{algo:irc}.
 
 \section{Multi-model Estimation and Control}
 
+What if our system dynamics \eqref{eq:dynamics} or linear parametrisation assumption \ref{assumpt:linear_param} are wrong?
+
 \subsection{Model adequacy}
+
+We can test the model adequacy, and eventually reject it.
+
+This suggest using multiple models with different sets of features.
+
 \subsection{Robust control with Discrete Ambiguity}
 
 
@@ -789,7 +591,94 @@ Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \em
 In both cases, the obtained polytope centre $A_0$ is non-Metzler.
 We use lemma \ref{lem:metzler} to compute a similarity transformation of coordinates. Precisely, we ensure that the polytope is chosen so that its centre $A_0$ is diagonalisable having real eigenvalues, and perform an eigendecomposition to compute its change of basis matrix $S$. The transformed system $Z'=S^{-1}(Z-Z_c)$ verifies \eqref{eq:polytope} with $A_0$ Metlzer as required to apply the interval predictor of Theorem~\ref{thm:predictor}. Finally, the obtained predictor is transformed back to the original coordinates $Z$ by using the interval arithmetic of Lemma~\ref{lem:interval}.
 
-
 \printbibliography
+
+\appendix
+
+\section{Proofs}
+
+\subsection{Proof of \autoref{thm:regularized_solution}}
+
+\begin{proof}
+We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
+
+\begin{align*}
+    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^\transp\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{\Sigma_d}^2\\
+    &= -2\sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^\transp(\Phi_n^\transp\Sigma^{-1}\Phi_n) +  2 \lambda \theta^\transp \Sigma_d
+\end{align*}
+
+Hence,
+\begin{align*}
+    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^\transp\Sigma_p^{-1}\Phi_n + \Sigma_d\right)\theta = \sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n
+\end{align*}
+\end{proof}
+
+\subsection{Proof of \autoref{lem:regression-error}}
+
+In order to study the concentration of $\theta_{N,\lambda}$, we substitute the expression of $y_n$ into \eqref{eq:vector_rls}:
+\begin{align*}
+    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} (\Phi_n\theta +\eta_n)\\
+    &= \theta - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
+\end{align*}
+
+\subsection{Proof of \autoref{lem:concentration}}
+
+\begin{proof}
+
+Let 
+\begin{equation*}
+    V_t = \sum_{s=1}^t X_s^\transp \Sigma_p^{-1} X_s \in \Real^{d\times d}
+\end{equation*}
+And for any $z\in\Real^d$,
+\begin{equation*}
+    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{V_t}\right)}
+\end{equation*}
+\begin{equation*}
+    D_t^z = \exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}
+\end{equation*}
+Then,
+\begin{align*}
+    M_t^z = \exp{\left(\sum_{s=1}^t z^\transp X_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (X_s z)^\transp\Sigma_p^{-1}(X_s z) \right)} = \prod_{s=1}^{t} D_s^z
+\end{align*}
+and using the Sub-Gaussianity of $\eta_t$
+\begin{align*}
+    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] &= \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)} \expectedvalue\left[\exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
+    &\leq \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}\exp{\left((z^\transp X_t^\transp \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} X_t z)\right)}\\
+    &= 1
+\end{align*}
+\begin{align*}
+    \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
+\end{align*}
+
+\end{proof}
+
+\subsection{Proof of \autoref{thm:confidence_ellipsoid}}
+
+Hence, for all $x\in\Real^d$,
+\begin{align*}
+    x^\transp\theta_{N,\lambda}  -x^\transp\theta &= x^\transp G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
+    - \lambda x^\transp G_{N, \lambda}^{-1}\Sigma_d\theta\\
+    &= \inp{x}{\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
+\end{align*}
+
+Using the Cauchy-Schwartz inequality, we get:
+\begin{align*}
+    |x^\transp\theta_{N,\lambda}  -x^\transp\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
+\end{align*}
+
+\subsection{Proof of \autoref{lem:confidence_polytope}}
+
+\begin{proof}
+The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
+\begin{align*}
+    \theta\in\cC_\delta &\implies
+    (\theta-\theta_{N,\lambda})^\transp G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies (\theta'-\theta'_{N,\lambda})^\transp D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
+    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
+\end{align*}
+This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
+\end{proof}
+
 
 \end{document}
