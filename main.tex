@@ -1,32 +1,108 @@
-\documentclass{article}
-\usepackage[cm]{fullpage}
+%%%%%%%% ICML 2020 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
 
-\usepackage[utf8]{inputenc}
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
 \usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs} % for professional tables
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2020} with \usepackage[nohyperref]{icml2020} above.
+\usepackage{hyperref}
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% Use the following line for the initial blind version submitted for review:
+\usepackage{icml2020}
+
+% If accepted, instead use the following line for the camera-ready submission:
+%\usepackage[accepted]{icml2020}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+%\icmltitlerunning{Submission and Formatting Instructions for ICML 2020}
+
+
+% Custom packages
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{float}
 \usepackage{hyperref}
-\usepackage{booktabs}
-\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
-\usepackage{caption}
 \usepackage{blkarray}
 \usepackage{todonotes}
 \usepackage{mathtools}
-\usepackage[backend=biber,style=authoryear,natbib=true,url=false]{biblatex}
 
-\addbibresource{references.bib}
 
 \input{mathdef.tex}
 
-\title{Robust Estimation, Prediction and Control with Dynamics Structure}
-\author{Edouard Leurent, Denis Efimov, Odalric-Ambrym Maillard}
-\date{November 2019}
+%\author{Edouard Leurent, Denis Efimov, Odalric-Ambrym Maillard}
+
+
 
 \begin{document}
+	
+	\twocolumn[
+	\icmltitle{Robust Estimation, Prediction and Control with \\ Continuous States and Dynamics Structure}
+	
+	% It is OKAY to include author information, even for blind
+	% submissions: the style file will automatically remove it for you
+	% unless you've provided the [accepted] option to the icml2020
+	% package.
+	
+	% List of affiliations: The first argument should be a (short)
+	% identifier you will use later to specify author affiliations
+	% Academic affiliations should list Department, University, City, Region, Country
+	% Industry affiliations should list Company, City, Region, Country
+	
+	% You can specify symbols, otherwise they are numbered in order.
+	% Ideally, you should not use this facility. Affiliations will be numbered
+	% in order of appearance and this is the preferred way.
+	\icmlsetsymbol{equal}{*}
+	
+	\begin{icmlauthorlist}
+		\icmlauthor{Edouard Leurent}{seq,val,ren}
+		\icmlauthor{Denis Efimov}{val}
+		\icmlauthor{Odalric Ambrym-Maillard}{seq}
+	\end{icmlauthorlist}
+	
+	\icmlaffiliation{seq}{Inria Lille Nord-Europe, Sequel Project, Lille, France}
+	\icmlaffiliation{val}{Inria Lille Nord-Europe, Valse Project, Lille, France}
+	\icmlaffiliation{ren}{Renault Group, Guyancourt, France}
+	
+	\icmlcorrespondingauthor{Edouard Leurent}{edouard.leurent@inria.fr}
+	
+	% You may provide any keywords that you
+	% find helpful for describing your paper; these are used to populate
+	% the "keywords" metadata in the PDF but will not be shown in the document
+	\icmlkeywords{Machine Learning, ICML}
+	
+	\vskip 0.3in
+	]
+	
+	% this must go after the closing bracket ] following \twocolumn[ ...
+	
+	% This command actually creates the footnote in the first column
+	% listing the affiliations and the copyright notice.
+	% The command takes one argument, which is text to display at the start of the footnote.
+	% The \icmlEqualContribution command is standard text for equal contribution.
+	% Remove it (just {}) if you do not need this facility.
+	
+	\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
+%	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+	
+	\begin{abstract}
+		This document provides a basic paper template and submission guidelines.
+		Abstracts must be a single paragraph, ideally between 4--6 sentences long.
+		Gross violations will trigger corrections at the camera-ready phase.
+	\end{abstract}
 
-\maketitle
+\section{Introduction}
 
 \section{Related Work}
 
@@ -336,30 +412,30 @@ We approximate the robust objective $v^r$ in \eqref{eq:robust-control} by replac
 where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
 
-\begin{algorithm}[tp]
-  \SetAlgoLined\DontPrintSemicolon
-  \SetKwFunction{algo}{robust\_control}
-  \SetKwFunction{proc}{pessimistic\_step}
-  \SetKwProg{myalg}{Algorithm}{}{}
-  \myalg{\algo{$s_0$}}{
-  \While{resources available}
-  {
-  Select a candidate action sequence $a$ with a planning algorithm.\;
-  Sample a pessimistic transition and reward $\underline{r}_t$ using \proc{$\underline{x}(t)$, $\overline{x}(t)$, a}.
- \;
- Update the planning algorithm with the sampled pessimistic transition.
-  }
-  \KwRet $\argmax_{\pi\in\Pi} \hat{v^r}(\pi)$ \;}{}
-  \setcounter{AlgoLine}{0}
-  \SetKwProg{myproc}{Procedure}{}{}
-  \myproc{\proc{$\underline{x}(t)$, $\overline{x}(t)$, $a$}}{
-  Integrate \eqref{eq:interval_predictor} over $dt$ with controls $a$ to compute $\underline{x}(t+dt), \overline{x}(t+dt)$\;
-  Compute worst-case reward $\underline{r}_t = \min_{x\in[\underline{x}(t), \overline{x}(t)]} r(x)$\;
-  \KwRet $\underline{x}(t+dt), \overline{x}(t+dt), \underline{r}_t$\;}
-\caption{Interval-based Robust Control}
-\label{algo:irc}
-
-\end{algorithm}
+%\begin{algorithm}[tp]
+%  \SetAlgoLined\DontPrintSemicolon
+%  \SetKwFunction{algo}{robust\_control}
+%  \SetKwFunction{proc}{pessimistic\_step}
+%  \SetKwProg{myalg}{Algorithm}{}{}
+%  \myalg{\algo{$s_0$}}{
+%  \While{resources available}
+%  {
+%  Select a candidate action sequence $a$ with a planning algorithm.\;
+%  Sample a pessimistic transition and reward $\underline{r}_t$ using \proc{$\underline{x}(t)$, $\overline{x}(t)$, a}.
+% \;
+% Update the planning algorithm with the sampled pessimistic transition.
+%  }
+%  \KwRet $\argmax_{\pi\in\Pi} \hat{v^r}(\pi)$ \;}{}
+%  \setcounter{AlgoLine}{0}
+%  \SetKwProg{myproc}{Procedure}{}{}
+%  \myproc{\proc{$\underline{x}(t)$, $\overline{x}(t)$, $a$}}{
+%  Integrate \eqref{eq:interval_predictor} over $dt$ with controls $a$ to compute $\underline{x}(t+dt), \overline{x}(t+dt)$\;
+%  Compute worst-case reward $\underline{r}_t = \min_{x\in[\underline{x}(t), \overline{x}(t)]} r(x)$\;
+%  \KwRet $\underline{x}(t+dt), \overline{x}(t+dt), \underline{r}_t$\;}
+%\caption{Interval-based Robust Control}
+%\label{algo:irc}
+%
+%\end{algorithm}
 
 \begin{property}[Lower bound]
 \label{prop:lower-bound}
@@ -423,17 +499,17 @@ An illustration of the computation of the robust b-values is presented in Figure
 
 From this definition we introduce Algorithm \ref{algo:drop}, and analyse its sample-efficiency in Theorem \ref{theorem:drop-regret}.
 
-\begin{algorithm}[tp]
-\DontPrintSemicolon
-Initialize $\mathcal{T}$ to a root and expand it. Set $n=1$.\;
-\While{Numerical resource available for episode $n$}{
-Compute the robust b-values $b^r_i(n)$.\;
-Expand the leaf $\argmax_{i\in \mathcal{L}_n} b^r_i(n)$.\;
-}
-\Return $\argmax_{a\in \mathcal{A}} u^r_a(n)$
-\caption{Deterministic Robust Optimistic Planning}
-\label{algo:drop}
-\end{algorithm}
+%\begin{algorithm}[tp]
+%\DontPrintSemicolon
+%Initialize $\mathcal{T}$ to a root and expand it. Set $n=1$.\;
+%\While{Numerical resource available for episode $n$}{
+%Compute the robust b-values $b^r_i(n)$.\;
+%Expand the leaf $\argmax_{i\in \mathcal{L}_n} b^r_i(n)$.\;
+%}
+%\Return $\argmax_{a\in \mathcal{A}} u^r_a(n)$
+%\caption{Deterministic Robust Optimistic Planning}
+%\label{algo:drop}
+%\end{algorithm}
 
 The simple regret of the action $a$ returned by Algorithm \ref{algo:drop} after $n$ rounds is defined as:
 \begin{equation}
@@ -584,7 +660,9 @@ Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \em
 In both cases, the obtained polytope centre $A_0$ is non-Metzler.
 We use lemma \ref{lem:metzler} to compute a similarity transformation of coordinates. Precisely, we ensure that the polytope is chosen so that its centre $A_0$ is diagonalisable having real eigenvalues, and perform an eigendecomposition to compute its change of basis matrix $S$. The transformed system $Z'=S^{-1}(Z-Z_c)$ verifies \eqref{eq:polytope} with $A_0$ Metlzer as required to apply the interval predictor of Theorem~\ref{thm:predictor}. Finally, the obtained predictor is transformed back to the original coordinates $Z$ by using the interval arithmetic of Lemma~\ref{lem:interval}.
 
-\printbibliography
+
+\bibliography{references}
+\bibliographystyle{icml2020}
 
 \appendix
 
