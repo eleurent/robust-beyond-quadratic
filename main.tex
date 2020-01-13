@@ -40,10 +40,10 @@ For LQ systems, where parameters A,B are unknown and no structure is available.
 
 Differences with our work:
 \begin{itemize}
-    \item We with to act in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
+    \item We wish to act straight away in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
     \item Thus, we do not wish to explore actively the more promising regions as in OFU, nor the more likely region as in TS, nor act randomly as in Coarse-ID.
-    \item We have linear dynamics but our cost is not quadratic (to accurately represent planning task with discrete/branching decisions: e.g. take or give way)
-    \item Our optimisation problem amounts to discrete controller selection, instead of continuous controller synthesis
+    \item We have linear dynamics but our cost is not quadratic. Thus, we can accurately represent planning tasks with discrete/branching decisions involving discontinuities (e.g. collision vs non-collision states).
+    \item Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
     
 \end{itemize}
 
@@ -211,11 +211,12 @@ with
     &A_0 = \theta_{N,\lambda}^\transp\Phi\\
     &\Delta A_k = \Delta\theta_k^\transp\Phi\\
 \end{align*}
+This conversion is illustrated in \autoref{fig:ellipsoid_to_polytope}
 \end{lemma}
 
 \begin{figure}
     \centering
-    \includegraphics[trim={3.8cm, 2cm, 5cm, 3.8cm}, clip, width=0.6\textwidth]{img/ellipsoid_to_polytope}
+    \includegraphics[trim={3.8cm, 2cm, 5cm, 3.8cm}, clip, width=0.4\textwidth]{img/ellipsoid_to_polytope}
     \caption{From the confidence ellipsoid $\cC_\delta$ to its enclosing polytope $\cP_\delta$}
     \label{fig:ellipsoid_to_polytope}
 \end{figure}
@@ -228,9 +229,11 @@ The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
 \end{assumption}
 
 Then, 
-\[
-\|\theta_{N,\lambda} - \theta\|_1 \leq \|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty + \lambda\|G_{N, \lambda}^{-1}\Sigma_d\theta\|_1
-\]
+\begin{align*}
+\|\theta_{N,\lambda} - \theta\|_1 &\leq \|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty + \lambda\|G_{N, \lambda}^{-1}\Sigma_d\theta\|_1\\
+&\leq \|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty + \lambda\|G_{N, \lambda}^{-1}\Sigma_d\|_1\|\theta\|_\infty
+\end{align*}
+
 
 This $L_1$-ball is a polytope with $2d$ vertices, that we denote $\cP$.
 
@@ -246,7 +249,7 @@ The objective of the prediction procedure, as illustrated in \autoref{fig:interv
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{img/interval-hull}
+    \includegraphics[width=0.3\textwidth]{img/interval-hull}
     \caption{A few trajectories are sampled from an initial state $x_0$ following a policy $\pi=(u_0,\cdots)$ with various parameters $\theta$ (in black). The union of reachability sets is shown in green, and its interval hull in red.}
     \label{fig:interval-hull}
 \end{figure}
@@ -336,19 +339,23 @@ where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined 
 \begin{algorithm}[tp]
   \SetAlgoLined\DontPrintSemicolon
   \SetKwFunction{algo}{robust\_control}
-  \SetKwFunction{proc}{pessimistic\_reward}
+  \SetKwFunction{proc}{pessimistic\_step}
   \SetKwProg{myalg}{Algorithm}{}{}
   \myalg{\algo{$s_0$}}{
   \While{resources available}
   {
-  Generate a candidate sequence $\pi$ with a planning algorithm using \proc{} instead of the true rewards.
+  Select a candidate action sequence $a$ with a planning algorithm.\;
+  Sample a pessimistic transition and reward $\underline{r}_t$ using \proc{$\underline{x}(t)$, $\overline{x}(t)$, a}.
+ \;
+ Update the planning algorithm with the sampled pessimistic transition.
   }
   \KwRet $\argmax_{\pi\in\Pi} \hat{v^r}(\pi)$ \;}{}
   \setcounter{AlgoLine}{0}
   \SetKwProg{myproc}{Procedure}{}{}
-  \myproc{\proc{$s_0$, $\pi$, T}}{
-  Integrate \eqref{eq:interval_predictor} over $[0,t]$ with commands $\pi$ to compute $[\underline{x}(t), \overline{x}(t)]$\;
-  \KwRet $\min_{x\in[\underline{x}(t), \overline{x}(t)]} r(x)$\;}
+  \myproc{\proc{$\underline{x}(t)$, $\overline{x}(t)$, $a$}}{
+  Integrate \eqref{eq:interval_predictor} over $dt$ with controls $a$ to compute $\underline{x}(t+dt), \overline{x}(t+dt)$\;
+  Compute worst-case reward $\underline{r}_t = \min_{x\in[\underline{x}(t), \overline{x}(t)]} r(x)$\;
+  \KwRet $\underline{x}(t+dt), \overline{x}(t+dt), \underline{r}_t$\;}
 \caption{Interval-based Robust Control}
 \label{algo:irc}
 
@@ -368,19 +375,6 @@ If we assume that $R$ is $L$-Lipschitz, then we can bound the other side:
 \end{equation*}
 \end{property}
 
-\begin{proof}
-Let $\theta\in\Theta$, by \autoref{thm:confidence_interval} we have that $A(\theta) \in \cP$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
-\begin{equation*}
- \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \pi), \overline{x}(t, \pi)]} \gamma^t r(x) = \hat{v^r}(\pi)
-\end{equation*}
-
-And finally, with probability $1-\delta$,
-\begin{align*}
-v^r(\pi) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-&\geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\pi)\right] = \hat{v^r}(\pi)
-\end{align*}
-\end{proof}
 
 The robust objective error $v^r - \hat{v^r}$ stems from two terms: the approximation of the reachable set by the polytopic and interval approximations and the loss of time-dependency between the states within a single trajectory. If both these approximations are tight enough, maximising the lower bound $\hat{v^r}$ will increase the true objective $v^r$, which is the idea behind Algorithm \ref{algo:irc}.
 
@@ -422,7 +416,7 @@ An illustration of the computation of the robust b-values is presented in Figure
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\linewidth]{img/robust-control-tree}
+\includegraphics[width=0.3\linewidth]{img/robust-control-tree}
 \caption{The computation of robust b-values in Algorithm \ref{algo:drop}. The simulation of trajectories for every dynamics model $f^m$ is represented as stacked versions of the expanded tree $\mathcal{T}_n$.}
 \label{fig:drop}
 \end{figure}
@@ -432,10 +426,9 @@ From this definition we introduce Algorithm \ref{algo:drop}, and analyse its sam
 \begin{algorithm}[tp]
 \DontPrintSemicolon
 Initialize $\mathcal{T}$ to a root and expand it. Set $n=1$.\;
-\While{Numerical resource available}{
-Compute the robust u-values $u^r_i(n)$ and robust b-values $b^r_i(n)$.\;
-Expand $\argmax_{i\in \mathcal{L}_n} b^r_i(n)$.\;
-n = n + 1\;
+\While{Numerical resource available for episode $n$}{
+Compute the robust b-values $b^r_i(n)$.\;
+Expand the leaf $\argmax_{i\in \mathcal{L}_n} b^r_i(n)$.\;
 }
 \Return $\argmax_{a\in \mathcal{A}} u^r_a(n)$
 \caption{Deterministic Robust Optimistic Planning}
@@ -678,6 +671,23 @@ The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
     &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
 \end{align*}
 This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
+\end{proof}
+
+\subsection{Proof of \autoref{prop:lower-bound}}
+
+
+\begin{proof}
+We have that $A(\theta) \in \cP$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
+\begin{equation*}
+ \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \pi), \overline{x}(t, \pi)]} \gamma^t r(x) = \hat{v^r}(\pi)
+\end{equation*}
+
+And finally, with probability $1-\delta$,
+\begin{align*}
+v^r(\pi) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
+&\geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
+& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\pi)\right] = \hat{v^r}(\pi)
+\end{align*}
 \end{proof}
 
 
