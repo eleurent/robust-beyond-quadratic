@@ -102,6 +102,9 @@ This estimated model could be use to derive the corresponding optimal control, b
 To address this, we want to perform robust estimation: not just a maximum likelihood model, but a whole high-confidence region where the true system is likely to lie.
 Given this ambiguity set, how should we act? Given the critical setting, we do not want to be optimistic, and try to minimise some cumulative regret. Quite the contrary, we want to be cautious, safe, prepare for the worst and plan for the best. A robust control scheme. Minimax problem are hard to solve, especially since $R$ can be arbitrary. We cannot use traditional tools from the robust LQ control community (coarse-id control, system-level synthesis). Instead, we adopt a hierachical control architecture, controller selection: discrete choice of a driving maneuver, a short-term goal, whose execution is performed by a fixed low-level controller. It is true that the passage from continuous optimization to discrete optimization induces a suboptimality. However, it can be mitigated by using a more diverse controller basis. We are left with a sequential optimization problem with continuous states and discrete actions: tree-based planning algorithms. But not a point estimate, a whole confidence region. Hence, a two step procedure: robust prediction of the reachability set, which provides a conservative pessimistic reward to the planning algorithm.
 
+Our contributions are the following:
+In Section 2, we structured dynamics. In order to derive the confidence regions, we rely on the work of \citet{Abbasi2011} that provide confidence ellipsoid for the regularised least-square estimator. However, we need to extend their result by one dimension, with matricial features and vectorial noise where the original setting involved vectorial features and scalar noise.
+
 
 \section{Related Work}
 
@@ -134,16 +137,17 @@ We consider a system with dynamics in the form:
 \end{equation}
 with state $x\in\Real^p$, control $u\in\Real^q$, and disturbance $\omega\in\Real^s$. The dynamics $A(\theta)\in\Real^{p\times p}$  is parametrised by $\theta$ that belongs to a compact set $\Theta \subset \Real^d$. The control matrix $B\in\Real^{p\times q}$ and disturbance matrix $D\in\Real^{p\times s}$ are known.
 
-We also have access to a measurement of the form
+We also have access to the observation of $x(t)$ and to noisy a measurement of $\dot{x}(t)$ in the form
 $
     \dot{x}(t) + C\nu(t)
-$
-that we will actually denote (since the control $u(t)$ is known) as:
+$ where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known.
+For better readability, we will actually denote the measurement as:
 \begin{equation}
 \label{eq:measurement}
-    y(t) = \dot{x}(t) - Bu(t) + C\nu(t)
+    y(t) = \dot{x}(t) - A_0 x(t) - Bu(t) + C\nu(t)
 \end{equation}
-where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known. Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further.
+which is possible since the nominal dynamics $A_0$, thet state $x(t)$ and the control $u(t)$ are known.
+Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further, and we denote their total contribution as $\eta(t) = C\nu(t) + D\omega(t)$.
 
 \paragraph{Notations}
 
@@ -224,7 +228,7 @@ where
 \end{equation*}
 \end{theorem}
 
-Denote $\eta(t) = C\nu(t) + D\omega(t)$. By simply substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain the regression error:
+By simply substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain the regression error:
 \begin{align}
     \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta 
 \end{align}
@@ -236,18 +240,18 @@ Depending on the assumption we have over the noise $\eta_n$ and the true paramet
 
 \begin{assumption}[Bounded noise]
 \label{assumpt:bounded-noise}
-The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
+The noise $\eta(t)$ is bounded.
 \[\|\eta\|_\infty < \infty\]
 \end{assumption}
 
-Then, 
-\begin{align}
+With Hölder inequality, we obtain a confidence region $\cC$ defined by a $L_1$-ball, i.e. a polytope with $2d$ vertices:
+\begin{equation}
+\begin{split}
 \label{eq:bounded-noise-polytope}
-\|\theta_{N,\lambda} - \theta\|_1 \leq &\|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty \\
-&+ \lambda\|G_{N, \lambda}^{-1}\|_1\|\theta\|_\infty \nonumber
-\end{align}
-
-This $L_1$-ball is a polytope with $2d$ vertices, denoted $\cP$.
+\|\theta_{N,\lambda} - \theta\|_1 \leq {} &\|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty \\
+&+ \lambda\|G_{N, \lambda}^{-1}\|_1\|\theta\|_\infty
+\end{split}
+\end{equation}
 
 There may be cases where \autoref{assumpt:bounded-noise} does not hold, for instance if the noise $\eta$ is Gaussian, which implies $\|\eta\|_\infty=+\infty$ and makes \eqref{eq:bounded-noise-polytope} uninformative. Then, another weaker assumption can be made.
 
