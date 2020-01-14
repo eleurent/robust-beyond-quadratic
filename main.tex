@@ -93,8 +93,14 @@
 
 \section{Introduction}
 
-% Industrial setting: data-driven but good initial performances
-% Prior knowledge: structure
+We would like to control a system in order to maximise an \textit{arbitrary} reward function $R$, e.g. non-convex, non-smooth. These happen naturally: combinatorial optimization such as scheduling, obstacle avoidance.
+Critical industrial setting: we do not want to commit mistakes. 
+In particular, this rules out shiny Deep RL etc.
+The only way to avoid mistakes from the outset, when the system is first deployed, is to incorporate some kind of prior knowledge. In this work, we assume that the system dynamics are partially known: known structure of a parametrized system, with unknown parameters. This is realistic in the sense that most industrial applications to date have been relying on physical models and corresponding optimal controllers rather than machine learning. Here, instead of providing the whole model, its main parts  
+Data driven scheme: as we interact and observe more data of the true system, we can estimate the parameters more accurately.
+This estimated model could be use to derive the corresponding optimal control, but this is unsafe: model bias.
+To address this, we want to perform robust estimation: not just a maximum likelihood model, but a whole high-confidence region where the true system is likely to lie.
+Given this ambiguity set, how should we act? Given the critical setting, we do not want to be optimistic, and try to minimise some cumulative regret. Quite the contrary, we want to be cautious, safe, prepare for the worst and plan for the best. A robust control scheme. Minimax problem are hard to solve, especially since $R$ can be arbitrary. We cannot use traditional tools from the robust LQ control community (coarse-id control, system-level synthesis). Instead, we adopt a hierachical control architecture, controller selection: discrete choice of a driving maneuver, a short-term goal, whose execution is performed by a fixed low-level controller. It is true that the passage from continuous optimization to discrete optimization induces a suboptimality. However, it can be mitigated by using a more diverse controller basis. We are left with a sequential optimization problem with continuous states and discrete actions: tree-based planning algorithms. But not a point estimate, a whole confidence region. Hence, a two step procedure: robust prediction of the reachability set, which provides a conservative pessimistic reward to the planning algorithm.
 
 
 \section{Related Work}
@@ -420,6 +426,8 @@ We approximate the robust objective $v^r$ in \eqref{eq:robust-control} by replac
 where $\underline{x}(t, \bu), \overline{x}(t, \bu)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
 
+This does not amount to defining a pessimistic reward-function $\underline{R}$, since the worst case is assessed over the whole trajectory being optimized, and not at the level of a local transition. It cannot be precomputed prior to the control optimization procedure, it needs to be done jointly.
+
 %\begin{algorithm}[tp]
 %  \SetAlgoLined\DontPrintSemicolon
 %  \SetKwFunction{algo}{robust\_control}
@@ -453,14 +461,13 @@ With high probability, the surrogate objective $\hat{v}^r$ is a lower bound of t
 \hat{v}^r(\bu) \leq v^r(\bu)
 \end{equation}
 
-If we assume that $R$ is $L$-Lipschitz, then we can also bound the other side:
+If we assume that $R$ is $L$-Lipschitz, then we can also bound the approximation error:
 \begin{equation*}
-     \hat{v}^r(\bu) \leq v^r(\bu) \leq \hat{v}^r(\bu) + L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
+     v^r(\bu) - \hat{v}^r(\bu) \leq L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
 \end{equation*}
 \end{proposition}
 
-
-The robust objective error $v^r - \hat{v^r}$ stems from two terms: the approximation of the reachable set by the polytopic and interval approximations and the loss of time-dependency between the states within a single trajectory. If both these approximations are tight enough, maximising the lower bound $\hat{v^r}$ will increase the true objective $v^r$, which is the idea behind Algorithm \ref{algo:irc}.
+Since all our approximations were conservative, if we manage to find a control sequence such that no \textit{bad event} (e.g. a collision) happens with our surrogate objective, then we are guaranteed so they will not happen either when the controls are executed on the true system.
 
 \section{Multi-model Estimation and Control}
 
@@ -496,7 +503,6 @@ b_i^r(n)  \eqdef
 where $r_t^m$ is the reward obtained at step $t$ by following $i$ with dynamics $f^m$.
 \end{definition}
 An illustration of the computation of the robust b-values is presented in Figure \ref{fig:drop}.
-
 
 \begin{figure}
 \centering
@@ -548,7 +554,7 @@ Let $\kappa = K\gamma^\beta \in [1, K]$. Then the simple regret of Algorithm \re
 
 \section{Experiments}
 
-We consider the problem of safe decision-making for autonomous highway driving. An autonomous vehicle is driving on a highway populated with $N$ other agents, and uses Model Predictive Control to plan a sequence of decisions. To that end, it relies on parametrized dynamical model for each agent to predict the future trajectory of each traffic participant: \[\dot{z}_i=f_i(Z,\theta_i),\;i=\overline{1,N},\] where $f_i$ are described below, $z_i\in\Real^4$ is the state of an agent, $Z = [z_1,\dots,z_N]^\top\in\Real^{4N}$ and $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Crucially, this system describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. 
+We consider the problem of safe decision-making for an autonomous vehicle. An autonomous vehicle is driving on a highway populated with $N$ other agents, and uses Model Predictive Control to plan a sequence of decisions. To that end, it relies on parametrized dynamical model for each agent to predict the future trajectory of each traffic participant: \[\dot{z}_i=f_i(Z,\theta_i),\;i=\overline{1,N},\] where $f_i$ are described below, $z_i\in\Real^4$ is the state of an agent, $Z = [z_1,\dots,z_N]^\top\in\Real^{4N}$ and $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Crucially, this system describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. 
 However, we assume that we do not have access to the true values of the behavioural parameters $\theta=[\theta_1,\dots,\theta_N]^\top$; instead, we merely know that these parameters lie in a set of admissible values $\Theta\subset\Real^{5N}$. In order to act safely in the face of uncertainty, we follow the framework of robust decision-making: the agent must consider all the possible trajectories in the space of $Z$ that each vehicle can follow in order to take its decisions. In this work, we focus on how to compute these trajectory enclosures through interval prediction.
 
 The system 
