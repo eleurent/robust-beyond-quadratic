@@ -2,6 +2,15 @@
 
 \documentclass{article}
 
+% Custom packages
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{blkarray}
+\usepackage{todonotes}
+\usepackage{mathtools}
+\input{mathdef.tex}
+
 % Recommended, but optional, packages for figures and better typesetting:
 \usepackage{microtype}
 \usepackage{graphicx}
@@ -25,25 +34,7 @@
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-%\icmltitlerunning{Submission and Formatting Instructions for ICML 2020}
-
-
-% Custom packages
-\usepackage{amsthm}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{float}
-\usepackage{hyperref}
-\usepackage{blkarray}
-\usepackage{todonotes}
-\usepackage{mathtools}
-
-
-\input{mathdef.tex}
-
-%\author{Edouard Leurent, Denis Efimov, Odalric-Ambrym Maillard}
-
-
+\icmltitlerunning{Robust Estimation, Prediction and Control}
 
 \begin{document}
 	
@@ -97,12 +88,14 @@
 %	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 	
 	\begin{abstract}
-		This document provides a basic paper template and submission guidelines.
-		Abstracts must be a single paragraph, ideally between 4--6 sentences long.
-		Gross violations will trigger corrections at the camera-ready phase.
+		
 	\end{abstract}
 
 \section{Introduction}
+
+% Industrial setting: data-driven but good initial performances
+% Prior knowledge: structure
+
 
 \section{Related Work}
 
@@ -115,13 +108,14 @@ For LQ systems, where parameters A,B are unknown and no structure is available.
 \end{itemize}
 
 Differences with our work:
-\begin{itemize}
-    \item We wish to act straight away in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
-    \item Thus, we do not wish to explore actively the more promising regions as in OFU, nor the more likely region as in TS, nor act randomly as in Coarse-ID.
-    \item We have linear dynamics but our cost is not quadratic. Thus, we can accurately represent planning tasks with discrete/branching decisions involving discontinuities (e.g. collision vs non-collision states).
-    \item Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
     
-\end{itemize}
+    We wish to act straight away in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
+    
+    Thus, we do not wish to explore actively the more promising regions as in OFU, nor the more likely region as in TS, nor act randomly as in Coarse-ID.
+    
+    We have linear dynamics but our cost is not quadratic. Thus, we can accurately represent planning tasks with discrete/branching decisions involving discontinuities (e.g. collision vs non-collision states).
+    
+    Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
 
 \section{Problem formulation}
 
@@ -145,27 +139,30 @@ that we will actually denote (since the control $u(t)$ is known) as:
 \end{equation}
 where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known. Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further.
 
-\paragraph{Objective}
+\paragraph{Notations}
 
-We wish to find a sequence of commands $\pi=(u_t)_{t\geq 0}$ that maximises a cumulative objective $V^\pi$:
-\todo[inline]{EL: since the interval dynamics will be deterministic, use open-loop policies, ie sequences of actions $\mathbf{u}$ instead of closed-loop policies $\pi$}
+The dynamics of the real system are described in continuous time. However, all the sensing and control performed on-board happen in discrete time, with time-step $\dd t$. For any variable $z$, we use the subscript notation to refer to these discrete times: $z_n = z(n\dd t)$.
 
-\todo[inline]{EL: the prediction is done in continuous time and the control in discrete time. How to handle the change in notations?}
+% \paragraph{Objective}
 
-\begin{equation}
-\max_\pi V^\pi
-\end{equation}
-where
-\begin{equation}
-\label{eq:optimal-control}
-V^\pi = \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t = \pi(x_t),\,\eqref{eq:dynamics}\right]
-\end{equation}
-and $r:\Real^p\rightarrow[0,1]$ is a bounded reward function.
+% We wish to find a sequence of commands $\bu=(u_t)_{t\geq 0}$ that maximises a cumulative objective $V^\bu$:
+
+% \todo[inline]{EL: the prediction is done in continuous time and the control in discrete time. How to handle the change in notations?}
+
+% \begin{equation}
+% \max_\bu V^\bu
+% \end{equation}
+% where
+% \begin{equation}
+% \label{eq:optimal-control}
+% V^\bu = \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t,\,\eqref{eq:dynamics}\right]
+% \end{equation}
+% and $r:\Real^p\rightarrow[0,1]$ is a bounded reward function.
 
 \section{Model Estimation}
 
 \paragraph{Objective}
-Having observed at times $(t_n)_{n\in[N]}$ a history of transitions $\cD = \{(x_n = x(t_n), u_n = u(t_n), y_n = y(t_n))\}_{n\in[N]}$, and given a confidence level $\delta\in[0, 1]$, our goal is to find a confidence region $\cC_\delta$ as tight as possible and such that it holds that:
+Having observed at times a history of transitions $\cD = \{(x_n, u_n, y_n)\}_{n\in[N]}$, and given a confidence level $\delta\in(0, 1)$, our goal is to find a confidence region $\cC_\delta$ as tight as possible and such that it holds that:
 \begin{align}
 \probability{A(\theta)\in \cC_\delta} \geq 1-\delta
 \label{eq:polytope}
@@ -185,16 +182,15 @@ Having observed at times $(t_n)_{n\in[N]}$ a history of transitions $\cD = \{(x_
 %     (A\times_n M)_{i_1,\cdots,i_{n-1},j,i_{n+1},\cdots,i_l} = \sum_{k=1}^{I_n} A_{i_1,\cdots,i_{n-1},k,i_{n+1},\cdots,i_l}B_{k,j}
 % \end{equation*}
 
-We further assume that the dynamics $A(\theta)$ enjoy the following additional structure:
+To that end, we further assume that the dynamics $A(\theta)$ enjoy the following additional structure:
 \begin{assumption}[Linear parametrisation]
 \label{assumpt:linear_param}
-There exists a known tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
+There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
 \begin{equation}
-    A(\theta) = \theta^\transp \phi \eqdef \sum_{i=1}^d \theta_i\phi_i
+    A(\theta) = A_0 + %\theta^\transp \phi \eqdef A_0 + 
+    \sum_{i=1}^d \theta_i\phi_i
 \end{equation}
-where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$.
-
-For all $n\geq 0$, we also denote $\Phi_n = [\phi_1 x_n \cdots \phi_d x_n]\in\Real^{p\times d}$.
+where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denote $\Phi_n = [\phi_1 x_n \cdots \phi_d x_n]\in\Real^{p\times d}$.
 \end{assumption}
 
 
@@ -226,11 +222,30 @@ Denote $\eta(t) = C\nu(t) + D\omega(t)$. By substituting the expression of $y_n$
 \begin{lemma}[Regression error]
 \label{lem:regression-error}
 \begin{align*}
-    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta 
+    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\Sigma_d\theta 
 \end{align*}
 \end{lemma}
 
 Depending on the assumption we take over the noise $\eta_n$ and the true parameter $\theta$, we can bound the regression error $\theta_{N,\lambda} - \theta$ in different ways.
+
+
+\subsection{Bounded noise}
+
+\begin{assumption}[Bounded noise]
+\label{assumpt:bounded-noise}
+The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
+\[\|\eta\|_\infty < \infty\]
+\end{assumption}
+
+Then, 
+\begin{align}
+\|\theta_{N,\lambda} - \theta\|_1 \leq &\|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty \\
+&+ \lambda\|G_{N, \lambda}^{-1}\Sigma_d\|_1\|\theta\|_\infty \nonumber
+\end{align}
+
+This $L_1$-ball is a polytope with $2d$ vertices, denoted $\cP$.
+
+If \autoref{assumpt:bounded-noise} does not hold, another weaker assumption can be made.
 
 \subsection{Sub-Gaussian noise}
 
@@ -240,35 +255,32 @@ We say that a random vector $x\in\Real^k$ is sub-Gaussian with covariance proxy 
 \]
 
 \begin{assumption}[Sub-Gaussian Noise Model]
-\label{assumpt:noise}
-At each time $t\geq0$ the sum $\eta(t)$ of projected measurement noise $\nu(t)$ and disturbance $\omega(t)$ is a Sub-Gaussian noises with covariance proxy $\Sigma_p \in \Real^{p\times p}$:
+\label{assumpt:gaussian-noise}
+At each time $t\geq0$ the sum $\eta(t)$ of projected measurement noise $\nu(t)$ and disturbance $\omega(t)$ is a sub-Gaussian noise with covariance proxy $\Sigma_p \in \Real^{p\times p}$:
 \begin{equation*}
-    \eta(t) = C\nu(t) + D\omega(t) \sim Sub_G(\Sigma_p)
+    \eta(t) = C\nu(t) + D\omega(t) \sim Sub_G(\Sigma_p).
 \end{equation*}
-
-For instance, this is the case of $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$.
+For instance, this is the case of $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. Also note that \autoref{assumpt:bounded-noise} implies that $\eta$ is $\|\eta\|_\infty I_p$-sub-Gaussian, and is therefore a stronger assumption.
 \end{assumption}
 
-\begin{lemma}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
-\label{lem:concentration}
+\begin{proposition}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
+\label{prop:concentration}
 Let $\{F_t\}_{t=0}$ be a filtration.
-Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and conditionally $\Sigma_p$-SubGaussian.
+Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and $\expectedvalue\left[\eta_t\condbar F_{t-1}\right]$ is $\Sigma_p$-sub-Gaussian.
 
 Let $\{\Phi_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $\Phi_t$ is $F_t$-measurable. Assume that $G$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
-
 \begin{equation*}
-    \overline{G}_t = G + \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \qquad S_t = \sum_{s=1}^t \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}
+    \overline{G}_t = G + \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \quad S_t = \sum_{s=1}^t \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}.
 \end{equation*}
-Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$
-
+Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$,
 \begin{align*}
-    \|S_t\|_{\overline{G_t}} \leq \cdots
+\| S_t \|_{\overline{G}_t^{-1}} \geq \sqrt{2\ln \left(\frac{\det\left(\overline{G}_t\right)^{1/2}}{\delta\det(G)^{1/2}}\right)}.
 \end{align*}
-\end{lemma}
+\end{proposition}
 
 \begin{theorem}[Confidence ellipsoid]
 \label{thm:confidence_ellipsoid}
-\todo[inline]{TODO}
+
 \end{theorem}
 
 \begin{lemma}[Confidence polytope]
@@ -297,22 +309,6 @@ This conversion is illustrated in \autoref{fig:ellipsoid_to_polytope}
     \label{fig:ellipsoid_to_polytope}
 \end{figure}
 
-\subsection{Bounded noise}
-
-\begin{assumption}[Bounded noise]
-The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
-\[\|\eta\|_\infty < \infty\]
-\end{assumption}
-
-Then, 
-\begin{align*}
-\|\theta_{N,\lambda} - \theta\|_1 &\leq \|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty + \lambda\|G_{N, \lambda}^{-1}\Sigma_d\theta\|_1\\
-&\leq \|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty + \lambda\|G_{N, \lambda}^{-1}\Sigma_d\|_1\|\theta\|_\infty
-\end{align*}
-
-
-This $L_1$-ball is a polytope with $2d$ vertices, that we denote $\cP$.
-
 \section{State Prediction}
 
 In this section, we assume that we found a high-confidence polytope that verifies \eqref{eq:polytope} with probability $1-\delta$.
@@ -326,7 +322,7 @@ The objective of the prediction procedure, as illustrated in \autoref{fig:interv
 \begin{figure}
     \centering
     \includegraphics[width=0.3\textwidth]{img/interval-hull}
-    \caption{A few trajectories are sampled from an initial state $x_0$ following a policy $\pi=(u_0,\cdots)$ with various parameters $\theta$ (in black). The union of reachability sets is shown in green, and its interval hull in red.}
+    \caption{A few trajectories are sampled from an initial state $x_0$ following a policy $\bu=(u_0,\cdots)$ with various parameters $\theta$ (in black). The union of reachability sets is shown in green, and its interval hull in red.}
     \label{fig:interval-hull}
 \end{figure}
 
@@ -395,11 +391,10 @@ A_{0} & 0\\
 \section{Control}
 
 We consider the robust control objective $v^r$:
-\todo[inline]{EL: since the interval dynamics will be deterministic, use open-loop policies, ie sequences of actions $\mathbf{u}$ instead of closed-loop policies $\pi$}
 
 \begin{equation}
 \label{eq:robust-control}
-\max_\pi \underbrace{\min_{A(\theta) \in \cP} \left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t = \pi(x_t), \omega(t)\right]}_{v^r(\pi)}
+\max_\bu \underbrace{\min_{A(\theta) \in \cP} \left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t, \omega(t)\right]}_{v^r(\bu)}
 \end{equation}
 
 
@@ -407,9 +402,9 @@ We consider the robust control objective $v^r$:
 We approximate the robust objective $v^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the polytopic approximation $\cP_\delta$ of $A(\Theta)$: 
 
 \begin{equation}
-\hat{v}^r(\pi) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \pi), \overline{x}(t, \pi)]}  r(x)
+\hat{v}^r(\bu) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]}  r(x)
 \end{equation}
-where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
+where $\underline{x}(t, \bu), \overline{x}(t, \bu)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
 
 %\begin{algorithm}[tp]
@@ -425,7 +420,7 @@ where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined 
 % \;
 % Update the planning algorithm with the sampled pessimistic transition.
 %  }
-%  \KwRet $\argmax_{\pi\in\Pi} \hat{v^r}(\pi)$ \;}{}
+%  \KwRet $\argmax_{\bu} \hat{v^r}(\bu)$ \;}{}
 %  \setcounter{AlgoLine}{0}
 %  \SetKwProg{myproc}{Procedure}{}{}
 %  \myproc{\proc{$\underline{x}(t)$, $\overline{x}(t)$, $a$}}{
@@ -437,19 +432,19 @@ where $\underline{x}(t, \pi), \overline{x}(t, \pi)$ follow the dynamics defined 
 %
 %\end{algorithm}
 
-\begin{property}[Lower bound]
+\begin{proposition}[Lower bound]
 \label{prop:lower-bound}
 With high probability, the surrogate objective $\hat{v}^r$ is a lower bound of the true objective $v^r$:
 
 \begin{equation}
-\hat{v}^r(\pi) \leq v^r(\pi)
+\hat{v}^r(\bu) \leq v^r(\bu)
 \end{equation}
 
 If we assume that $R$ is $L$-Lipschitz, then we can bound the other side:
 \begin{equation*}
-     \hat{v}^r(\pi) \leq v^r(\pi) \leq \hat{v}^r(\pi) + L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
+     \hat{v}^r(\bu) \leq v^r(\bu) \leq \hat{v}^r(\bu) + L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
 \end{equation*}
-\end{property}
+\end{proposition}
 
 
 The robust objective error $v^r - \hat{v^r}$ stems from two terms: the approximation of the reachable set by the polytopic and interval approximations and the loss of time-dependency between the states within a single trajectory. If both these approximations are tight enough, maximising the lower bound $\hat{v^r}$ will increase the true objective $v^r$, which is the idea behind Algorithm \ref{algo:irc}.
@@ -492,7 +487,7 @@ An illustration of the computation of the robust b-values is presented in Figure
 
 \begin{figure}
 \centering
-\includegraphics[width=0.3\linewidth]{img/robust-control-tree}
+\includegraphics[width=0.4\linewidth]{img/robust-control-tree}
 \caption{The computation of robust b-values in Algorithm \ref{algo:drop}. The simulation of trajectories for every dynamics model $f^m$ is represented as stacked versions of the expanded tree $\mathcal{T}_n$.}
 \label{fig:drop}
 \end{figure}
@@ -542,7 +537,7 @@ Let $\kappa = K\gamma^\beta \in [1, K]$. Then the simple regret of Algorithm \re
 
 
 We consider the problem of safe decision-making for autonomous highway driving. An autonomous vehicle is driving on a highway populated with $N$ other agents, and uses Model Predictive Control to plan a sequence of decisions. To that end, it relies on parametrized dynamical model for each agent to predict the future trajectory of each traffic participant: \[\dot{z}_i=f_i(Z,\theta_i),\;i=\overline{1,N},\] where $f_i$ are described below, $z_i\in\Real^4$ is the state of an agent, $Z = [z_1,\dots,z_N]^\top\in\Real^{4N}$ and $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Crucially, this system describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. 
-However, we assume that we do not have access to the true values of the behavioural parameters $\theta=[\theta_1,\dots,\theta_N]^\top$; instead, we merely know that these parameters lie in a set of admissible values $\Pi\subset\Real^{5N}$. In order to act safely in the face of uncertainty, we follow the framework of robust decision-making: the agent must consider all the possible trajectories in the space of $Z$ that each vehicle can follow in order to take its decisions. In this work, we focus on how to compute these trajectory enclosures through interval prediction.
+However, we assume that we do not have access to the true values of the behavioural parameters $\theta=[\theta_1,\dots,\theta_N]^\top$; instead, we merely know that these parameters lie in a set of admissible values $\Theta\subset\Real^{5N}$. In order to act safely in the face of uncertainty, we follow the framework of robust decision-making: the agent must consider all the possible trajectories in the space of $Z$ that each vehicle can follow in order to take its decisions. In this work, we focus on how to compute these trajectory enclosures through interval prediction.
 
 In the following, we describe the system and its associated interval predictor.
 
@@ -686,44 +681,90 @@ Hence,
 
 \subsection{Proof of \autoref{lem:regression-error}}
 
+\begin{proof}
 In order to study the concentration of $\theta_{N,\lambda}$, we substitute the expression of $y_n$ into \eqref{eq:vector_rls}:
 \begin{align*}
     \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} (\Phi_n\theta +\eta_n)\\
     &= \theta - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
 \end{align*}
 
-\subsection{Proof of \autoref{lem:concentration}}
+\subsection{Proof of \autoref{prop:concentration}}
 
 \begin{proof}
 
+
 Let 
 \begin{equation*}
-    V_t = \sum_{s=1}^t X_s^\transp \Sigma_p^{-1} X_s \in \Real^{d\times d}
+    G_t = \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d}
 \end{equation*}
 And for any $z\in\Real^d$,
 \begin{equation*}
-    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{V_t}\right)}
+    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{G_t}\right)}
 \end{equation*}
 \begin{equation*}
-    D_t^z = \exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}
+    D_t^z = \exp{\left(\inp{\Phi_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}
 \end{equation*}
 Then,
 \begin{align*}
-    M_t^z = \exp{\left(\sum_{s=1}^t z^\transp X_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (X_s z)^\transp\Sigma_p^{-1}(X_s z) \right)} = \prod_{s=1}^{t} D_s^z
+    M_t^z = \exp{\left(\sum_{s=1}^t z^\transp \Phi_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (\Phi_s z)^\transp\Sigma_p^{-1}(\Phi_s z) \right)} = \prod_{s=1}^{t} D_s^z
 \end{align*}
 and using the Sub-Gaussianity of $\eta_t$
 \begin{align*}
-    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] &= \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)} \expectedvalue\left[\exp{\left(\inp{X_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
-    &\leq \exp{\left(- \frac{1}{2}\|X_t z\|_{\Sigma_p^{-1}}\right)}\exp{\left((z^\transp X_t^\transp \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} X_t z)\right)}\\
+    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] = {}& \exp{\left(- \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}\\ &\expectedvalue\left[\exp{\left(\inp{\Phi_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
+    \leq {} & \exp{\left(- \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}\\
+    &\exp{\left((z^\transp \Phi_t^\transp \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} \Phi_t z)\right)}\\
     &= 1
 \end{align*}
 \begin{align*}
     \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
 \end{align*}
+Showing that $(M_t^z)_{t=1}^\infty$ is indeed a supermartingale and in fact $\expectedvalue[M_t^z]\leq 1$.
+I then follows by Doob's upcrossing lemma for super-martnigales that $M_\infty^z = \lim_{t\to\infty} M_t^z$ is almost surely well-defined, ans so is $M_\tau^z$ for any random stopping time $\tau$.
+
+Next, we consider the stopped martingale $M_{\min(\tau,t)}^z$. Since 
+$(M_t^z)_{t=1}^\infty$ is a non-negative supermartingale and $\tau$ is a random stopping time, we deduce by Doob's decomposition that
+\begin{align*}
+\expectedvalue[M_{\min(\tau,t)}^z] &= \expectedvalue[M_0^z] + \expectedvalue[\sum_{s=0}^{t-1} (M_{s+1}^z-M_s^z) \mathbb{I}\{\tau>s\}]\\
+&\leq 1 + \expectedvalue[\sum_{s=0}^{t-1} \expectedvalue[M_{s+1}^z-M_s^z|F_{s}] \mathbb{I}\{\tau>s\}]\\
+&\leq 1
+\end{align*}
+Finally, an application of Fatou's lemma show that 
+$\expectedvalue[M_\tau^z] = \expectedvalue[\liminf_{t\to\infty} M_{\min(\tau,t)}^z] \leq \liminf_{t\to\infty} \expectedvalue[M_{\min(\tau,t)}^z] \leq 1.$
+\end{proof}
+
+% The following uses the method of mixtures.
+% Let $\Gamma$ be a Gaussian random variable which is independent of all other random variables and whose covariance is $\Sigma^{-1}$. (in our estimator, $\Sigma = \lambda\Sigma_d$).
+
+% Define 
+% \[
+% M_t = \expectedvalue \left[M_t^\Gamma \condbar F_\infty\right]
+% \]
+
+% where $F_\infty$ is the tail $\sigma$-algebra of the filtration. Clearly, we still have $\expectedvalue[M_\tau] = \expectedvalue[\expectedvalue[M_\tau^\Gamma|\Gamma]]\leq 1$.
+
+% Let us calculate $M_t$. Let $f$ denote the density of $\Gamma$ and for a positive definite matrix $P$ let $c(P) = \sqrt{(2\pi)^d/\det(P)} = \int \exp (-\frac{1}{2}x^\transp P x)$
+
+
+\begin{lemma}[Theorem 14.7 of \citep{pena2008self}]
+If $Z$ is a random vector and $B$ is a symmetric positive definite matrix such that
+\[\forall \gamma\in\Real^d, \ln \expectedvalue \exp \left(\gamma^\transp Z -\frac{1}{2} \gamma^\transp B \gamma \right)\leq 0,\]
+then for any positive definite non-random matrix C, it holds
+\[\expectedvalue\left[ \sqrt{\frac{\det(C)}{\det(B+C)} } \exp\left( \frac{1}{2}\|Z\|^2_{(B+C)^{-1}}\right)\right]\leq 1. \] 
+In particular, by Markov inequality, for all $\delta\in(0,1)$, 
+\[\probability{\|Z\|_{(B+C)^{-1}} \geq \sqrt{2\ln \left(\frac{\det \left((B+C)^{1/2}\right)}{\delta\det(C)^{1/2}}\right)}}\leq \delta.\]
+\end{lemma}
+
+Here, by using $Z = \sum_{s=1}^t\Phi_s\Sigma_p^{-1}\eta_s$, $B=G_t$, $C=G$,
+
+\[
+\probability{\| S_t \|_{(G_t+G)^{-1}} \geq \sqrt{2\ln \left(\frac{\det(G_t+G)^{1/2}}{\delta\det(G)^{1/2}}\right)}} \leq \delta
+\]
 
 \end{proof}
 
 \subsection{Proof of \autoref{thm:confidence_ellipsoid}}
+
+\begin{proof}
 
 Hence, for all $x\in\Real^d$,
 \begin{align*}
@@ -736,6 +777,19 @@ Using the Cauchy-Schwartz inequality, we get:
 \begin{align*}
     |x^\transp\theta_{N,\lambda}  -x^\transp\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
 \end{align*}
+
+In particular, for $x = G_{N,\lambda}(\theta_{N,\lambda} - \theta)$, we get after simplifying with $\| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}}$:
+\begin{align*}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}
+\end{align*}
+
+By applying \autoref{prop:concentration}, we obtain:
+\begin{align*}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq 
+     + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}
+\end{align*}
+\end{proof}
+
 
 \subsection{Proof of \autoref{lem:confidence_polytope}}
 
@@ -753,18 +807,17 @@ This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th
 
 \subsection{Proof of \autoref{prop:lower-bound}}
 
-
 \begin{proof}
 We have that $A(\theta) \in \cP$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
 \begin{equation*}
- \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \pi), \overline{x}(t, \pi)]} \gamma^t r(x) = \hat{v^r}(\pi)
+ \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]} \gamma^t r(x) = \hat{v^r}(\bu)
 \end{equation*}
 
 And finally, with probability $1-\delta$,
 \begin{align*}
-v^r(\pi) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
+v^r(\bu) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
 &\geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\pi)\right] = \hat{v^r}(\pi)
+& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\bu)\right] = \hat{v^r}(\bu)
 \end{align*}
 \end{proof}
 
