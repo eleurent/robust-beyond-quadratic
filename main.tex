@@ -194,12 +194,12 @@ where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denot
 \end{assumption}
 
 
-\paragraph{Regularised least square} Since we expect that $\Phi_n$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider the weighted $L_2$-regularised regression problem with weights  $\Sigma_p\in\Real^{p\times p}$ and $\Sigma_d\in\Real^{d\times d}$ and parameter $\lambda\in\Real^+_*$:
+\paragraph{Regularised least square} Since we expect that $\Phi_n$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider the weighted $L_2$-regularised regression problem with weights  $\Sigma_p\in\Real^{p\times p}$ and parameter $\lambda\in\Real^+_*$:
 
 
 \begin{equation}
     \label{eq:regression_min}
-    \min_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2
+    \min_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2
 \end{equation}
 
 
@@ -214,7 +214,7 @@ The solution to \eqref{eq:regression_min} is:
 \end{equation}
 where 
 \begin{equation*}
-    G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^\transp\Sigma_p^{-1}\Phi_{n}  + \lambda \Sigma_d \in \Real^{d\times d}.
+    G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^\transp\Sigma_p^{-1}\Phi_{n}  + \lambda I_d \in \Real^{d\times d}.
 \end{equation*}
 \end{theorem}
 
@@ -222,7 +222,7 @@ Denote $\eta(t) = C\nu(t) + D\omega(t)$. By substituting the expression of $y_n$
 \begin{lemma}[Regression error]
 \label{lem:regression-error}
 \begin{align*}
-    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\Sigma_d\theta 
+    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta 
 \end{align*}
 \end{lemma}
 
@@ -240,7 +240,7 @@ The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
 Then, 
 \begin{align}
 \|\theta_{N,\lambda} - \theta\|_1 \leq &\|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty \\
-&+ \lambda\|G_{N, \lambda}^{-1}\Sigma_d\|_1\|\theta\|_\infty \nonumber
+&+ \lambda\|G_{N, \lambda}^{-1}\|_1\|\theta\|_\infty \nonumber
 \end{align}
 
 This $L_1$-ball is a polytope with $2d$ vertices, denoted $\cP$.
@@ -666,16 +666,16 @@ We use lemma \ref{lem:metzler} to compute a similarity transformation of coordin
 \subsection{Proof of \autoref{thm:regularized_solution}}
 
 \begin{proof}
-We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{\Sigma_d}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
+We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
 
 \begin{align*}
-    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^\transp\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{\Sigma_d}^2\\
-    &= -2\sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^\transp(\Phi_n^\transp\Sigma^{-1}\Phi_n) +  2 \lambda \theta^\transp \Sigma_d
+    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^\transp\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{}^2\\
+    &= -2\sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^\transp(\Phi_n^\transp\Sigma^{-1}\Phi_n) +  2 \lambda \theta^\transp
 \end{align*}
 
 Hence,
 \begin{align*}
-    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^\transp\Sigma_p^{-1}\Phi_n + \Sigma_d\right)\theta = \sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n
+    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^\transp\Sigma_p^{-1}\Phi_n + I_d\right)\theta = \sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n
 \end{align*}
 \end{proof}
 
@@ -685,7 +685,7 @@ Hence,
 In order to study the concentration of $\theta_{N,\lambda}$, we substitute the expression of $y_n$ into \eqref{eq:vector_rls}:
 \begin{align*}
     \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} (\Phi_n\theta +\eta_n)\\
-    &= \theta - G_{N, \lambda}^{-1}\lambda\Sigma_d\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
+    &= \theta - G_{N, \lambda}^{-1}\lambda\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
 \end{align*}
 
 \subsection{Proof of \autoref{prop:concentration}}
@@ -733,7 +733,7 @@ $\expectedvalue[M_\tau^z] = \expectedvalue[\liminf_{t\to\infty} M_{\min(\tau,t)}
 \end{proof}
 
 % The following uses the method of mixtures.
-% Let $\Gamma$ be a Gaussian random variable which is independent of all other random variables and whose covariance is $\Sigma^{-1}$. (in our estimator, $\Sigma = \lambda\Sigma_d$).
+% Let $\Gamma$ be a Gaussian random variable which is independent of all other random variables and whose covariance is $\Sigma^{-1}$. (in our estimator, $\Sigma = \lambda$).
 
 % Define 
 % \[
@@ -769,24 +769,24 @@ Here, by using $Z = \sum_{s=1}^t\Phi_s\Sigma_p^{-1}\eta_s$, $B=G_t$, $C=G$,
 Hence, for all $x\in\Real^d$,
 \begin{align*}
     x^\transp\theta_{N,\lambda}  -x^\transp\theta &= x^\transp G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
-    - \lambda x^\transp G_{N, \lambda}^{-1}\Sigma_d\theta\\
-    &= \inp{x}{\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\Sigma_d\theta}_{G_{N, \lambda}^{-1}}
+    - \lambda x^\transp G_{N, \lambda}^{-1}\theta\\
+    &= \inp{x}{\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\theta}_{G_{N, \lambda}^{-1}}
 \end{align*}
 
 Using the Cauchy-Schwartz inequality, we get:
 \begin{align*}
-    |x^\transp\theta_{N,\lambda}  -x^\transp\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}\right)
+    |x^\transp\theta_{N,\lambda}  -x^\transp\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}\right)
 \end{align*}
 
 In particular, for $x = G_{N,\lambda}(\theta_{N,\lambda} - \theta)$, we get after simplifying with $\| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}}$:
 \begin{align*}
-    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
 \end{align*}
 
 By applying \autoref{prop:concentration}, we obtain:
 \begin{align*}
     \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq 
-     + \lambda\|\Sigma_d\theta\|_{G_{N, \lambda}^{-1}}
+     + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
 \end{align*}
 \end{proof}
 
