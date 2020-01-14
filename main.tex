@@ -39,7 +39,7 @@
 \begin{document}
 	
 	\twocolumn[
-	\icmltitle{Robust Estimation, Prediction and Control with \\ Continuous States and Dynamics Structure}
+	\icmltitle{Robust Estimation, Prediction and Control with \\ Linear Dynamics and Arbitrary Costs}
 	
 	% It is OKAY to include author information, even for blind
 	% submissions: the style file will automatically remove it for you
@@ -218,15 +218,12 @@ where
 \end{equation*}
 \end{theorem}
 
-Denote $\eta(t) = C\nu(t) + D\omega(t)$. By substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain:
-\begin{lemma}[Regression error]
-\label{lem:regression-error}
-\begin{align*}
+Denote $\eta(t) = C\nu(t) + D\omega(t)$. By simply substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain the regression error:
+\begin{align}
     \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta 
-\end{align*}
-\end{lemma}
+\end{align}
 
-Depending on the assumption we take over the noise $\eta_n$ and the true parameter $\theta$, we can bound the regression error $\theta_{N,\lambda} - \theta$ in different ways.
+Depending on the assumption we have over the noise $\eta_n$ and the true parameter $\theta$, we can bound this error in different ways.
 
 
 \subsection{Bounded noise}
@@ -239,13 +236,14 @@ The noise $\eta(t) = C\nu(t) + D\omega(t)$ is bounded.
 
 Then, 
 \begin{align}
+\label{eq:bounded-noise-polytope}
 \|\theta_{N,\lambda} - \theta\|_1 \leq &\|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty \\
 &+ \lambda\|G_{N, \lambda}^{-1}\|_1\|\theta\|_\infty \nonumber
 \end{align}
 
 This $L_1$-ball is a polytope with $2d$ vertices, denoted $\cP$.
 
-If \autoref{assumpt:bounded-noise} does not hold, another weaker assumption can be made.
+There may be cases where \autoref{assumpt:bounded-noise} does not hold, for instance if the noise $\eta$ is Gaussian, which implies $\|\eta\|_\infty=+\infty$ and makes \eqref{eq:bounded-noise-polytope} uninformative. Then, another weaker assumption can be made.
 
 \subsection{Sub-Gaussian noise}
 
@@ -254,31 +252,37 @@ We say that a random vector $x\in\Real^k$ is sub-Gaussian with covariance proxy 
 \forall u\in\Real^k, \expectedvalue \left[ \exp{\left( u^\transp x\right)}\right] \leq \exp{\left( \frac{1}{2} u^\transp \Sigma u\right)}
 \]
 
-\begin{assumption}[Sub-Gaussian Noise Model]
+\begin{assumption}[Sub-Gaussian Noise]
 \label{assumpt:gaussian-noise}
-At each time $t\geq0$ the sum $\eta(t)$ of projected measurement noise $\nu(t)$ and disturbance $\omega(t)$ is a sub-Gaussian noise with covariance proxy $\Sigma_p \in \Real^{p\times p}$:
+At each time $t\geq0$ the noise $\eta(t)$ is an independent sub-Gaussian noise with covariance proxy $\Sigma_p \in \Real^{p\times p}$:
 \begin{equation*}
-    \eta(t) = C\nu(t) + D\omega(t) \sim Sub_G(\Sigma_p).
+    \eta(t) \sim Sub_G(\Sigma_p).
 \end{equation*}
-For instance, this is the case of $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. Also note that \autoref{assumpt:bounded-noise} implies that $\eta$ is $\|\eta\|_\infty I_p$-sub-Gaussian, and is therefore a stronger assumption.
+For instance, this is the case when $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. Also note that \autoref{assumpt:bounded-noise} implies that $\eta$ is $\|\eta\|_\infty I_p$-sub-Gaussian, and is therefore a stronger assumption.
 \end{assumption}
 
 \begin{proposition}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
 \label{prop:concentration}
-Let $\{F_t\}_{t=0}$ be a filtration.
-Let $\{\eta_t\}_{t=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_t$ is $F_t$-measurable and $\expectedvalue\left[\eta_t\condbar F_{t-1}\right]$ is $\Sigma_p$-sub-Gaussian.
+Let $\{F_n\}_{n=0}$ be a filtration.
+Let $\{\eta_n\}_{n=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_n$ is $F_n$-measurable and $\expectedvalue\left[\eta_n\condbar F_{n-1}\right]$ is $\Sigma_p$-sub-Gaussian.
 
-Let $\{\Phi_t\}_{t=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $\Phi_t$ is $F_t$-measurable. Assume that $G$ is a $d\times d$ positive definite matrix. For any $t\geq 0$, define:
+Let $\{\Phi_n\}_{n=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $\Phi_n$ is $F_n$-measurable. Assume that $G$ is a $d\times d$ positive definite matrix. For any $n\geq 0$, define:
 \begin{equation*}
-    \overline{G}_t = G + \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \quad S_t = \sum_{s=1}^t \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}.
+    \overline{G}_n = G + \sum_{s=1}^n \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \quad S_n = \sum_{s=1}^n \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}.
 \end{equation*}
-Then, for any $\delta>0$, with probability at least $1-\delta$, for all $t\geq0$,
+Then, for any $\delta>0$, with probability at least $1-\delta$, for all $n\geq0$,
 \begin{align*}
-\| S_t \|_{\overline{G}_t^{-1}} \geq \sqrt{2\ln \left(\frac{\det\left(\overline{G}_t\right)^{1/2}}{\delta\det(G)^{1/2}}\right)}.
+\| S_n \|_{\overline{G}_n^{-1}} \geq \sqrt{2\ln \left(\frac{\det\left(\overline{G}_n\right)^{1/2}}{\delta\det(G)^{1/2}}\right)}.
 \end{align*}
 \end{proposition}
 
 \begin{theorem}[Confidence ellipsoid]
+Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\delta$ that
+\begin{align}
+    \label{eq:confidence-ellipsoid}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
+     + \lambda^{1/2}\|\theta\|_2.
+\end{align}
 \label{thm:confidence_ellipsoid}
 
 \end{theorem}
@@ -297,9 +301,9 @@ with
     &h_k \text{ is the }k^\text{th}\text{ element of }\{-1,1\}^d\text{, for } k\in[2^d]\\
     &\Delta\theta_k = C_{N,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k \\
     &A_0 = \theta_{N,\lambda}^\transp\Phi\\
-    &\Delta A_k = \Delta\theta_k^\transp\Phi\\
+    &\Delta A_k = \Delta\theta_k^\transp\Phi
 \end{align*}
-This conversion is illustrated in \autoref{fig:ellipsoid_to_polytope}
+This conversion is illustrated in \autoref{fig:ellipsoid_to_polytope}.
 \end{lemma}
 
 \begin{figure}
@@ -326,11 +330,17 @@ The objective of the prediction procedure, as illustrated in \autoref{fig:interv
     \label{fig:interval-hull}
 \end{figure}
 
-In order to use the interval predictor from \citep{leurent2019interval}, we also require $A_0$ to be Metzler. This can be ensured under some conditions:
+In order to use the interval predictor from \citep{leurent2019interval}, we need an additional assumption.
 
-\begin{lemma}[Similarity transformation \citep{Efimov_a2013}]
-\label{lem:metzler} Let $D\in\Xi\subset\Real^{n\times n}$ be a matrix variable satisfying the interval constraints $\Xi=\{D\in\Real^{n\times n}:\,D_{a}-\Delta\le D\le D_{a}+\Delta\}$ for some $D_{a}^{\text{T}}=D_{a}\in\Real^{n\times n}$ and $\Delta\in\Real_{+}^{n\times n}$. If for some constant $\mu\in\Real_{+}$ and a diagonal matrix $\Upsilon\in\Real^{n\times n}$ the Metzler matrix $Y=\mu E_{n\times n}-\Upsilon$ has the same eigenvalues as the matrix $D_{a}$, then there is an orthogonal matrix $S\in\Real^{n\times n}$ such that the matrices $S^{\text{T}}DS$ are Metzler for all $D\in\Xi$ provided that $\mu>n||\Delta||_{max}$.\textup{ }
-\end{lemma}
+% \begin{lemma}[Similarity Transformation]
+% \label{lem:metzler} Let $D\in\Xi\subset\Real^{n\times n}$ be a matrix variable satisfying the interval constraints $\Xi=\{D\in\Real^{n\times n}:\,D_{a}-\Delta\le D\le D_{a}+\Delta\}$ for some $D_{a}^{\text{T}}=D_{a}\in\Real^{n\times n}$ and $\Delta\in\Real_{+}^{n\times n}$. If for some constant $\mu\in\Real_{+}$ and a diagonal matrix $\Upsilon\in\Real^{n\times n}$ the Metzler matrix $Y=\mu E_{n\times n}-\Upsilon$ has the same eigenvalues as the matrix $D_{a}$, then there is an orthogonal matrix $S\in\Real^{n\times n}$ such that the matrices $S^{\text{T}}DS$ are Metzler for all $D\in\Xi$ provided that $\mu>n||\Delta||_{max}$.\textup{ }
+% \end{lemma}
+
+\begin{assumption}
+There exists an orthogonal $S\in\Real^{d\times d}$ such that $S^\transp A_0 S$ is Metzler.
+\end{assumption}
+
+This for instance the case when $A_0$ is diagonalizable. Another way ... the similarity transformation of \citep{Efimov_a2013}.
 
 \begin{theorem}[Interval Predictor \citep{leurent2019interval}]
 \label{thm:predictor}
@@ -342,34 +352,37 @@ Assuming that \eqref{eq:polytope} is satisfied for the system \eqref{eq:dynamics
  &  & +Bu(t)+D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber \\
  &  & \underline{x}(0)=\underline{x}_{0},\;\overline{x}(0)=\overline{x}_{0}\nonumber 
 \end{eqnarray}
-ensures the inclusion property \eqref{eq:interval_property}. If there exist diagonal matrices $P$, $Q$, $Q_{+}$, $Q_{-}$, $Z_{+}$, $Z_{-}$, $\Psi_{+}$, $\Psi_{-}$, $\Psi$, $\Gamma\in\Real^{2n\times 2n}$ such that the following LMIs are satisfied:
-\begin{gather*}
-P+\min\{Z_{+},Z_{-}\}>0,\;\Upsilon\preceq0,\;\Gamma>0,\\
-Q+\min\{Q_{+},Q_{-}\}+2\min\{\Psi_{+},\Psi_{-}\}>0,
-\end{gather*}
-where{\footnotesize{}
-\begin{gather*}
-\Upsilon=\left[\begin{array}{cccc}
-\Upsilon_{11} & \Upsilon_{12} & \Upsilon_{13} & P\\
-\Upsilon_{12}^{\top} & \Upsilon_{22} & \Upsilon_{23} & Z_{+}\\
-\Upsilon_{13}^{\top} & \Upsilon_{23}^{\top} & \Upsilon_{33} & Z_{-}\\
-P & Z_{+} & Z_{-} & -\Gamma
-\end{array}\right],\\
-\Upsilon_{11}=\mathcal{A}^{\top}P+P\mathcal{A}+Q,\;\Upsilon_{12}=\mathcal{A}^{\top}Z_{+}+PR_{+}+\Psi_{+},\\
-\Upsilon_{13}=\mathcal{A}^{\top}Z_{-}+PR_{-}+\Psi_{-},\;\Upsilon_{22}=Z_{+}R_{+}+R_{+}^{\top}Z_{+}+Q_{+},\\
-\Upsilon_{23}=Z_{+}R_{-}+R_{+}^{\top}Z_{-}+\Psi,\;\Upsilon_{33}=Z_{-}R_{-}+R_{-}^{\top}Z_{-}+Q_{-},\\
-\mathcal{A}=\left[\begin{array}{cc}
-A_{0} & 0\\
-0 & A_{0}
-\end{array}\right],\;R_{+}=\left[\begin{array}{cc}
-0 & -\Delta A_{-}\\
-0 & \Delta A_{+}
-\end{array}\right],\;R_{-}=\left[\begin{array}{cc}
-\Delta A_{+} & 0\\
--\Delta A_{-} & 0
-\end{array}\right],
-\end{gather*}
-}then the predictor \eqref{eq:interval_predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
+ensures the inclusion property \eqref{eq:interval_property}.
+
+Moreover, the stability of the predictor can be assessed with a sufficient condition in form of an LMI.
+% if there exist diagonal matrices $P$, $Q$, $Q_{+}$, $Q_{-}$, $Z_{+}$, $Z_{-}$, $\Psi_{+}$, $\Psi_{-}$, $\Psi$, $\Gamma\in\Real^{2n\times 2n}$ such that the following LMIs are satisfied:
+% \begin{gather*}
+% P+\min\{Z_{+},Z_{-}\}>0,\;\Upsilon\preceq0,\;\Gamma>0,\\
+% Q+\min\{Q_{+},Q_{-}\}+2\min\{\Psi_{+},\Psi_{-}\}>0,
+% \end{gather*}
+% where{\footnotesize{}
+% \begin{gather*}
+% \Upsilon=\left[\begin{array}{cccc}
+% \Upsilon_{11} & \Upsilon_{12} & \Upsilon_{13} & P\\
+% \Upsilon_{12}^{\top} & \Upsilon_{22} & \Upsilon_{23} & Z_{+}\\
+% \Upsilon_{13}^{\top} & \Upsilon_{23}^{\top} & \Upsilon_{33} & Z_{-}\\
+% P & Z_{+} & Z_{-} & -\Gamma
+% \end{array}\right],\\
+% \Upsilon_{11}=\mathcal{A}^{\top}P+P\mathcal{A}+Q,\;\Upsilon_{12}=\mathcal{A}^{\top}Z_{+}+PR_{+}+\Psi_{+},\\
+% \Upsilon_{13}=\mathcal{A}^{\top}Z_{-}+PR_{-}+\Psi_{-},\;\Upsilon_{22}=Z_{+}R_{+}+R_{+}^{\top}Z_{+}+Q_{+},\\
+% \Upsilon_{23}=Z_{+}R_{-}+R_{+}^{\top}Z_{-}+\Psi,\;\Upsilon_{33}=Z_{-}R_{-}+R_{-}^{\top}Z_{-}+Q_{-},\\
+% \mathcal{A}=\left[\begin{array}{cc}
+% A_{0} & 0\\
+% 0 & A_{0}
+% \end{array}\right],\;R_{+}=\left[\begin{array}{cc}
+% 0 & -\Delta A_{-}\\
+% 0 & \Delta A_{+}
+% \end{array}\right],\;R_{-}=\left[\begin{array}{cc}
+% \Delta A_{+} & 0\\
+% -\Delta A_{-} & 0
+% \end{array}\right],
+% \end{gather*}
+% }then the predictor \eqref{eq:interval_predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
 \end{theorem}
 
 % \begin{example*}
@@ -402,7 +415,7 @@ We consider the robust control objective $v^r$:
 We approximate the robust objective $v^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the polytopic approximation $\cP_\delta$ of $A(\Theta)$: 
 
 \begin{equation}
-\hat{v}^r(\bu) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]}  r(x)
+\hat{v}^r(\bu) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]}  R(x)
 \end{equation}
 where $\underline{x}(t, \bu), \overline{x}(t, \bu)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
@@ -440,7 +453,7 @@ With high probability, the surrogate objective $\hat{v}^r$ is a lower bound of t
 \hat{v}^r(\bu) \leq v^r(\bu)
 \end{equation}
 
-If we assume that $R$ is $L$-Lipschitz, then we can bound the other side:
+If we assume that $R$ is $L$-Lipschitz, then we can also bound the other side:
 \begin{equation*}
      \hat{v}^r(\bu) \leq v^r(\bu) \leq \hat{v}^r(\bu) + L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
 \end{equation*}
@@ -533,13 +546,177 @@ Let $\kappa = K\gamma^\beta \in [1, K]$. Then the simple regret of Algorithm \re
 \end{equation}
 \end{theorem}
 
-\section{The Use-Case of Autonomous Driving}
-
+\section{Experiments}
 
 We consider the problem of safe decision-making for autonomous highway driving. An autonomous vehicle is driving on a highway populated with $N$ other agents, and uses Model Predictive Control to plan a sequence of decisions. To that end, it relies on parametrized dynamical model for each agent to predict the future trajectory of each traffic participant: \[\dot{z}_i=f_i(Z,\theta_i),\;i=\overline{1,N},\] where $f_i$ are described below, $z_i\in\Real^4$ is the state of an agent, $Z = [z_1,\dots,z_N]^\top\in\Real^{4N}$ and $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Crucially, this system describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. 
 However, we assume that we do not have access to the true values of the behavioural parameters $\theta=[\theta_1,\dots,\theta_N]^\top$; instead, we merely know that these parameters lie in a set of admissible values $\Theta\subset\Real^{5N}$. In order to act safely in the face of uncertainty, we follow the framework of robust decision-making: the agent must consider all the possible trajectories in the space of $Z$ that each vehicle can follow in order to take its decisions. In this work, we focus on how to compute these trajectory enclosures through interval prediction.
 
-In the following, we describe the system and its associated interval predictor.
+The system 
+
+
+\bibliography{references}
+\bibliographystyle{icml2020}
+
+\clearpage
+\appendix
+
+\section{Proofs}
+
+\subsection{Proof of \autoref{thm:regularized_solution}}
+
+\begin{proof}
+We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
+
+\begin{align*}
+    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^\transp\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{}^2\\
+    &= -2\sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^\transp(\Phi_n^\transp\Sigma^{-1}\Phi_n) +  2 \lambda \theta^\transp
+\end{align*}
+
+Hence,
+\begin{align*}
+    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^\transp\Sigma_p^{-1}\Phi_n + I_d\right)\theta = \sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n
+\end{align*}
+\end{proof}
+
+\subsection{Proof of \autoref{prop:concentration}}
+
+\begin{proof}
+
+
+Let 
+\begin{equation*}
+    G_t = \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d}
+\end{equation*}
+And for any $z\in\Real^d$,
+\begin{equation*}
+    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{G_t}\right)}
+\end{equation*}
+\begin{equation*}
+    D_t^z = \exp{\left(\inp{\Phi_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}
+\end{equation*}
+Then,
+\begin{align*}
+    M_t^z = \exp{\left(\sum_{s=1}^t z^\transp \Phi_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (\Phi_s z)^\transp\Sigma_p^{-1}(\Phi_s z) \right)} = \prod_{s=1}^{t} D_s^z
+\end{align*}
+and using the Sub-Gaussianity of $\eta_t$
+\begin{align*}
+    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] = {}& \exp{\left(- \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}\\ &\expectedvalue\left[\exp{\left(\inp{\Phi_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
+    \leq {} & \exp{\left(- \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}\\
+    &\exp{\left((z^\transp \Phi_t^\transp \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} \Phi_t z)\right)}\\
+    &= 1
+\end{align*}
+\begin{align*}
+    \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
+\end{align*}
+Showing that $(M_t^z)_{t=1}^\infty$ is indeed a supermartingale and in fact $\expectedvalue[M_t^z]\leq 1$.
+I then follows by Doob's upcrossing lemma for super-martnigales that $M_\infty^z = \lim_{t\to\infty} M_t^z$ is almost surely well-defined, ans so is $M_\tau^z$ for any random stopping time $\tau$.
+
+Next, we consider the stopped martingale $M_{\min(\tau,t)}^z$. Since 
+$(M_t^z)_{t=1}^\infty$ is a non-negative supermartingale and $\tau$ is a random stopping time, we deduce by Doob's decomposition that
+\begin{align*}
+\expectedvalue[M_{\min(\tau,t)}^z] &= \expectedvalue[M_0^z] + \expectedvalue[\sum_{s=0}^{t-1} (M_{s+1}^z-M_s^z) \mathbb{I}\{\tau>s\}]\\
+&\leq 1 + \expectedvalue[\sum_{s=0}^{t-1} \expectedvalue[M_{s+1}^z-M_s^z|F_{s}] \mathbb{I}\{\tau>s\}]\\
+&\leq 1
+\end{align*}
+Finally, an application of Fatou's lemma show that 
+$\expectedvalue[M_\tau^z] = \expectedvalue[\liminf_{t\to\infty} M_{\min(\tau,t)}^z] \leq \liminf_{t\to\infty} \expectedvalue[M_{\min(\tau,t)}^z] \leq 1.$
+
+% The following uses the method of mixtures.
+% Let $\Gamma$ be a Gaussian random variable which is independent of all other random variables and whose covariance is $\Sigma^{-1}$. (in our estimator, $\Sigma = \lambda$).
+
+% Define 
+% \[
+% M_t = \expectedvalue \left[M_t^\Gamma \condbar F_\infty\right]
+% \]
+
+% where $F_\infty$ is the tail $\sigma$-algebra of the filtration. Clearly, we still have $\expectedvalue[M_\tau] = \expectedvalue[\expectedvalue[M_\tau^\Gamma|\Gamma]]\leq 1$.
+
+% Let us calculate $M_t$. Let $f$ denote the density of $\Gamma$ and for a positive definite matrix $P$ let $c(P) = \sqrt{(2\pi)^d/\det(P)} = \int \exp (-\frac{1}{2}x^\transp P x)$
+
+
+\begin{lemma}[Theorem 14.7 of \citep{pena2008self}]
+If $Z$ is a random vector and $B$ is a symmetric positive definite matrix such that
+\[\forall \gamma\in\Real^d, \ln \expectedvalue \exp \left(\gamma^\transp Z -\frac{1}{2} \gamma^\transp B \gamma \right)\leq 0,\]
+then for any positive definite non-random matrix C, it holds
+\[\expectedvalue\left[ \sqrt{\frac{\det(C)}{\det(B+C)} } \exp\left( \frac{1}{2}\|Z\|^2_{(B+C)^{-1}}\right)\right]\leq 1. \] 
+In particular, by Markov inequality, for all $\delta\in(0,1)$, 
+\[\probability{\|Z\|_{(B+C)^{-1}} \geq \sqrt{2\ln \left(\frac{\det \left((B+C)^{1/2}\right)}{\delta\det(C)^{1/2}}\right)}}\leq \delta.\]
+\end{lemma}
+
+Here, by using $Z = \sum_{s=1}^t\Phi_s\Sigma_p^{-1}\eta_s$, $B=G_t$, $C=G$,
+
+\[
+\probability{\| S_t \|_{(G_t+G)^{-1}} \geq \sqrt{2\ln \left(\frac{\det(G_t+G)^{1/2}}{\delta\det(G)^{1/2}}\right)}} \leq \delta
+\]
+
+\end{proof}
+
+\subsection{Proof of \autoref{thm:confidence_ellipsoid}}
+
+\begin{proof}
+
+Hence, for all $x\in\Real^d$,
+\begin{align*}
+    x^\transp\theta_{N,\lambda}  -x^\transp\theta &= x^\transp G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
+    - \lambda x^\transp G_{N, \lambda}^{-1}\theta\\
+    &= \inp{x}{\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\theta}_{G_{N, \lambda}^{-1}}
+\end{align*}
+
+Using the Cauchy-Schwartz inequality, we get:
+\begin{align*}
+    |x^\transp\theta_{N,\lambda}  -x^\transp\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}\right)
+\end{align*}
+
+In particular, for $x = G_{N,\lambda}(\theta_{N,\lambda} - \theta)$, we get after simplifying with $\| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}}$:
+\begin{align*}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
+\end{align*}
+
+By applying \autoref{prop:concentration} with $G=\lambda I_d$, we obtain that with probability at least $1-\delta$,
+\begin{align*}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
+     + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
+\end{align*}
+And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda})\|\theta\|_2^2 \leq 1/\lambda \|\theta\|_2^2$,
+\begin{align*}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
+     + \lambda^{1/2}\|\theta\|_2
+\end{align*}
+\end{proof}
+
+\subsection{Proof of \autoref{lem:confidence_polytope}}
+
+\begin{proof}
+The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
+\begin{align*}
+    \theta\in\cC_\delta &\implies
+    (\theta-\theta_{N,\lambda})^\transp G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies (\theta'-\theta'_{N,\lambda})^\transp D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
+    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
+\end{align*}
+This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
+\end{proof}
+
+\subsection{Proof of \autoref{prop:lower-bound}}
+
+\begin{proof}
+We have that $A(\theta) \in \cP$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
+\begin{equation*}
+ \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]} \gamma^t r(x) = \hat{v^r}(\bu)
+\end{equation*}
+
+And finally, with probability $1-\delta$,
+\begin{align*}
+v^r(\bu) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
+&\geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
+& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\bu)\right] = \hat{v^r}(\bu)
+\end{align*}
+\end{proof}
+
+\section{The use case of autonomous driving}
+
+In the following, we describe the structure of the model representing the dynamics of of several vehicles driving and interacting with one another.
 
 \subsection{Kinematics}
 
@@ -654,172 +831,6 @@ Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \em
 \subsection{Change of coordinates}
 In both cases, the obtained polytope centre $A_0$ is non-Metzler.
 We use lemma \ref{lem:metzler} to compute a similarity transformation of coordinates. Precisely, we ensure that the polytope is chosen so that its centre $A_0$ is diagonalisable having real eigenvalues, and perform an eigendecomposition to compute its change of basis matrix $S$. The transformed system $Z'=S^{-1}(Z-Z_c)$ verifies \eqref{eq:polytope} with $A_0$ Metlzer as required to apply the interval predictor of Theorem~\ref{thm:predictor}. Finally, the obtained predictor is transformed back to the original coordinates $Z$ by using the interval arithmetic of Lemma~\ref{lem:interval}.
-
-
-\bibliography{references}
-\bibliographystyle{icml2020}
-
-\appendix
-
-\section{Proofs}
-
-\subsection{Proof of \autoref{thm:regularized_solution}}
-
-\begin{proof}
-We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
-
-\begin{align*}
-    \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^\transp\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{}^2\\
-    &= -2\sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n + 2\sum_{n=1}^N\theta^\transp(\Phi_n^\transp\Sigma^{-1}\Phi_n) +  2 \lambda \theta^\transp
-\end{align*}
-
-Hence,
-\begin{align*}
-    \nabla_{\theta} J(\theta) = 0 \iff \left(\sum_{n=1}^N\Phi_n^\transp\Sigma_p^{-1}\Phi_n + I_d\right)\theta = \sum_{n=1}^N y_n^\transp\Sigma_p^{-1}\Phi_n
-\end{align*}
-\end{proof}
-
-\subsection{Proof of \autoref{lem:regression-error}}
-
-\begin{proof}
-In order to study the concentration of $\theta_{N,\lambda}$, we substitute the expression of $y_n$ into \eqref{eq:vector_rls}:
-\begin{align*}
-    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} (\Phi_n\theta +\eta_n)\\
-    &= \theta - G_{N, \lambda}^{-1}\lambda\theta + G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
-\end{align*}
-
-\subsection{Proof of \autoref{prop:concentration}}
-
-\begin{proof}
-
-
-Let 
-\begin{equation*}
-    G_t = \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d}
-\end{equation*}
-And for any $z\in\Real^d$,
-\begin{equation*}
-    M_t^z = \exp{\left(\inp{z}{S_t} - \frac{1}{2}\|z\|_{G_t}\right)}
-\end{equation*}
-\begin{equation*}
-    D_t^z = \exp{\left(\inp{\Phi_t z}{\eta_t}_{\Sigma_p^{-1}} - \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}
-\end{equation*}
-Then,
-\begin{align*}
-    M_t^z = \exp{\left(\sum_{s=1}^t z^\transp \Phi_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (\Phi_s z)^\transp\Sigma_p^{-1}(\Phi_s z) \right)} = \prod_{s=1}^{t} D_s^z
-\end{align*}
-and using the Sub-Gaussianity of $\eta_t$
-\begin{align*}
-    \expectedvalue\left[D_t^z \condbar F_{t-1}\right] = {}& \exp{\left(- \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}\\ &\expectedvalue\left[\exp{\left(\inp{\Phi_t z}{\eta_t}_{\Sigma_p^{-1}}\right)} \condbar F_{t-1}\right]  \\
-    \leq {} & \exp{\left(- \frac{1}{2}\|\Phi_t z\|_{\Sigma_p^{-1}}\right)}\\
-    &\exp{\left((z^\transp \Phi_t^\transp \Sigma_p^{-1})\Sigma_p(\Sigma_p^{-1} \Phi_t z)\right)}\\
-    &= 1
-\end{align*}
-\begin{align*}
-    \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
-\end{align*}
-Showing that $(M_t^z)_{t=1}^\infty$ is indeed a supermartingale and in fact $\expectedvalue[M_t^z]\leq 1$.
-I then follows by Doob's upcrossing lemma for super-martnigales that $M_\infty^z = \lim_{t\to\infty} M_t^z$ is almost surely well-defined, ans so is $M_\tau^z$ for any random stopping time $\tau$.
-
-Next, we consider the stopped martingale $M_{\min(\tau,t)}^z$. Since 
-$(M_t^z)_{t=1}^\infty$ is a non-negative supermartingale and $\tau$ is a random stopping time, we deduce by Doob's decomposition that
-\begin{align*}
-\expectedvalue[M_{\min(\tau,t)}^z] &= \expectedvalue[M_0^z] + \expectedvalue[\sum_{s=0}^{t-1} (M_{s+1}^z-M_s^z) \mathbb{I}\{\tau>s\}]\\
-&\leq 1 + \expectedvalue[\sum_{s=0}^{t-1} \expectedvalue[M_{s+1}^z-M_s^z|F_{s}] \mathbb{I}\{\tau>s\}]\\
-&\leq 1
-\end{align*}
-Finally, an application of Fatou's lemma show that 
-$\expectedvalue[M_\tau^z] = \expectedvalue[\liminf_{t\to\infty} M_{\min(\tau,t)}^z] \leq \liminf_{t\to\infty} \expectedvalue[M_{\min(\tau,t)}^z] \leq 1.$
-\end{proof}
-
-% The following uses the method of mixtures.
-% Let $\Gamma$ be a Gaussian random variable which is independent of all other random variables and whose covariance is $\Sigma^{-1}$. (in our estimator, $\Sigma = \lambda$).
-
-% Define 
-% \[
-% M_t = \expectedvalue \left[M_t^\Gamma \condbar F_\infty\right]
-% \]
-
-% where $F_\infty$ is the tail $\sigma$-algebra of the filtration. Clearly, we still have $\expectedvalue[M_\tau] = \expectedvalue[\expectedvalue[M_\tau^\Gamma|\Gamma]]\leq 1$.
-
-% Let us calculate $M_t$. Let $f$ denote the density of $\Gamma$ and for a positive definite matrix $P$ let $c(P) = \sqrt{(2\pi)^d/\det(P)} = \int \exp (-\frac{1}{2}x^\transp P x)$
-
-
-\begin{lemma}[Theorem 14.7 of \citep{pena2008self}]
-If $Z$ is a random vector and $B$ is a symmetric positive definite matrix such that
-\[\forall \gamma\in\Real^d, \ln \expectedvalue \exp \left(\gamma^\transp Z -\frac{1}{2} \gamma^\transp B \gamma \right)\leq 0,\]
-then for any positive definite non-random matrix C, it holds
-\[\expectedvalue\left[ \sqrt{\frac{\det(C)}{\det(B+C)} } \exp\left( \frac{1}{2}\|Z\|^2_{(B+C)^{-1}}\right)\right]\leq 1. \] 
-In particular, by Markov inequality, for all $\delta\in(0,1)$, 
-\[\probability{\|Z\|_{(B+C)^{-1}} \geq \sqrt{2\ln \left(\frac{\det \left((B+C)^{1/2}\right)}{\delta\det(C)^{1/2}}\right)}}\leq \delta.\]
-\end{lemma}
-
-Here, by using $Z = \sum_{s=1}^t\Phi_s\Sigma_p^{-1}\eta_s$, $B=G_t$, $C=G$,
-
-\[
-\probability{\| S_t \|_{(G_t+G)^{-1}} \geq \sqrt{2\ln \left(\frac{\det(G_t+G)^{1/2}}{\delta\det(G)^{1/2}}\right)}} \leq \delta
-\]
-
-\end{proof}
-
-\subsection{Proof of \autoref{thm:confidence_ellipsoid}}
-
-\begin{proof}
-
-Hence, for all $x\in\Real^d$,
-\begin{align*}
-    x^\transp\theta_{N,\lambda}  -x^\transp\theta &= x^\transp G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
-    - \lambda x^\transp G_{N, \lambda}^{-1}\theta\\
-    &= \inp{x}{\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n}_{G_{N, \lambda}^{-1}} - \lambda\inp{x}{\theta}_{G_{N, \lambda}^{-1}}
-\end{align*}
-
-Using the Cauchy-Schwartz inequality, we get:
-\begin{align*}
-    |x^\transp\theta_{N,\lambda}  -x^\transp\theta| &\leq \|x\|_{G_{N, \lambda}^{-1}}\left(\left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}\right)
-\end{align*}
-
-In particular, for $x = G_{N,\lambda}(\theta_{N,\lambda} - \theta)$, we get after simplifying with $\| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}}$:
-\begin{align*}
-    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \left\|\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n\right\|_{G_{N, \lambda}^{-1}} + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
-\end{align*}
-
-By applying \autoref{prop:concentration}, we obtain:
-\begin{align*}
-    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq 
-     + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
-\end{align*}
-\end{proof}
-
-
-\subsection{Proof of \autoref{lem:confidence_polytope}}
-
-\begin{proof}
-The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
-\begin{align*}
-    \theta\in\cC_\delta &\implies
-    (\theta-\theta_{N,\lambda})^\transp G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
-    &\implies (\theta'-\theta'_{N,\lambda})^\transp D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
-    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
-    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
-\end{align*}
-This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
-\end{proof}
-
-\subsection{Proof of \autoref{prop:lower-bound}}
-
-\begin{proof}
-We have that $A(\theta) \in \cP$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
-\begin{equation*}
- \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]} \gamma^t r(x) = \hat{v^r}(\bu)
-\end{equation*}
-
-And finally, with probability $1-\delta$,
-\begin{align*}
-v^r(\bu) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-&\geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\bu)\right] = \hat{v^r}(\bu)
-\end{align*}
-\end{proof}
 
 
 \end{document}
