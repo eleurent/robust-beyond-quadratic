@@ -164,6 +164,8 @@ The dynamics of the real system are described in continuous time. However, all t
 
 \section{Model Estimation}
 
+\label{sec:estimation}
+
 \paragraph{Objective}
 Having observed at times a history of transitions $\cD_{[N]} = \{(x_n, u_n, y_n)\}_{n\in[N]}$, and given a confidence level $\delta\in(0, 1)$, our goal is to find a confidence region $\cC_{[N],\delta}$ as tight as possible and such that it holds that:
 \begin{align}
@@ -314,6 +316,8 @@ Another strategy presented in \autoref{sec:tight-polytope} produces a much tight
 
 \section{State Prediction}
 
+\label{sec:prediction}
+
 In this section, we assume that we found a high-confidence polytope that verifies \eqref{eq:polytope} with probability $1-\delta$.
 
 The objective of the prediction procedure, as illustrated in \autoref{fig:interval-hull} is to design an \emph{interval predictor} for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}({0})$, the admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$, and the model polytope $\cP_\delta$, and verifies the inclusion property:
@@ -404,6 +408,8 @@ We consider interval prediction rather than zonotope prediction for instance, fo
 
 \section{Control}
 
+\label{sec:control}
+
 At time $N$, we denote the vector of future controls as $\bu = (u_{N+1},u_{N+2},\cdots)$ and future perturbations as $\bw = (\omega_N, \omega_{N+1},\cdots)$.
 
 We consider the robust control objective $V^r$:
@@ -489,12 +495,16 @@ If we assume that the reward function $R$ is lipschitz, then we can bound the ap
 
 \section{Multi-model Extension}
 
-The procedure we developed in sections relies on several modelling assumptions which can be quite restrictive, such as the system dynamics \eqref{eq:dynamics} or its linear parametrisation in \autoref{assumpt:linear_param}. But what if they are wrong?
+The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction} and \ref{sec:control} relies on several modelling assumptions, such as the system dynamics \eqref{eq:dynamics} or \autoref{assumpt:linear_param}. But what if they are wrong?
 
 \paragraph{Model adequacy}
 
-We can test the model adequacy, and eventually reject it.
+One of the major benefits of using the family of linear models compared to richer classes is that it enables to measure empirically the adequacy of the modelling assumptions to capture the observed signal,  and thus to raise an alert when the adequacy is too low. 
 
+We define the model adequacy for an observation $y$ at point $x$ of the modelling assumptions $(A, \phi)$ trained on history $\cD$.
+A value of 1 indicates no mismatch, while a value of 0 indicates a strong mismatch.
+
+This is especially relevant in the context of model selection or aggregation.
 This suggest using multiple models with different sets of features.
 
 \subsection{Robust control with Discrete Ambiguity}
