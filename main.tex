@@ -140,14 +140,7 @@ with state $x\in\Real^p$, control $u\in\Real^q$, and disturbance $\omega\in\Real
 We also have access to the observation of $x(t)$ and to noisy a measurement of $\dot{x}(t)$ in the form
 $
     \dot{x}(t) + C\nu(t)
-$ where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known.
-For better readability, we will actually denote the measurement as:
-\begin{equation}
-\label{eq:measurement}
-    y(t) = \dot{x}(t) - A_0 x(t) - Bu(t) + C\nu(t)
-\end{equation}
-which is possible since the nominal dynamics $A_0$, thet state $x(t)$ and the control $u(t)$ are known.
-Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further, and we denote their total contribution as $\eta(t) = C\nu(t) + D\omega(t)$.
+$ where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is known. Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further, and we denote their total contribution as $\eta(t) = C\nu(t) + D\omega(t)$.
 
 \paragraph{Notations}
 
@@ -172,9 +165,9 @@ The dynamics of the real system are described in continuous time. However, all t
 \section{Model Estimation}
 
 \paragraph{Objective}
-Having observed at times a history of transitions $\cD = \{(x_n, u_n, y_n)\}_{n\in[N]}$, and given a confidence level $\delta\in(0, 1)$, our goal is to find a confidence region $\cC_\delta$ as tight as possible and such that it holds that:
+Having observed at times a history of transitions $\cD_{[N]} = \{(x_n, u_n, y_n)\}_{n\in[N]}$, and given a confidence level $\delta\in(0, 1)$, our goal is to find a confidence region $\cC_{[N],\delta}$ as tight as possible and such that it holds that:
 \begin{align}
-\probability{A(\theta)\in \cC_\delta} \geq 1-\delta
+\probability{A(\theta)\in \cC_{[N],\delta}} \geq 1-\delta
 \label{eq:polytope}
 \end{align}
 
@@ -197,14 +190,24 @@ To that end, we further assume that the dynamics $A(\theta)$ enjoy the following
 \label{assumpt:linear_param}
 There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
 \begin{equation}
-    A(\theta) = A_0 + %\theta^\transp \phi \eqdef A_0 + 
+    A(\theta) = A + %\theta^\transp \phi \eqdef A + 
     \sum_{i=1}^d \theta_i\phi_i
 \end{equation}
 where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denote $\Phi_n = [\phi_1 x_n \cdots \phi_d x_n]\in\Real^{p\times d}$.
 \end{assumption}
 
+For readability, we denote the noisy measurement of $\dot{x}$ as:
+\begin{equation}
+\label{eq:measurement}
+    y(t) = \dot{x}(t) + C\nu(t) - A x(t) - Bu(t)
+\end{equation}
+which is possible since the nominal dynamics $A$, the state $x(t)$ and the control $u(t)$ are known.
+Thus, we obtain the system
+\[
+y_n = \Phi_n\theta + \eta_n
+\]
 
-\paragraph{Regularised least square} Since we expect that $\Phi_n$ may have zero-coordinates during possibly long time intervals (i.e. some features are not always active), we consider the weighted $L_2$-regularised regression problem with weights  $\Sigma_p\in\Real^{p\times p}$ and parameter $\lambda\in\Real^+_*$:
+\paragraph{Regularised least square} We consider the weighted $L_2$-regularised regression problem with weights  $\Sigma_p\in\Real^{p\times p}$ and parameter $\lambda\in\Real^+_*$:
 
 
 \begin{equation}
@@ -215,8 +218,8 @@ where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denot
 
 The solution can be obtained as:
 
-\begin{theorem}[Regularised solution]
-\label{thm:regularized_solution}
+\begin{proposition}[Regularised solution]
+\label{prop:regularized_solution}
 The solution to \eqref{eq:regression_min} is:
 \begin{equation}
     \label{eq:vector_rls}
@@ -226,7 +229,7 @@ where
 \begin{equation*}
     G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^\transp\Sigma_p^{-1}\Phi_{n}  + \lambda I_d \in \Real^{d\times d}.
 \end{equation*}
-\end{theorem}
+\end{proposition}
 
 By simply substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain the regression error:
 \begin{align}
@@ -244,7 +247,7 @@ The noise $\eta(t)$ is bounded.
 \[\|\eta\|_\infty < \infty\]
 \end{assumption}
 
-With Hölder inequality, we obtain a confidence region $\cC$ defined by a $L_1$-ball, i.e. a polytope with $2d$ vertices:
+By Hölder inequality, we obtain a confidence region $\cC_\delta$ defined by a $L_1$-ball, i.e. a polytope with $2d$ vertices:
 \begin{equation}
 \begin{split}
 \label{eq:bounded-noise-polytope}
@@ -290,38 +293,24 @@ Then, for any $\delta>0$, with probability at least $1-\delta$, for all $n\geq0$
 Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\delta$ that
 \begin{align}
     \label{eq:confidence-ellipsoid}
-    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
-     + \lambda^{1/2}\|\theta\|_2.
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} \leq \beta_N(\delta),
 \end{align}
+with
+\begin{equation}
+    \beta_N(\delta)\eqdef \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
+     + \lambda^{1/2}\|\theta\|_2.
+\end{equation}
 \label{thm:confidence_ellipsoid}
-
 \end{theorem}
 
-\begin{lemma}[Confidence polytope]
-\label{lem:confidence_polytope}
-We can enclose the confidence ellipsoid $C_\delta$ obtained in $\eqref{eq:confidence-ellipsoid}$ within a polytope $P_\delta$:
-\[\cC_\delta \subset \cP_\delta\]
-where $\cP_\delta$ can be written as:
-\begin{equation}
-     \cP_\delta = \left\{ A_{0}+\sum_{i=1}^{2^d}\lambda_{i}\Delta A_{i}: \lambda\in[0, 1]^{2^d},  \sum_{i=1}^{2^d}\lambda_{i}=1\right\}.
-\end{equation}
-with 
-\begin{align*}
-    &G_{N,\lambda}^{-1} = PDP^{-1}\\
-    &h_k \text{ is the }k^\text{th}\text{ element of }\{-1,1\}^d\text{, for } k\in[2^d]\\
-    &\Delta\theta_k = C_{N,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k \\
-    &A_0 = \theta_{N,\lambda}^\transp\Phi\\
-    &\Delta A_k = \Delta\theta_k^\transp\Phi
-\end{align*}
-This conversion is illustrated in \autoref{fig:ellipsoid_to_polytope}.
-\end{lemma}
+We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into a polytope $C_\delta$. For simplicity, we present here a very simple but coarse strategy: bound the ellipsoid by its enclosing sphere, and the sphere by its enclosing hypercube:
+\begin{align}
+    \label{eq:generic-polytope}
+     &\cC_\delta = \left\{ A_{0}+\sum_{i=1}^{2^d}\lambda_{i}\Delta A_{i}: \lambda\in[0, 1]^{2^d},  \sum_{i=1}^{2^d}\lambda_{i}=1\right\},\\
+     &A_0 = A + \theta_{N,\lambda}^\transp\phi, \quad\Delta A_{i} = h_i \sqrt{\frac{\beta_N(\delta)}{\lambda_{\max}(G_{N,\lambda})}}
+\end{align}
 
-\begin{figure}
-    \centering
-    \includegraphics[trim={3.8cm, 2cm, 5cm, 3.8cm}, clip, width=0.4\textwidth]{img/ellipsoid_to_polytope}
-    \caption{From the confidence ellipsoid $\cC_\delta$ to its enclosing polytope $\cP_\delta$}
-    \label{fig:ellipsoid_to_polytope}
-\end{figure}
+Another strategy presented in \autoref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalization of $G_{N,\lambda}$.
 
 \section{State Prediction}
 
@@ -364,7 +353,7 @@ Assuming that \eqref{eq:polytope} is satisfied for the system \eqref{eq:dynamics
 \end{eqnarray}
 ensures the inclusion property \eqref{eq:interval_property}.
 
-Moreover, the stability of the predictor can be assessed with a sufficient condition in form of an LMI.
+% Moreover, the stability of the predictor can be assessed with a sufficient condition in form of an LMI.
 % if there exist diagonal matrices $P$, $Q$, $Q_{+}$, $Q_{-}$, $Z_{+}$, $Z_{-}$, $\Psi_{+}$, $\Psi_{-}$, $\Psi$, $\Gamma\in\Real^{2n\times 2n}$ such that the following LMIs are satisfied:
 % \begin{gather*}
 % P+\min\{Z_{+},Z_{-}\}>0,\;\Upsilon\preceq0,\;\Gamma>0,\\
@@ -395,6 +384,8 @@ Moreover, the stability of the predictor can be assessed with a sufficient condi
 % }then the predictor \eqref{eq:interval_predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
 \end{theorem}
 
+We consider interval prediction rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Among interval prediction algorithms, this predictor tends to produce tighter and more stable predictions than other candidates, and its stability can be assessed simply in terms of LMI.
+
 % \begin{example*}
 % Consider a scalar system:
 % \[
@@ -413,20 +404,23 @@ Moreover, the stability of the predictor can be assessed with a sufficient condi
 
 \section{Control}
 
-We consider the robust control objective $v^r$:
+At time $N$, we denote the vector of future controls as $\bu = (u_{N+1},u_{N+2},\cdots)$ and future perturbations as $\bw = (\omega_N, \omega_{N+1},\cdots)$.
+
+We consider the robust control objective $V^r$:
 
 \begin{equation}
 \label{eq:robust-control}
-\max_\bu \underbrace{\min_{A(\theta) \in \cP} \left[\sum_{t=0}^\infty \gamma^t r(x(t))\condbar u_t, \omega(t)\right]}_{v^r(\bu)}
+\max_\bu \underbrace{\min_{\substack{A(\theta) \in \cP \\ \bw\in[\underline{\omega},\overline{\omega}]^\Natural}} \left[\sum_{t=0}^\infty \gamma^t r(x(t,\bu,\bw))\right]}_{V^r(\bu)}
 \end{equation}
 
 
 \begin{definition}[Surrogate objective]
-We approximate the robust objective $v^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the polytopic approximation $\cP_\delta$ of $A(\Theta)$: 
+We approximate the robust objective $V^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the dynamics confidence region $\cC_\delta$:
 
-\begin{equation}
-\hat{v}^r(\bu) \eqdef \sum_{t=0}^\infty \gamma^t \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]}  R(x)
-\end{equation}
+\begin{align}
+\underline{R}(t,\bu) \eqdef \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]}  R(x) \\
+\hat{V}^r(\bu) \eqdef \sum_{t=0}^\infty \gamma^t \underline{R}(t,\bu) \label{eq:surrogate_objective}
+\end{align}
 where $\underline{x}(t, \bu), \overline{x}(t, \bu)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
 
@@ -459,25 +453,45 @@ This does not amount to defining a pessimistic reward-function $\underline{R}$, 
 
 \begin{proposition}[Lower bound]
 \label{prop:lower-bound}
-With high probability, the surrogate objective $\hat{v}^r$ is a lower bound of the true objective $v^r$:
+With high probability, the surrogate objective $\hat{V}^r$ is a lower bound of the true objective $V^r$:
 
 \begin{equation}
-\hat{v}^r(\bu) \leq v^r(\bu)
+\hat{V}^r(\bu) \leq V^r(\bu)
 \end{equation}
-
-If we assume that $R$ is $L$-Lipschitz, then we can also bound the approximation error:
-\begin{equation*}
-     v^r(\bu) - \hat{v}^r(\bu) \leq L\sum_{t=0}^\infty \gamma^t \mu([\underline{x}_N(t),\overline{x}_N(t)])
-\end{equation*}
 \end{proposition}
 
 Since all our approximations were conservative, if we manage to find a control sequence such that no \textit{bad event} (e.g. a collision) happens with our surrogate objective, then we are guaranteed so they will not happen either when the controls are executed on the true system.
 
-\section{Multi-model Estimation and Control}
+\begin{proposition}
+\label{prop:control-error}
+If we assume that the reward function $R$ is lipschitz, then we can bound the approximation error:
+\begin{equation*}
+     V^r(\bu) - \hat{V}^r(\bu) = \cO\left(\frac{1}{\sqrt{N}}\right)
+\end{equation*}
+\end{proposition}
 
-What if our system dynamics \eqref{eq:dynamics} or linear parametrisation assumption \ref{assumpt:linear_param} are wrong?
+\begin{algorithm}[tb]
+   \caption{Robust Estimation, Prediction and Control}
+   \label{alg:full}
+\begin{algorithmic}
+   \STATE {\bfseries Input:} confidence level $\delta$
+   \FOR{$N = 1,2,3,\dots$} 
+   \STATE Compute the dynamics confidence region $\cC_{[N],\delta}$ with \textsc{Model Estimation} \eqref{eq:generic-polytope} on $\cD_{[N]}$.
+   \FOR{planning steps $[T]$}
+   \STATE Get the tree node $\bu^t$ to expand with \textsc{Pessimistic Planning}  \eqref{eq:surrogate_objective} using $[\underline{x}(t,\bu), \overline{x}(t,\bu)]$.
+   \STATE For each child transition, simulate $[\underline{x}, \overline{x}]$ with \textsc{Interval Prediction} \eqref{eq:interval_predictor} using $\cC_{[N],\delta}$.
+   \ENDFOR
+   \STATE Execute the first recommended control $u_N$, and add the observed transition $(x_N, u_N, \dot{x}_N)$ to $\cD_{[N+1]}$.
+   \ENDFOR
+   
+\end{algorithmic}
+\end{algorithm}
 
-\subsection{Model adequacy}
+\section{Multi-model Extension}
+
+The procedure we developed in sections relies on several modelling assumptions which can be quite restrictive, such as the system dynamics \eqref{eq:dynamics} or its linear parametrisation in \autoref{assumpt:linear_param}. But what if they are wrong?
+
+\paragraph{Model adequacy}
 
 We can test the model adequacy, and eventually reject it.
 
@@ -529,30 +543,21 @@ From this definition we introduce Algorithm \ref{algo:drop}, and analyse its sam
 %\label{algo:drop}
 %\end{algorithm}
 
-The simple regret of the action $a$ returned by Algorithm \ref{algo:drop} after $n$ rounds is defined as:
-\begin{equation}
-\mathcal{R}_n = v^r - v_a^r
-\end{equation}
-We will say that $\mathcal{R}_n=O(\varepsilon)$ for some $\varepsilon>0$ if there exist $\rho>0$ and $n_0>0$ such that $\mathcal{R}_n\leq\rho\varepsilon$ for all $n\geq n_0$.
-A node $i\in\mathcal{T}$ is said to be $\epsilon$-optimal, in a robust sense, if and only if $v_i^r \geq v^r - \epsilon$ for some $\epsilon > 0$. The proportion of $\epsilon$-optimal nodes at depth $d$ is then defined as $p_d(\epsilon) = |i \in \mathcal{A}^d$ s.t $i$ is $\epsilon$-optimal$|/K^d$. Further we will assume that for the graph $\mathcal{T}$ the following hypothesis is satisfied:
-\begin{assumption}[Proportion of near-optimal nodes]
-\label{assumpt:beta}
-There exist $\beta\in[0, \frac{\log K}{\log 1/\gamma}]$, $c > 0$ and $d_0 > 0$ such that $p_d(\epsilon)\leq c\epsilon^\beta$ for all $\epsilon > 0$ and $d\geq d_0$.
-\end{assumption}
+We introduce a measure of the problem difficulty: TODO: Definition of $\kappa\in [1, K]$
+A node $i\in\mathcal{T}$ is said to be $\epsilon$-optimal, in a robust sense, if and only if $V_i^r \geq V^r - \epsilon$ for some $\epsilon > 0$. The proportion of $\epsilon$-optimal nodes at depth $d$ is then defined as $p_d(\epsilon) = |i \in \mathcal{A}^d$ s.t $i$ is $\epsilon$-optimal$|/K^d$. Further we will assume that for the graph $\mathcal{T}$ the following hypothesis is satisfied:
 
 \begin{theorem}[Regret bound]
 \label{theorem:drop-regret}
-Let $\kappa = K\gamma^\beta \in [1, K]$. Then the simple regret of Algorithm \ref{algo:drop} is:
-
+The simple regret of Algorithm \ref{algo:drop} after $T$ iterations is:
 
 \begin{equation}
 \text{If } \kappa>1,\qquad 
-\mathcal{R}_n = O\left(n^{-\frac{\log 1/\gamma}{\log \kappa}}\right)
+v^r - v^r_{a_T} = O\left(T^{-\frac{\log 1/\gamma}{\log \kappa}}\right)
 \end{equation}
 
 \begin{equation}
 \text{If }\kappa=1,\qquad
-\mathcal{R}_n = O\left(\gamma^{\frac{(1-\gamma)^\beta}{c}n}\right)
+v^r - v^r_{a_T} = O\left(\gamma^{\frac{(1-\gamma)^\beta}{c}T}\right)
 \end{equation}
 \end{theorem}
 
@@ -572,7 +577,7 @@ The system
 
 \section{Proofs}
 
-\subsection{Proof of \autoref{thm:regularized_solution}}
+\subsection{Proof of \autoref{prop:regularized_solution}}
 
 \begin{proof}
 We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
@@ -694,24 +699,11 @@ And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda
 \end{align*}
 \end{proof}
 
-\subsection{Proof of \autoref{lem:confidence_polytope}}
-
-\begin{proof}
-The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
-\begin{align*}
-    \theta\in\cC_\delta &\implies
-    (\theta-\theta_{N,\lambda})^\transp G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
-    &\implies (\theta'-\theta'_{N,\lambda})^\transp D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
-    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
-    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
-\end{align*}
-This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
-\end{proof}
 
 \subsection{Proof of \autoref{prop:lower-bound}}
 
 \begin{proof}
-We have that $A(\theta) \in \cP$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
+We have that $A(\theta) \in \cC_{[N],\delta}$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
 \begin{equation*}
  \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]} \gamma^t r(x) = \hat{v^r}(\bu)
 \end{equation*}
@@ -837,6 +829,42 @@ v_i\psi_{L_i} \\
 \end{bmatrix}
 \end{equation*}
 Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \emph{i.e.} $\theta_{i,6}=v_i$, with constant bounds assumed for $v_i$ using an overset of the longitudinal interval predictor.
+
+\subsection{Tighter conversion form ellipsoid to polytope}
+\label{sec:tight-polytope}
+\begin{lemma}[Confidence polytope]
+\label{lem:tight_polytope}
+We can enclose the confidence ellipsoid obtained in $\eqref{eq:confidence-ellipsoid}$ within a polytope $C_\delta$:
+\begin{equation}
+     \cC_\delta = \left\{ A_{1}+\sum_{i=1}^{2^d}\lambda_{i}\Delta A_{i}: \lambda\in[0, 1]^{2^d},  \sum_{i=1}^{2^d}\lambda_{i}=1\right\}.
+\end{equation}
+with 
+\begin{align*}
+    &h_k \text{ is the }k^\text{th}\text{ element of }\{-1,1\}^d\text{ for } k\in[2^d],\\
+    &G_{N,\lambda}^{-1} = PDP^{-1}, \quad \Delta\theta_k = C_{N,\lambda,\delta}^{1/2} P^{-1}D^{-1/2} h_k, \\
+    &A_0 = A + \theta_{N,\lambda}^\transp\Phi, \quad \Delta A_k = \Delta\theta_k^\transp\Phi.
+\end{align*}
+This conversion is illustrated in \autoref{fig:ellipsoid_to_polytope}.
+\end{lemma}
+
+\begin{proof}
+The ellipsoid in \eqref{eq:confidence-ellipsoid} is described by:
+\begin{align*}
+    \theta\in\cC_\delta &\implies
+    (\theta-\theta_{N,\lambda})^\transp G_{N,\lambda}^{-1}(\theta-\theta_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies (\theta'-\theta'_{N,\lambda})^\transp D (\theta'-\theta'_{N,\lambda}) \leq C_{N,\lambda,\delta}\\
+    &\implies \sum_{i=1}^d D_{i,i}(\theta'_i-\theta'_{N,\lambda,i})^2\leq C_{N,\lambda,\delta}\\
+    &\implies\forall i, |\theta'_i-\theta'_{N,\lambda,i}|\leq C_{N,\lambda,\delta}^{1/2}D_{i,i}^{-1/2}
+\end{align*}
+This describes a $\Real^d$ box containing $\theta' = P\theta$, whose $k^\text{th}$ vertex is represented by $\theta_{N,\lambda}' + C_{N,\lambda,\delta}^{1/2}D^{-1/2} h_k$. We obtain the corresponding box on $\theta$ by transforming each vertex of the box with $P^{-1}$.
+\end{proof}
+
+\begin{figure}
+    \centering
+    \includegraphics[trim={3.8cm, 2cm, 5cm, 3.8cm}, clip, width=0.4\textwidth]{img/ellipsoid_to_polytope}
+    \caption{From the confidence ellipsoid $\cC_\delta$ to its enclosing polytope $\cP_\delta$}
+    \label{fig:ellipsoid_to_polytope}
+\end{figure}
 
 \subsection{Change of coordinates}
 In both cases, the obtained polytope centre $A_0$ is non-Metzler.
