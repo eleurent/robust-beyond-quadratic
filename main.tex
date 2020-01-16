@@ -87,13 +87,13 @@
 	\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
 %	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 	
-	\begin{abstract}
-		
-	\end{abstract}
+\begin{abstract}
+	We study the adaptive control of a linear system with unknown parameters and arbitrary costs in a critical setting where failures are costly and should be prevented at all time. We build on two ideas. First, we incorporate prior knowledge of the dynamics in the form of a known structure of uncertainty, that can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, we act in a cautious way with respect to this uncertainty by formulating a robust objective, that we solve approximately in a prediction-optimisation manner, leveraging tools from interval prediction and tree-based planning. Additionally, we relax our modelling assumptions by proposing an extension based on multi-model selection and aggregation. The full procedure is designed to produce reasonable and safe behaviour at deployment, get more aggressive with time, and be asymptotically optimal. We illustrate it on a practical case of autonomous driving at an intersection.
+\end{abstract}
 
 \section{Introduction}
 
-We would like to control a system in order to maximise an \textit{arbitrary} reward function $R$, e.g. non-convex, non-smooth. These happen naturally: combinatorial optimization such as scheduling, obstacle avoidance.
+We would like to control a system in order to maximise an \textit{arbitrary} bounded reward function $R$, e.g. non-convex, non-smooth. These happen naturally: combinatorial optimization such as scheduling, obstacle avoidance.
 Critical industrial setting: we do not want to commit mistakes. 
 In particular, this rules out shiny Deep RL etc.
 The only way to avoid mistakes from the outset, when the system is first deployed, is to incorporate some kind of prior knowledge. In this work, we assume that the system dynamics are partially known: known structure of a parametrized system, with unknown parameters. This is realistic in the sense that most industrial applications to date have been relying on physical models and corresponding optimal controllers rather than machine learning. Here, instead of providing the whole model, its main parts  
@@ -493,15 +493,18 @@ If we assume that the reward function $R$ is lipschitz, then we can bound the ap
 \end{algorithmic}
 \end{algorithm}
 
-\section{Multi-model Extension}
+\section{Multi-model Aggregation}
 
 The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction} and \ref{sec:control} relies on several modelling assumptions, such as the system dynamics \eqref{eq:dynamics} or \autoref{assumpt:linear_param}. But what if they are wrong?
 
 \paragraph{Model adequacy}
 
-One of the major benefits of using the family of linear models compared to richer classes is that it enables to measure empirically the adequacy of the modelling assumptions to capture the observed signal,  and thus to raise an alert when the adequacy is too low. 
+One of the major benefits of using the family of linear models, compared to richer model classes, is that it enables to measure empirically the adequacy of the modelling assumptions to capture the observed signal, and thus to raise an alert when the adequacy is too low.
 
-We define the model adequacy for an observation $y$ at point $x$ of the modelling assumptions $(A, \phi)$ trained on history $\cD$.
+We define the model adequacy for an observation $y$ at point $x$ of the modelling assumptions $(A, \phi)$ trained on history $\cD$ by:
+\begin{equation*}
+    \alpha(y,x)
+\end{equation*}
 A value of 1 indicates no mismatch, while a value of 0 indicates a strong mismatch.
 
 This is especially relevant in the context of model selection or aggregation.
@@ -519,16 +522,16 @@ Assume that the true dynamics $f$ lies within a finite set of candidate models $
 We temporarily ignore the parametric uncertainty $\theta\in\Theta$ to only consider known deterministic models.
 \end{assumption}
 
-\begin{definition}[Robust sequence upper bounds] We define an upper-bound for the value of sequences of actions:
+\begin{definition}[Robust sequence upper bounds] We define an upper-bound for the value of a sequences of action $a$:
 \begin{equation}
 \label{eq:robust_sequence_ucb}
-b_i^r(n)  \eqdef
+B_a^r(n)  \eqdef
 \begin{cases}
-\min_{m\in[1, M]} \sum_{t=0}^{d-1} \gamma^t R_t^m  + \frac{\gamma^d}{1-\gamma} &\text{if } i \in \mathcal{L}_n \text{ ;}\\
-\max_{a\in\mathcal{A}} B_{ia}^r(n) & \text{if } i \in \mathcal{T}_n \setminus \mathcal{L}_n 
+\min_{m\in[M]} \sum_{t=0}^{h-1} \gamma^t R_t^m  + \frac{\gamma^h}{1-\gamma} &\text{if } a \text{ is a leaf;}\\
+\max_{b\in\mathcal{A}} B_{ab}^r(n) & \text{else.}
 \end{cases}
 \end{equation}
-where $R_t^m$ is the reward obtained at step $t$ by following $i$ with dynamics $f^m$.
+where $R_t^m$ is the reward obtained at step $t$ by following $a$ with dynamics $f^m$.
 \end{definition}
 An illustration of the computation of the robust b-values is presented in Figure \ref{fig:drop}.
 
