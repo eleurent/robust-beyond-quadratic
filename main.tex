@@ -524,18 +524,18 @@ We temporarily ignore the parametric uncertainty $\theta\in\Theta$ to only consi
 \label{eq:robust_sequence_ucb}
 b_i^r(n)  \eqdef
 \begin{cases}
-\min_{m\in[1, M]} \sum_{t=0}^{d-1} \gamma^t r_t^m  + \frac{\gamma^d}{1-\gamma} &\text{if } i \in \mathcal{L}_n \text{ ;}\\
-\max_{a\in\mathcal{A}} b_{ia}^r(n) & \text{if } i \in \mathcal{T}_n \setminus \mathcal{L}_n 
+\min_{m\in[1, M]} \sum_{t=0}^{d-1} \gamma^t R_t^m  + \frac{\gamma^d}{1-\gamma} &\text{if } i \in \mathcal{L}_n \text{ ;}\\
+\max_{a\in\mathcal{A}} B_{ia}^r(n) & \text{if } i \in \mathcal{T}_n \setminus \mathcal{L}_n 
 \end{cases}
 \end{equation}
-where $r_t^m$ is the reward obtained at step $t$ by following $i$ with dynamics $f^m$.
+where $R_t^m$ is the reward obtained at step $t$ by following $i$ with dynamics $f^m$.
 \end{definition}
 An illustration of the computation of the robust b-values is presented in Figure \ref{fig:drop}.
 
 \begin{figure}
 \centering
 \includegraphics[width=0.4\linewidth]{img/robust-control-tree}
-\caption{The computation of robust b-values in Algorithm \ref{algo:drop}. The simulation of trajectories for every dynamics model $f^m$ is represented as stacked versions of the expanded tree $\mathcal{T}_n$.}
+\caption{The computation of robust B-values in Algorithm \ref{algo:drop}. The simulation of trajectories for every dynamics model $f^m$ is represented as stacked versions of the expanded tree $\mathcal{T}_n$.}
 \label{fig:drop}
 \end{figure}
 
@@ -553,8 +553,10 @@ From this definition we introduce Algorithm \ref{algo:drop}, and analyse its sam
 %\label{algo:drop}
 %\end{algorithm}
 
-We introduce a measure of the problem difficulty: TODO: Definition of $\kappa\in [1, K]$
-A node $i\in\mathcal{T}$ is said to be $\epsilon$-optimal, in a robust sense, if and only if $V_i^r \geq V^r - \epsilon$ for some $\epsilon > 0$. The proportion of $\epsilon$-optimal nodes at depth $d$ is then defined as $p_d(\epsilon) = |i \in \mathcal{A}^d$ s.t $i$ is $\epsilon$-optimal$|/K^d$. Further we will assume that for the graph $\mathcal{T}$ the following hypothesis is satisfied:
+We express the performance of the planning problem in terms of a measure of the proportion of near-optimal paths:
+\[
+\kappa = \limsup_{h\rightarrow\infty} \left|\left\{a\in A^h: V(a)\geq V - \frac{\gamma^{h+1}}{1-\gamma}\right\}\right|^{1/h}.
+\]
 
 \begin{theorem}[Regret bound]
 \label{theorem:drop-regret}
