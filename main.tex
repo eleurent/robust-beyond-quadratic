@@ -126,6 +126,10 @@ Differences with our work:
     
     Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
 
+
+Robust optimization has been studied in the context of finite Markov Decision Processes (MDP) with uncertain parameters by Iyengar (2005), Nilim and El Ghaoui (2005) and Wiesemann et al. (2013).They show that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies certain rectangularity properties, which can be seen as an independance assumption: 
+
+
 \section{Problem formulation}
 
 \paragraph{Structured dynamics}
@@ -196,6 +200,8 @@ There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such t
     \sum_{i=1}^d \theta_i\phi_i
 \end{equation}
 where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denote $\Phi_n = [\phi_1 x_n \cdots \phi_d x_n]\in\Real^{p\times d}$.
+
+We also assume that some bound $S$ over $\|\theta\|_\infty$ is known.
 \end{assumption}
 
 For readability, we denote the noisy measurement of $\dot{x}$ as:
@@ -238,15 +244,18 @@ By simply substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we ob
     \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta 
 \end{align}
 
-Depending on the assumption we have over the noise $\eta_n$ and the true parameter $\theta$, we can bound this error in different ways.
+
+Depending on the assumption we have over the noise $\eta_n$, we can bound this error in different ways.
 
 
 \subsection{Bounded noise}
 
 \begin{assumption}[Bounded noise]
 \label{assumpt:bounded-noise}
-The noise $\eta(t)$ is bounded.
-\[\|\eta\|_\infty < \infty\]
+The noise $\eta(t)$ is bounded
+\[
+\|\eta\|_\infty < \infty
+\]
 \end{assumption}
 
 By Hölder inequality, we obtain a confidence region $\cC_\delta$ defined by a $L_1$-ball, i.e. a polytope with $2d$ vertices:
@@ -254,7 +263,7 @@ By Hölder inequality, we obtain a confidence region $\cC_\delta$ defined by a $
 \begin{split}
 \label{eq:bounded-noise-polytope}
 \|\theta_{N,\lambda} - \theta\|_1 \leq {} &\|G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\|_1\|\eta\|_\infty \\
-&+ \lambda\|G_{N, \lambda}^{-1}\|_1\|\theta\|_\infty
+&+ \lambda\|G_{N, \lambda}^{-1}\|_1 S
 \end{split}
 \end{equation}
 
@@ -292,6 +301,7 @@ Then, for any $\delta>0$, with probability at least $1-\delta$, for all $n\geq0$
 \end{proposition}
 
 \begin{theorem}[Confidence ellipsoid]
+\label{thm:confidence_ellipsoid}
 Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\delta$ that
 \begin{align}
     \label{eq:confidence-ellipsoid}
@@ -300,9 +310,8 @@ Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\d
 with
 \begin{equation}
     \beta_N(\delta)\eqdef \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
-     + \lambda^{1/2}\|\theta\|_2.
+     + (\lambda d)^{1/2}S.
 \end{equation}
-\label{thm:confidence_ellipsoid}
 \end{theorem}
 
 We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into a polytope $C_\delta$. For simplicity, we present here a very simple but coarse strategy: bound the ellipsoid by its enclosing sphere, and the sphere by its enclosing hypercube:
@@ -314,13 +323,19 @@ We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into 
 
 Another strategy presented in \autoref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalization of $G_{N,\lambda}$.
 
+From now on, we consider that we reached time $N$, which is now fixed, and that a confidence region $\cC_{[N],\delta}$ was obtained with data $\cD$ collected so far. The following sections tackle the optimisation of the robust control objective:
+\begin{equation}
+\label{eq:robust-control}
+\max_\bu \underbrace{\min_{\substack{A(\theta) \in \cP \\ \bw\in[\underline{\omega},\overline{\omega}]^\Natural}} \left[\sum_{t=0}^\infty \gamma^t r(x(t,\bu,\bw))\right]}_{V^r(\bu)}
+\end{equation}
+where $\bu = (u_{N+1},u_{N+2},\cdots)$ and $\bw = (\omega_N, \omega_{N+1},\cdots)$ are the sequences of future controls and perturbations, respectively.
+
+
 \section{State Prediction}
 
 \label{sec:prediction}
 
-In this section, we assume that we found a high-confidence polytope that verifies \eqref{eq:polytope} with probability $1-\delta$.
-
-The objective of the prediction procedure, as illustrated in \autoref{fig:interval-hull} is to design an \emph{interval predictor} for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}({0})$, the admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$, and the model polytope $\cP_\delta$, and verifies the inclusion property:
+The objective of this section, as illustrated in \autoref{fig:interval-hull} is to  derive a \emph{set predictor} for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}({0})$, some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$, and a confidence region $\cC_\delta$ in the form \eqref{eq:generic-polytope} containing $A(\theta)$; and verifies the inclusion property:
 \begin{equation}
 \label{eq:interval_property}
 \underline{x}(t)\leq x(t)\leq\overline{x}(t),\quad\forall t\geq0.
@@ -333,17 +348,13 @@ The objective of the prediction procedure, as illustrated in \autoref{fig:interv
     \label{fig:interval-hull}
 \end{figure}
 
-In order to use the interval predictor from \citep{leurent2019interval}, we need an additional assumption.
-
-% \begin{lemma}[Similarity Transformation]
-% \label{lem:metzler} Let $D\in\Xi\subset\Real^{n\times n}$ be a matrix variable satisfying the interval constraints $\Xi=\{D\in\Real^{n\times n}:\,D_{a}-\Delta\le D\le D_{a}+\Delta\}$ for some $D_{a}^{\text{T}}=D_{a}\in\Real^{n\times n}$ and $\Delta\in\Real_{+}^{n\times n}$. If for some constant $\mu\in\Real_{+}$ and a diagonal matrix $\Upsilon\in\Real^{n\times n}$ the Metzler matrix $Y=\mu E_{n\times n}-\Upsilon$ has the same eigenvalues as the matrix $D_{a}$, then there is an orthogonal matrix $S\in\Real^{n\times n}$ such that the matrices $S^{\text{T}}DS$ are Metzler for all $D\in\Xi$ provided that $\mu>n||\Delta||_{max}$.\textup{ }
-% \end{lemma}
+We consider interval prediction rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Among interval prediction algorithms, we consider the algorithm from \citep{leurent2019interval}, which produces tighter and more stable predictions than other baselines, and whose stability can be assessed simply in terms of LMI. The price to pay for this improved stability is the requirement of an additional assumption:
 
 \begin{assumption}
-There exists an orthogonal $S\in\Real^{d\times d}$ such that $S^\transp A_0 S$ is Metzler.
+There exists an orthogonal matrix $P\in\Real^{d\times d}$ such that $P^\transp A_0 P$ is Metzler, that is, all non-diagonal coefficients are non-negative.
 \end{assumption}
-
-This for instance the case when $A_0$ is diagonalizable. Another way ... the similarity transformation of \citep{Efimov_a2013}.
+In practice, this assumption is often verified. It is for instance the case whenever $A_0$ is diagonalizable. The similarity transformation of \citep{Efimov_a2013} provides a method to compute such $P$ whenever there exist $C_1,C_2$ which make $A(\theta)$ and $A_0$ is observable. Note that similar requirements involving the controllability of $A_0$ exist the literature of the LQ setting, see e.g. \citep{abbasi-yadkori11a,abeille18a}.
+Under this assumption, without loss of generality up to a change of basis $x\rightarrow P^{-1}x$ that we do not write for the sake of readability, we can consider that $A_0$ itself is Metzler.
 
 \begin{theorem}[Interval Predictor \citep{leurent2019interval}]
 \label{thm:predictor}
@@ -388,8 +399,6 @@ ensures the inclusion property \eqref{eq:interval_property}.
 % }then the predictor \eqref{eq:interval_predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
 \end{theorem}
 
-We consider interval prediction rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Among interval prediction algorithms, this predictor tends to produce tighter and more stable predictions than other candidates, and its stability can be assessed simply in terms of LMI.
-
 % \begin{example*}
 % Consider a scalar system:
 % \[
@@ -410,16 +419,6 @@ We consider interval prediction rather than zonotope prediction for instance, fo
 
 \label{sec:control}
 
-At time $N$, we denote the vector of future controls as $\bu = (u_{N+1},u_{N+2},\cdots)$ and future perturbations as $\bw = (\omega_N, \omega_{N+1},\cdots)$.
-
-We consider the robust control objective $V^r$:
-
-\begin{equation}
-\label{eq:robust-control}
-\max_\bu \underbrace{\min_{\substack{A(\theta) \in \cP \\ \bw\in[\underline{\omega},\overline{\omega}]^\Natural}} \left[\sum_{t=0}^\infty \gamma^t r(x(t,\bu,\bw))\right]}_{V^r(\bu)}
-\end{equation}
-
-
 \begin{definition}[Surrogate objective]
 We approximate the robust objective $V^r$ in \eqref{eq:robust-control} by replacing the true reachability set by its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the dynamics confidence region $\cC_\delta$:
 
@@ -430,7 +429,7 @@ We approximate the robust objective $V^r$ in \eqref{eq:robust-control} by replac
 where $\underline{x}(t, \bu), \overline{x}(t, \bu)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
 \end{definition}
 
-This does not amount to defining a pessimistic reward-function $\underline{R}$, since the worst case is assessed over the whole trajectory being optimized, and not at the level of a local transition. It cannot be precomputed prior to the control optimization procedure, it needs to be done jointly.
+This does not amount to defining a pessimistic reward-function $\underline{R}$, since the worst case is assessed over the whole trajectory being optimized, and not at the level of a local transition. In particular, it cannot be precomputed prior to the control optimization procedure, it needs to be done jointly.
 
 %\begin{algorithm}[tp]
 %  \SetAlgoLined\DontPrintSemicolon
@@ -470,7 +469,7 @@ Since all our approximations were conservative, if we manage to find a control s
 
 \begin{proposition}
 \label{prop:control-error}
-If we assume that the reward function $R$ is lipschitz, then we can bound the approximation error:
+If we assume that the reward function $R$ is lipschitz, then the approximation error is upper-bounded by:
 \begin{equation*}
      V^r(\bu) - \hat{V}^r(\bu) = \cO\left(\frac{1}{\sqrt{N}}\right)
 \end{equation*}
@@ -495,32 +494,43 @@ If we assume that the reward function $R$ is lipschitz, then we can bound the ap
 
 \section{Multi-model Aggregation}
 
-The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction} and \ref{sec:control} relies on several modelling assumptions, such as the system dynamics \eqref{eq:dynamics} or \autoref{assumpt:linear_param}. But what if they are wrong?
+The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction} and \ref{sec:control} relies on restrictive modelling assumptions, such as the linear dynamics \eqref{eq:dynamics} or \autoref{assumpt:linear_param}. But what if they are wrong?
 
 \paragraph{Model adequacy}
 
-One of the major benefits of using the family of linear models, compared to richer model classes, is that it enables to measure empirically the adequacy of the modelling assumptions to capture the observed signal, and thus to raise an alert when the adequacy is too low.
+In the case of bounded noise, model adequacy is simply measured by the violation of 
 
-We define the model adequacy for an observation $y$ at point $x$ of the modelling assumptions $(A, \phi)$ trained on history $\cD$ by:
+One of the major benefits of using the family of linear models, compared to richer model classes, is that it enables to measure the adequacy of the modelling assumptions to the observations.
+
+Following \citep{maillard:hal-01349727}, we define the model adequacy for an observation $x(t), u(t), \dot{x}(t)$ of the modelling assumptions $(A, \phi)$ trained on history $\cD_{[N]}$ by:
 \begin{equation*}
-    \alpha(y,x)
+    \alpha(x(t), u(t), \dot{x}(t)) = \sup_\delta \argmin_{\delta\in(0,1)} d\left(\dot{x}(t), \cC_{[N],\delta}(x(t), u(t))\right)
 \end{equation*}
-A value of 1 indicates no mismatch, while a value of 0 indicates a strong mismatch.
+where $d(\dot x,\cC(x,u)) = \inf_{\hat{A}\in\cC} \left\|\hat{A}x + Bu - \dot{x}\right\|^2 + \|\eta\|_\infty^2$.
+An adequacy of $0$ indicates a strong match of the assumptions, while an adequacy of $1$ indicates a strong mismatch. The 
 
-This is especially relevant in the context of model selection or aggregation.
+This metric gets useful in the context of model selection and aggregation: 
 This suggest using multiple models with different sets of features.
 
-\subsection{Robust control with Discrete Ambiguity}
+\subsection{Robust aggregation}
 
+We temporarily ignore the parametric uncertainty over $\theta$ to simply consider several known candidate dynamics models.
 
 \begin{assumption}[Multi-model ambiguity]
+\label{assumpt:multi-model-ambiguity}
 Assume that the true dynamics $f$ lies within a finite set of candidate models $f^1, \cdots, f^M$.
 \begin{equation}
 \exists m\in[M]: \dot{x}(t) = f^M(x(t), u(t)), \forall t\geq 0
 \end{equation}
-
-We temporarily ignore the parametric uncertainty $\theta\in\Theta$ to only consider known deterministic models.
 \end{assumption}
+We want to adapt our planning algorithm in order to aggregate these concurrent hypotheses in a robust fashion, i.e. maximise a robust objective with discrete ambiguity:
+\[
+V^r = \max_{\bu}\min_{m\in[M]} \sum_{t=1}^\infty \gamma^t R_t^m
+\]
+where $R_t^m$ is the reward obtain by following the sequence $\bu$ up to step $t$ under the dynamics $f^m$.
+
+The traditional robust optimization procedures do not apply: Robust MDP: only with finite states (here continuous), and based on rectangular ambiguity. $\cH_\infty$ control also concern linear dynamics (which is not required under \autoref{assumpt:multi-model-ambiguity}) and .
+
 
 \begin{definition}[Robust sequence upper bounds] We define an upper-bound for the value of a sequences of action $a$:
 \begin{equation}
@@ -626,7 +636,8 @@ And for any $z\in\Real^d$,
 \end{equation*}
 Then,
 \begin{align*}
-    M_t^z = \exp{\left(\sum_{s=1}^t z^\transp \Phi_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (\Phi_s z)^\transp\Sigma_p^{-1}(\Phi_s z) \right)} = \prod_{s=1}^{t} D_s^z
+    M_t^z &= \exp{\left(\sum_{s=1}^t z^\transp \Phi_s^\transp \Sigma_p^{-1} \eta_s - \frac{1}{2} (\Phi_s z)^\transp\Sigma_p^{-1}(\Phi_s z) \right)} \\
+    &= \prod_{s=1}^{t} D_s^z
 \end{align*}
 and using the Sub-Gaussianity of $\eta_t$
 \begin{align*}
@@ -639,7 +650,7 @@ and using the Sub-Gaussianity of $\eta_t$
     \expectedvalue\left[M_t^z \condbar F_{t-1}\right] = \left(\prod_{s=1}^{t-1} D_s^z\right) \expectedvalue\left[D_t^z \condbar F_{t-1}\right] \leq M_{t-1}^z
 \end{align*}
 Showing that $(M_t^z)_{t=1}^\infty$ is indeed a supermartingale and in fact $\expectedvalue[M_t^z]\leq 1$.
-I then follows by Doob's upcrossing lemma for super-martnigales that $M_\infty^z = \lim_{t\to\infty} M_t^z$ is almost surely well-defined, ans so is $M_\tau^z$ for any random stopping time $\tau$.
+It then follows by Doob's upcrossing lemma for supermartingale that $M_\infty^z = \lim_{t\to\infty} M_t^z$ is almost surely well-defined, and so is $M_\tau^z$ for any random stopping time $\tau$.
 
 Next, we consider the stopped martingale $M_{\min(\tau,t)}^z$. Since 
 $(M_t^z)_{t=1}^\infty$ is a non-negative supermartingale and $\tau$ is a random stopping time, we deduce by Doob's decomposition that
@@ -707,10 +718,10 @@ By applying \autoref{prop:concentration} with $G=\lambda I_d$, we obtain that wi
     \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
      + \lambda\|\theta\|_{G_{N, \lambda}^{-1}}
 \end{align*}
-And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda})\|\theta\|_2^2 \leq 1/\lambda \|\theta\|_2^2$,
+And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda})\|\theta\|_2^2 \leq 1/\lambda \|\theta\|_2^2$ and $\|\theta\|_2^2 \leq d\|\theta\|_\infty^2\leq d S^2$,
 \begin{align*}
     \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} &\leq \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
-     + \lambda^{1/2}\|\theta\|_2
+     + (\lambda d)^{1/2}S
 \end{align*}
 \end{proof}
 
