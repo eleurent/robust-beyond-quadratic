@@ -103,7 +103,8 @@ To address this, we want to perform robust estimation: not just a maximum likeli
 Given this ambiguity set, how should we act? Given the critical setting, we do not want to be optimistic, and try to minimise some cumulative regret. Quite the contrary, we want to be cautious, safe, prepare for the worst and plan for the best. A robust control scheme. Minimax problem are hard to solve, especially since $R$ can be arbitrary. We cannot use traditional tools from the robust LQ control community (coarse-id control, system-level synthesis). Instead, we adopt a hierachical control architecture, controller selection: discrete choice of a driving maneuver, a short-term goal, whose execution is performed by a fixed low-level controller. It is true that the passage from continuous optimization to discrete optimization induces a suboptimality. However, it can be mitigated by using a more diverse controller basis. We are left with a sequential optimization problem with continuous states and discrete actions: tree-based planning algorithms. But not a point estimate, a whole confidence region. Hence, a two step procedure: robust prediction of the reachability set, which provides a conservative pessimistic reward to the planning algorithm.
 
 Our contributions are the following:
-In Section 2, we structured dynamics. In order to derive the confidence regions, we rely on the work of \citet{Abbasi2011} that provide confidence ellipsoid for the regularised least-square estimator. However, we need to extend their result by one dimension, with matricial features and vectorial noise where the original setting involved vectorial features and scalar noise.
+In Section 2, structured dynamics. We extend the work of \citet{Abbasi2011} that provide a confidence ellipsoid for the regularised least-square estimator in the case of scalar noise and vector features to our setting of vector noise and matrix features.
+
 
 
 \section{Related Work}
@@ -254,8 +255,9 @@ Depending on the assumption we have over the noise $\eta_n$, we can bound this e
 \label{assumpt:bounded-noise}
 The noise $\eta(t)$ is bounded
 \[
-\|\eta\|_\infty < \infty
+\|\eta\|_\infty < \infty.
 \]
+In particular, we denote the coefficient-wise bounds over perturbations as $\underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)$.
 \end{assumption}
 
 By Hölder inequality, we obtain a confidence region $\cC_\delta$ defined by a $L_1$-ball, i.e. a polytope with $2d$ vertices:
@@ -323,12 +325,14 @@ We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into 
 
 Another strategy presented in \autoref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalization of $G_{N,\lambda}$.
 
-From now on, we consider that we reached time $N$, which is now fixed, and that a confidence region $\cC_{[N],\delta}$ was obtained with data $\cD$ collected so far. The following sections tackle the optimisation of the robust control objective:
+\paragraph{Robust objective}
+
+From now on, we consider that we have reached step $N$, and that a confidence region $\cC_{[N],\delta}$ was obtained with data $\cD_{[N]}$ collected so far. The following sections tackle the optimisation of the robust control objective:
 \begin{equation}
 \label{eq:robust-control}
-\max_\bu \underbrace{\min_{\substack{A(\theta) \in \cP \\ \bw\in[\underline{\omega},\overline{\omega}]^\Natural}} \left[\sum_{t=0}^\infty \gamma^t r(x(t,\bu,\bw))\right]}_{V^r(\bu)}
+\max_\bu \underbrace{\min_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bw\in[\underline{\bw},\overline{\bw}]^\Natural}} \left[\sum_{n=1}^\infty \gamma^n R(x_n(\bu,\bw))\right]}_{V^r(\bu)}
 \end{equation}
-where $\bu = (u_{N+1},u_{N+2},\cdots)$ and $\bw = (\omega_N, \omega_{N+1},\cdots)$ are the sequences of future controls and perturbations, respectively.
+where $\bu = (u_{N+1},u_{N+2},\cdots)$ and $\bw = (\omega_N, \omega_{N+1},\cdots)$ are the sequences of future controls and perturbations, respectively. Here, we considered the bounded noise setting of \autoref{assumpt:bounded-noise}. In the sub-Gaussian noise setting of \autoref{assumpt:gaussian-noise}, we can use the same formulation by deriving high-confidence bounds $\underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)$ that each hold with probability $\delta_t$. By choosing $\delta_t = \frac{\delta}{t(t+1)}$, we have that the event $\{\forall t, \underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)\}$ holds with probability $1-\delta$.
 
 
 \section{State Prediction}
@@ -415,6 +419,8 @@ ensures the inclusion property \eqref{eq:interval_property}.
 % \end{figure}
 % \end{example*}
 
+Limitations: set-based method assumes time-varying uncertainty where we have time-invariant uncertainty: $A(\theta)$ is fixed vs $A(\theta)$ can vary in $\cC_\delta$ at each step. Consequence: conservative overset.
+
 \section{Control}
 
 \label{sec:control}
@@ -465,7 +471,7 @@ With high probability, the surrogate objective $\hat{V}^r$ is a lower bound of t
 \end{equation}
 \end{proposition}
 
-Since all our approximations were conservative, if we manage to find a control sequence such that no \textit{bad event} (e.g. a collision) happens with our surrogate objective, then we are guaranteed so they will not happen either when the controls are executed on the true system.
+The consequence of \autoref{prop:lower-bound} is that since all our approximations were conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens with our surrogate objective, then we are guaranteed so they will not happen either when the controls are executed on the true system. 
 
 \begin{proposition}
 \label{prop:control-error}
@@ -498,16 +504,16 @@ The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction
 
 \paragraph{Model adequacy}
 
-In the case of bounded noise, model adequacy is simply measured by the violation of 
+One of the major benefits of using the family of linear models, compared to richer model classes, is that they provide strict conditions allowing to quantify the adequacy of the modelling assumptions to the observations.
 
-One of the major benefits of using the family of linear models, compared to richer model classes, is that it enables to measure the adequacy of the modelling assumptions to the observations.
+TODO: from $\cC$ to confidence regions for $y_{n+1}$.
 
-Following \citep{maillard:hal-01349727}, we define the model adequacy for an observation $x(t), u(t), \dot{x}(t)$ of the modelling assumptions $(A, \phi)$ trained on history $\cD_{[N]}$ by:
-\begin{equation*}
-    \alpha(x(t), u(t), \dot{x}(t)) = \sup_\delta \argmin_{\delta\in(0,1)} d\left(\dot{x}(t), \cC_{[N],\delta}(x(t), u(t))\right)
-\end{equation*}
-where $d(\dot x,\cC(x,u)) = \inf_{\hat{A}\in\cC} \left\|\hat{A}x + Bu - \dot{x}\right\|^2 + \|\eta\|_\infty^2$.
-An adequacy of $0$ indicates a strong match of the assumptions, while an adequacy of $1$ indicates a strong mismatch. The 
+% Following \citep{maillard:hal-01349727}, we define the model adequacy for an observation $x(t), u(t), \dot{x}(t)$ of the modelling assumptions $(A, \phi)$ trained on history $\cD_{[N]}$ by:
+% \begin{equation*}
+%     \alpha(x(t), u(t), \dot{x}(t)) = \sup_\delta \argmin_{\delta\in(0,1)} d\left(\dot{x}(t), \cC_{[N],\delta}(x(t), u(t))\right)
+% \end{equation*}
+% where $d(\dot x,\cC(x,u)) = \inf_{\hat{A}\in\cC} \left\|\hat{A}x + Bu - \dot{x}\right\|^2 + \|\eta\|_\infty^2$.
+% An adequacy of $0$ indicates a strong match of the assumptions, while an adequacy of $1$ indicates a strong mismatch. The 
 
 This metric gets useful in the context of model selection and aggregation: 
 This suggest using multiple models with different sets of features.
