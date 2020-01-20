@@ -88,10 +88,13 @@
 %	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 	
 \begin{abstract}
-	We study the adaptive control of a linear system with unknown parameters and arbitrary costs in a critical setting where failures are costly and should be prevented at all time. We build on two ideas. First, we incorporate prior knowledge of the dynamics in the form of a known structure of uncertainty, that can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, we act in a cautious way with respect to this uncertainty by formulating a robust objective, that we solve approximately in a prediction-optimisation manner, leveraging tools from interval prediction and tree-based planning. Additionally, we relax our modelling assumptions by proposing an extension based on multi-model selection and aggregation. The full procedure is designed to produce reasonable and safe behaviour at deployment, get more aggressive with time, and be asymptotically optimal. We illustrate it on a practical case of autonomous driving at an intersection.
-\end{abstract}
+	We develop a framework for the adaptive control of a linear system with unknown parameters and arbitrary costs in a critical setting where failures are costly and should be prevented at all time. We build on two ideas: first, we incorporate prior knowledge of the dynamics in the form of a known structure of the uncertainty, which can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, we act in a cautious way with respect to this uncertainty by formulating a robust objective, that we solve approximately in a prediction-optimisation manner, leveraging tools from interval prediction and sequential planning literatures. Additionally, we relax our modelling assumptions by proposing an extension based on multi-model selection and aggregation. The full procedure is designed to produce reasonable and safe behaviour at deployment, get more aggressive with time, and be asymptotically optimal. We illustrate it on a practical case of autonomous driving at an intersection.
+\end{abstract}	
 
 \section{Introduction}
+
+Despite the dazzling successes of Reinforcement learning in cracking many problems considered unsolvable in the past decade [ref needed], this tool has hardly been applied in real industrial issues. This could be attributed to two undesirable properties which limit its practical applications: its dependence on a tremendous amount of interaction data that cannot always be simulated, and its reliance on trial-and-error and random exploration. In this paper, we consider the problem of controlling an unknown system in a critical setting where mistakes are costly and must be avoided at all time. Crucially, we wish to handle \emph{arbitrary} bounded reward functions $R$, for instance non-convex and non-smooth functions that naturally arise in problems 
+
 
 We would like to control a system in order to maximise an \textit{arbitrary} bounded reward function $R$, e.g. non-convex, non-smooth. These happen naturally: combinatorial optimization such as scheduling, obstacle avoidance.
 Critical industrial setting: we do not want to commit mistakes. 
@@ -486,20 +489,36 @@ If the reward function $R$ is lipschitz, then the approximation error is upper-b
 \end{proposition}
 
 \begin{algorithm}[tb]
-   \caption{Robust Estimation, Prediction and Control}
+   \caption{Robust Estimation, Prediction and Control (v1)}
    \label{alg:full}
 \begin{algorithmic}
    \STATE {\bfseries Input:} confidence level $\delta$
    \FOR{$N = 1,2,3,\dots$} 
    \STATE Compute the dynamics confidence region $\cC_{[N],\delta}$ with \textsc{Model Estimation} \eqref{eq:generic-polytope} on $\cD_{[N]}$.
-   \FOR{planning steps $[T]$}
-   \STATE Get the tree node $\bu^t$ to expand with \textsc{Pessimistic Planning}  \eqref{eq:surrogate_objective} using $[\underline{x}(t,\bu), \overline{x}(t,\bu)]$.
-   \STATE For each child transition, simulate $[\underline{x}, \overline{x}]$ with \textsc{Interval Prediction} \eqref{eq:interval-predictor} using $\cC_{[N],\delta}$.
+   \FOR{planning steps $k\in[K]$}
+   \STATE Get the tree node $\bu_k$ to expand with \textsc{Pessimistic Planning}  \eqref{eq:opd} using $\underline{R_n}$ over $[\underline{x}_{n}, \overline{x}_{n}]$. \COMMENT{Selection}
+   \STATE For each action, simulate the child transition $[\underline{x}_{n+1}, \overline{x}_{n+1}]$ with \textsc{Interval Prediction} \eqref{eq:interval-predictor} using $\cC_{[N],\delta}$. \COMMENT{Expansion}
    \ENDFOR
    \STATE Execute the first recommended control $u_N$, and add the observed transition $(x_N, u_N, \dot{x}_N)$ to $\cD_{[N+1]}$.
    \ENDFOR
-   
 \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[tb]
+	\caption{Robust Estimation, Prediction and Control (v2)}
+	\begin{algorithmic}
+		\STATE {\bfseries Input:} confidence level $\delta$
+		\FOR{$N = 1,2,3,\dots$} 
+		\STATE $\cC_{[N],\delta} \gets$\textsc{Model Estimation}$(\cD_{[N]})$. \eqref{eq:generic-polytope}
+		\FOR{planning steps $k\in[K]$}
+		\STATE $a_k\gets$\textsc{Pessimistic Planning}$(\underline{R_n}([\underline{x}_{n}, \overline{x}_{n}]))$.  \eqref{eq:opd}
+		\FOR{$b\in A$}
+		\STATE $[\underline{x}_{n+1}(a_k b), \overline{x}_{n+1}(a_k b)]\gets$ \textsc{Interval Prediction}($\cC_{[N],\delta}$). \eqref{eq:interval-predictor}
+		\ENDFOR
+		\ENDFOR
+		\STATE Execute the first recommended control $u_N$, and add the observed transition $(x_N, u_N, \dot{x}_N)$ to $\cD_{[N+1]}$.
+		\ENDFOR
+	\end{algorithmic}
 \end{algorithm}
 
 \section{Multi-model Aggregation}
