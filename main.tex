@@ -152,7 +152,7 @@ Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to 
     \label{fig:interval-hull}
 \end{figure}
 
-We leverage known techniques from the uncertain system simulation literature to efficiently compute such a predictor.
+We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
 
 \paragraph{Robust planning}
 
@@ -190,30 +190,29 @@ In \autoref{sec:control}, facing an optimisation problem with continuous states 
 
 \section{Related Work}
 
-For LQ systems, where parameters A,B are unknown and no structure is available.
-\begin{itemize}
-    \item OFU: \citep{abbasi-yadkori11a}. Summary: $\theta=(A~B)$, ellipsoid in Frobenius norm + controllability constraint, choose and stabilize (Ricatti) an optimistic candidate, cumulative regret in $O(\sqrt{T}\log\frac{1}{\delta})$.
-    \item PSRL with TS: \citep{abeille18a}. Summary: RLS estimate + normal perturbation in the ellipsoid + rejection sampling over a controllability constraint, with frequent update, cumulative regret in $\tilde{O}(\sqrt{T})$
-    \item Offline estimation and control synthesis: \citep{Dean2017}. Summary: Estimation procedure of $N$ episodes of duration $T$ with gaussian excitation, ellipsoid in L2 norm, robust controller with System Level Synthesis, simple regret in $O(\sqrt{\frac{\log(1/\delta)}{N}})$
-    \item \citep{Dean2018}
-\end{itemize}
+\paragraph{LQ systems} There is a rich body of literature dedicated to the study of LQ systems, and we focus on those providing non-asymptotic results when the system parameters $A, B$ are unknown. In their seminal work \citet{abbasi-yadkori11a}, consider the problem of cumulative regret minimisation. They follow the \emph{Optimism in the Face of Uncertainty} paradigm from the multi-armed bandit literature, that consists in selecting an optimistic system within a high-confidence region while enforcing a controllability constraint, and computing the corresponding optimal control in closed-form by solving a Riccati equation. They show that this procedures achieves a $\tilde{\cO}\left(T^{1/2}\right)$ cumulative regret. \citet{abeille18a} provide the same result by applying Thomson Sampling rather of optimism to select a dynamical model, and rejection sampling to enforce the controllability constraint.
+While previous methods suffered from limited applicability and computationally intractable subroutines, \citep{Dean2018} provide a polynomial-time algorithm which achieves a suboptimal cumulative regret of $\tilde{\cO}\left(T^{2/3}\right)$.
 
-Differences with our work:
-    
-    We wish to act straight away in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
-    
-    Thus, we do not wish to explore actively the more promising regions as in OFU, nor the more likely region as in TS, nor act randomly as in Coarse-ID.
-    
-    We have linear dynamics but our cost is not quadratic. Thus, we can accurately represent planning tasks with discrete/branching decisions involving discontinuities (e.g. collision vs non-collision states).
-    
-    Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
-    
-    Optimistic exploration = information seeking and uncertainty reduction. Our objective: do not commit mistakes (do not explore uncertain regions). If some information is collected allowing to reduce uncertainty, use it to be more optimal, but do not actively seek it.
 
- Given the critical setting, we do not want to be optimistic, and try to minimise some cumulative regret. Quite the contrary, we want to be cautious, safe, prepare for the worst and plan for the best. 
+Offline estimation and control synthesis: \citep{Dean2017}. Summary: Estimation procedure of $N$ episodes of duration $T$ with gaussian excitation, ellipsoid in L2 norm, robust controller with System Level Synthesis, simple regret in $O(\sqrt{\frac{\log(1/\delta)}{N}})$
 
-Robust optimization has been studied in the context of finite Markov Decision Processes (MDP) with uncertain parameters by Iyengar (2005), Nilim and El Ghaoui (2005) and Wiesemann et al. (2013).They show that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies certain rectangularity properties, which can be seen as an independance assumption: 
 
+
+We wish to act straight away in a reasonable (structure) but cautious (robust) way, and progressively get more and more aggressive as we obtain more data and reduce uncertainty.
+    
+Thus, we do not wish to explore actively the more promising regions as in OFU, nor the more likely region as in TS, nor act randomly as in Coarse-ID They inject exploration noise.
+    
+We have linear dynamics but our cost is not quadratic. Quadratic cost: stabilize a system around a reference trajectory known a priori. Thus, we can accurately represent planning tasks with discrete/branching decisions involving discontinuities (e.g. collision vs non-collision states).
+    
+Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
+    
+Optimistic exploration = information seeking and uncertainty reduction. Our objective: do not commit mistakes (do not explore uncertain regions). If some information is collected allowing to reduce uncertainty, use it to be more optimal, but do not actively seek it.
+
+Given the critical setting, we do not want to be optimistic, and try to minimise some cumulative regret. Quite the contrary, we want to be cautious, safe, prepare for the worst and plan for the best. 
+
+\paragraph{Robust planning}
+Robust optimization has been studied in the context of finite Markov Decision Processes with uncertain parameters by Iyengar (2005), Nilim and El Ghaoui (2005) and Wiesemann et al. (2013). They show that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies a certain rectangularity property, that amounts to an independence assumption between the uncertainty sets of each transition and is related to time-varying uncertainty.
+They do not consider continuous states, nor handle time-invariant uncertainty. We do so by not relying on a dynamic programming evaluation of the robust cost-to-go, but on monte-carlo estimates along a full trajectory.
 
 \section{Model Estimation}
 
@@ -230,7 +229,7 @@ There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such t
 \end{equation}
 where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denote $\Phi_n = [\phi_1 x_n \cdots \phi_d x_n]\in\Real^{p\times d}$.
 
-We also assume that some bound $S$ over $\|\theta\|_\infty$ is known.
+We also assume to know an upper-bound $S$ over $\|\theta\|_\infty$.
 \end{assumption}
 
 For readability, we denote the noisy measurement of $\dot{x}$ as:
@@ -315,22 +314,7 @@ At each time $t\geq0$ the noise $\eta(t)$ is an independent sub-Gaussian noise w
 For instance, this is the case when $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. Also note that \autoref{assumpt:bounded-noise} implies that $\eta$ is $\|\eta\|_\infty I_p$-sub-Gaussian, and is therefore a stronger assumption.
 \end{assumption}
 
-\begin{proposition}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
-\label{prop:concentration}
-Let $\{F_n\}_{n=0}$ be a filtration.
-Let $\{\eta_n\}_{n=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_n$ is $F_n$-measurable and $\expectedvalue\left[\eta_n\condbar F_{n-1}\right]$ is $\Sigma_p$-sub-Gaussian.
-
-Let $\{\Phi_n\}_{n=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $\Phi_n$ is $F_n$-measurable. Assume that $G$ is a $d\times d$ positive definite matrix. For any $n\geq 0$, define:
-\begin{equation*}
-    \overline{G}_n = G + \sum_{s=1}^n \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \quad S_n = \sum_{s=1}^n \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}.
-\end{equation*}
-Then, for any $\delta>0$, with probability at least $1-\delta$, for all $n\geq0$,
-\begin{align*}
-\| S_n \|_{\overline{G}_n^{-1}} \geq \sqrt{2\ln \left(\frac{\det\left(\overline{G}_n\right)^{1/2}}{\delta\det(G)^{1/2}}\right)}.
-\end{align*}
-\end{proposition}
-
-\begin{theorem}[Confidence ellipsoid]
+\begin{theorem}[Confidence ellipsoid of \citep{Abbasi2011}, Matrix version]
 \label{thm:confidence_ellipsoid}
 Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\delta$ that
 \begin{align}
@@ -351,7 +335,7 @@ We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into 
      &A_0 = A + \theta_{N,\lambda}^\transp\phi, \quad\Delta A_{i} = h_i \sqrt{\frac{\beta_N(\delta)}{\lambda_{\max}(G_{N,\lambda})}}
 \end{align}
 
-Another strategy presented in \autoref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalization of $G_{N,\lambda}$.
+Another strategy presented in \autoref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalisation of $G_{N,\lambda}$.
 
 \paragraph{Remark} The robust objective framing involves on some bounds $\underline{\omega}(t)\leq \omega(t) \leq \overline{\omega}(t)$ over the possible perturbations we want to protect against. In the unbounded sub-Gaussian noise setting of \autoref{assumpt:gaussian-noise}, we can use the same formulation by deriving high-confidence bounds that each holds with probability $\delta_t$. By choosing $\delta_t = \frac{\delta}{t(t+1)}$, we have that the event $\{\forall t, \underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)\}$ holds with probability $1-\delta$.
 
@@ -381,13 +365,13 @@ Assuming that \eqref{eq:polytope} is satisfied for the system \eqref{eq:dynamics
 ensures the inclusion property \eqref{eq:inclusion-property}.
 \end{proposition}
 
-However, \citet{leurent2019interval} showed that this predictor can have very unstable dynamics, even for stable systems, which can cause a rapid build-up of uncertainty and produce over-cautious behaviours. They propose an enhanced predictor which produces tighter and more stable predictions, and whose stability can be assessed by solving a linear matrix inequality, at the price of an additional requirement:
+However, \citet{leurent2019interval} showed that this predictor can have unstable dynamics, even for stable systems, which can cause a rapid build-up of uncertainty and produce over-conservative behaviours. They propose an enhanced predictor which produces tighter and more stable predictions, and whose stability can be assessed by solving a linear matrix inequality, at the price of an additional requirement:
 
 \begin{assumption}
 \label{assumpt:metzler}
 There exists an orthogonal matrix $P\in\Real^{d\times d}$ such that $P^\transp A_0 P$ is Metzler, that is, all non-diagonal coefficients are non-negative.
 \end{assumption}
-In practice, this assumption is often verified. It is for instance the case whenever $A_0$ is diagonalizable. The similarity transformation of \citep{Efimov_a2013} provides a method to compute such $P$ whenever there exist $C_1,C_2$ which make $A(\theta)$ and $A_0$ is observable. Note that similar requirements involving the controllability of $A_0$ exist the literature of the LQ setting, see e.g. \citep{abbasi-yadkori11a,abeille18a}.
+In practice, this assumption is often verified. It is for instance the case whenever $A_0$ is diagonalisable, and a fortiori when it is stabilisable. The similarity transformation of \citep{Efimov_a2013} provides a method to compute such $P$ whenever there exist $C_1,C_2$ which make $A(\theta, C_1)$ and $(A_0, C_2)$ observable.
 Under this assumption, without loss of generality up to a change of basis $x\rightarrow P^{-1}x$ that we do not write for the sake of readability, this assumption is equivalent to considering that $A_0$ itself is Metzler.
 
 \begin{theorem}[Interval Predictor \citep{leurent2019interval}]
@@ -651,11 +635,25 @@ Hence,
 \end{align*}
 \end{proof}
 
-\subsection{Proof of \autoref{prop:concentration}}
+\subsection{Proof of \autoref{thm:confidence_ellipsoid}}
 
+We start by showing a preliminary proposition:
+
+\begin{proposition}[Theorem 1 of \citep{Abbasi2011}, Matrix version]
+\label{prop:concentration}
+Let $\{F_n\}_{n=0}$ be a filtration.
+Let $\{\eta_n\}_{n=1}^\infty$ be a $\Real^p$-valued stochastic process such that $\eta_n$ is $F_n$-measurable and $\expectedvalue\left[\eta_n\condbar F_{n-1}\right]$ is $\Sigma_p$-sub-Gaussian.
+
+Let $\{\Phi_n\}_{n=1}^\infty$ be an $\Real^{p\times d}$-valued stochastic process such that $\Phi_n$ is $F_n$-measurable. Assume that $G$ is a $d\times d$ positive definite matrix. For any $n\geq 0$, define:
+\begin{equation*}
+    \overline{G}_n = G + \sum_{s=1}^n \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d} \quad S_n = \sum_{s=1}^n \Phi_s^\transp\Sigma_p^{-1}\eta_s \in \Real^{d}.
+\end{equation*}
+Then, for any $\delta>0$, with probability at least $1-\delta$, for all $n\geq0$,
+\begin{align*}
+\| S_n \|_{\overline{G}_n^{-1}} \geq \sqrt{2\ln \left(\frac{\det\left(\overline{G}_n\right)^{1/2}}{\delta\det(G)^{1/2}}\right)}.
+\end{align*}
+\end{proposition}
 \begin{proof}
-
-
 Let 
 \begin{equation*}
     G_t = \sum_{s=1}^t \Phi_s^\transp \Sigma_p^{-1} \Phi_s \in \Real^{d\times d}
@@ -695,19 +693,6 @@ $(M_t^z)_{t=1}^\infty$ is a non-negative supermartingale and $\tau$ is a random 
 Finally, an application of Fatou's lemma show that 
 $\expectedvalue[M_\tau^z] = \expectedvalue[\liminf_{t\to\infty} M_{\min(\tau,t)}^z] \leq \liminf_{t\to\infty} \expectedvalue[M_{\min(\tau,t)}^z] \leq 1.$
 
-% The following uses the method of mixtures.
-% Let $\Gamma$ be a Gaussian random variable which is independent of all other random variables and whose covariance is $\Sigma^{-1}$. (in our estimator, $\Sigma = \lambda$).
-
-% Define 
-% \[
-% M_t = \expectedvalue \left[M_t^\Gamma \condbar F_\infty\right]
-% \]
-
-% where $F_\infty$ is the tail $\sigma$-algebra of the filtration. Clearly, we still have $\expectedvalue[M_\tau] = \expectedvalue[\expectedvalue[M_\tau^\Gamma|\Gamma]]\leq 1$.
-
-% Let us calculate $M_t$. Let $f$ denote the density of $\Gamma$ and for a positive definite matrix $P$ let $c(P) = \sqrt{(2\pi)^d/\det(P)} = \int \exp (-\frac{1}{2}x^\transp P x)$
-
-
 \begin{lemma}[Theorem 14.7 of \citep{pena2008self}]
 If $Z$ is a random vector and $B$ is a symmetric positive definite matrix such that
 \[\forall \gamma\in\Real^d, \ln \expectedvalue \exp \left(\gamma^\transp Z -\frac{1}{2} \gamma^\transp B \gamma \right)\leq 0,\]
@@ -725,11 +710,10 @@ Here, by using $Z = \sum_{s=1}^t\Phi_s\Sigma_p^{-1}\eta_s$, $B=G_t$, $C=G$,
 
 \end{proof}
 
-\subsection{Proof of \autoref{thm:confidence_ellipsoid}}
+Having shown this preliminary result, we move on to the proof of \autoref{thm:confidence_ellipsoid}.
 
 \begin{proof}
-
-Hence, for all $x\in\Real^d$,
+For all $x\in\Real^d$, \eqref{eq:vector_rls} gives:
 \begin{align*}
     x^\transp\theta_{N,\lambda}  -x^\transp\theta &= x^\transp G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n
     - \lambda x^\transp G_{N, \lambda}^{-1}\theta\\
