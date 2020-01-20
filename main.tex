@@ -126,6 +126,8 @@ Differences with our work:
     We have linear dynamics but our cost is not quadratic. Thus, we can accurately represent planning tasks with discrete/branching decisions involving discontinuities (e.g. collision vs non-collision states).
     
     Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
+    
+    Optimistic exploration = information seeking and uncertainty reduction. Our objective: do not commit mistakes (do not explore uncertain regions). If some information is collected allowing to reduce uncertainty, use it to be more optimal, but do not actively seek it.
 
 
 Robust optimization has been studied in the context of finite Markov Decision Processes (MDP) with uncertain parameters by Iyengar (2005), Nilim and El Ghaoui (2005) and Wiesemann et al. (2013).They show that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies certain rectangularity properties, which can be seen as an independance assumption: 
@@ -149,7 +151,7 @@ $ where $\nu(t)\in\Real^r$ is a measurement noise and $C\in\Real^{p\times r}$ is
 
 \paragraph{Notations}
 
-The dynamics of the real system are described in continuous time. However, all the sensing and control performed on-board happen in discrete time, with time-step $\tau$. For any variable $z$, we use the subscript notation to refer to these discrete times: $z_n = z(n\tau)$.
+The dynamics of the real system are described in continuous time. However, all the sensing and control performed on-board happen in discrete time, with time-step $\tau$. For any variable $z$, we use the subscript notation to refer to these discrete times: $z_n = z(t_n)$ with $t_n = n\tau$.
 
 % \paragraph{Objective}
 
@@ -341,8 +343,8 @@ where $\bu = (u_{N+1},u_{N+2},\cdots)$ and $\bw = (\omega_N, \omega_{N+1},\cdots
 
 The objective of this section, as illustrated in \autoref{fig:interval-hull} is to  derive a \emph{set predictor} for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}({0})$, some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$, and a confidence region $\cC_\delta$ in the form \eqref{eq:generic-polytope} containing $A(\theta)$; and verifies the inclusion property:
 \begin{equation}
-\label{eq:interval_property}
-\underline{x}(t)\leq x(t)\leq\overline{x}(t),\quad\forall t\geq N\tau.
+\label{eq:inclusion-property}
+\underline{x}(t)\leq x(t)\leq\overline{x}(t),\quad\forall t\geq t_N.
 \end{equation}
 
 \begin{figure}
@@ -366,11 +368,11 @@ Assuming that \eqref{eq:polytope} is satisfied for the system \eqref{eq:dynamics
 \begin{eqnarray}
 \dot{\underline{x}}(t) & = & A_{0}\underline{x}(t)-\Delta A_{+}\underline{x}^{-}(t)-\Delta A_{-}\overline{x}^{+}(t)\nonumber \\
  &  & +Bu(t)+D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\nonumber\\
-\dot{\overline{x}}(t) & = & A_{0}\overline{x}(t)+\Delta A_{+}\overline{x}^{+}(t)+\Delta A_{-}\underline{x}^{-}(t) \label{eq:interval_predictor} \\
+\dot{\overline{x}}(t) & = & A_{0}\overline{x}(t)+\Delta A_{+}\overline{x}^{+}(t)+\Delta A_{-}\underline{x}^{-}(t) \label{eq:interval-predictor} \\
  &  & +Bu(t)+D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber \\
- &  & \underline{x}(N\tau)=\overline{x}(N\tau)={x}(N\tau)\nonumber 
+ &  & \underline{x}(t_N)=\overline{x}(t_N)={x}(t_N)\nonumber 
 \end{eqnarray}
-ensures the inclusion property \eqref{eq:interval_property}.
+ensures the inclusion property \eqref{eq:inclusion-property}.
 
 % Moreover, the stability of the predictor can be assessed with a sufficient condition in form of an LMI.
 % if there exist diagonal matrices $P$, $Q$, $Q_{+}$, $Q_{-}$, $Z_{+}$, $Z_{-}$, $\Psi_{+}$, $\Psi_{-}$, $\Psi$, $\Gamma\in\Real^{2n\times 2n}$ such that the following LMIs are satisfied:
@@ -400,7 +402,7 @@ ensures the inclusion property \eqref{eq:interval_property}.
 % -\Delta A_{-} & 0
 % \end{array}\right],
 % \end{gather*}
-% }then the predictor \eqref{eq:interval_predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
+% }then the predictor \eqref{eq:interval-predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
 \end{theorem}
 
 % \begin{example*}
@@ -408,13 +410,13 @@ ensures the inclusion property \eqref{eq:interval_property}.
 % \[
 % \dot{x}(t)=-\theta(t)x(t)+d(t),\;t\geq0,
 % \]
-% where $x(t)\in\Real$ with $x(0)\in[\underline{x}_{0},\overline{x}_{0}]=[1.0, 1.1]$, $\theta(t)\in\Pi=[\underline{\theta},\overline{\theta}]=[0.5,1.5]$ and $d(t)\in[\underline{d},\overline{d}]=[-0.1,0.1]$ for all $t\geq0$. The \autoref{fig:predictor_example} shows the state-interval obtained with \eqref{eq:interval_predictor}.
+% where $x(t)\in\Real$ with $x(0)\in[\underline{x}_{0},\overline{x}_{0}]=[1.0, 1.1]$, $\theta(t)\in\Pi=[\underline{\theta},\overline{\theta}]=[0.5,1.5]$ and $d(t)\in[\underline{d},\overline{d}]=[-0.1,0.1]$ for all $t\geq0$. The \autoref{fig:predictor_example} shows the state-interval obtained with \eqref{eq:interval-predictor}.
 
 % \begin{figure}
 % \begin{centering}
-% \includegraphics[width=\linewidth]{img/interval_predictor}
+% \includegraphics[width=\linewidth]{img/interval-predictor}
 % \par\end{centering}
-% \caption{Several trajectories for different values of $\theta\in\Theta$ are shown in blue. The result of prediction by \eqref{eq:interval_predictor} is in red: the predictor is stable and produces tight bounds.}
+% \caption{Several trajectories for different values of $\theta\in\Theta$ are shown in blue. The result of prediction by \eqref{eq:interval-predictor} is in red: the predictor is stable and produces tight bounds.}
 % \label{fig:predictor_example}
 % \end{figure}
 % \end{example*}
@@ -432,10 +434,10 @@ We approximate the robust objective $V^r$ in \eqref{eq:robust-control} by replac
 \underline{R}_n(\bu) \eqdef \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x) \label{eq:pessimistic-rewards} \\
 \hat{V}^r(\bu) \eqdef \sum_{n=N+1}^\infty \gamma^n \underline{R}_n(\bu) \label{eq:surrogate_objective}
 \end{align}
-where $\underline{x}_n(\bu), \overline{x}_n(\bu)$ follow the dynamics defined in \eqref{eq:interval_predictor}.
+where $\underline{x}_n(\bu), \overline{x}_n(\bu)$ follow the dynamics defined in \eqref{eq:interval-predictor}.
 \end{definition}
 
-This does not simply amounts to a change of reward function, since the worst case is assessed over the whole past trajectory being optimized, which means that this pessimistic reward $\underline{R}$ does not respect the Markov assumption.
+This does not simply amounts to a change of reward function, since the worst case is assessed over the whole past trajectory being optimized, which means that this pessimistic reward $\underline{R}$ is not \emph{markovian}.
 
 \begin{proposition}[Lower bound]
 \label{prop:lower-bound}
@@ -446,18 +448,38 @@ With high probability, the surrogate objective $\hat{V}^r$ is a lower bound of t
 \end{equation}
 \end{proposition}
 
-The consequence of \autoref{prop:lower-bound} is that since all our approximations were conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens with our surrogate objective, then we are guaranteed so they will not happen either when the controls are executed on the true system. 
+The consequence of \autoref{prop:lower-bound} is that since all our approximations were conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens according to the surrogate objective $\hat{V}^r$, then we are guaranteed so they will not happen either when the controls are executed on the true system. 
 
-In order to optimize our surrogate objective $\hat{V}^r$, we turn to sequential planning algorithms. We cannot use the Dynamic Programming techniques because the state space is continuous and the pessimistic rewards are non-markovian. Instead, we turn to tree-based planning algorithms which optimize a sequence of actions based on the corresponding sequence of rewards without enumerating the states nor requiring the markovity of the rewards. In particular, we use the \texttt{OPD} algorithm \citep{Hren2008} tailored for the case where the sequence of rewards is a deterministic function of the sequence of actions, which is appropriate since both the predictor dynamics \eqref{eq:interval_predictor} and the corresponding pessimistic rewards \eqref{eq:pessimistic-rewards} are deterministic.
+\paragraph{Planning}
+In order to optimise $\hat{V}^r$, we turn to sequential planning algorithms. We cannot use Dynamic Programming algorithms because the state space is continuous and the pessimistic rewards are non-markovian. Instead, we turn to tree-based planning algorithms which optimise a sequence of actions based on the corresponding sequence of rewards. These methods no dot require the enumeration of the states nor the markovity of the rewards. In particular, we consider the \emph{Optimistic Planning of Deterministic Systems} (\texttt{OPD}) algorithm \citep{Hren2008} tailored for the case where the sequence of rewards is a deterministic function of the sequence of actions. Indeed, the stochasticity of the perturbations and measurements is encased in $\hat{V}^r$: both the predictor dynamics \eqref{eq:interval-predictor} and the corresponding pessimistic rewards \eqref{eq:pessimistic-rewards} are deterministic.
 
-\texttt{OPD} progressively builds a tree $\cT_k$ by expanding the leaf $a_k\in\cL_k$ with highest B-value:
+At each planning iteration $k\in[K]$, \texttt{OPD} progressively builds a tree $\cT_{k+1}$ by expanding the leaf $a_k$ with highest B-value, where the expansion of a leaf $a$ refers to the simulation of its children transitions $aA = \{ab, b\in A\}$:
 \begin{equation}
-\argmax_{a\in\cL_k} B_a(k), \quad B_a(k) = \sum_{n=0}^{h-1} \underline{R}_n(a) + \frac{\gamma^h}{A-\gamma}.
+\label{eq:opd}
+a_k = \argmax_{a\in\cL_k} B_a(k), \quad B_a(k) = \sum_{n=0}^{h(a)-1} \underline{R}_n(a) + \frac{\gamma^{h(a)}}{1-\gamma}
 \end{equation}
+where $\cL_k$ is the set of leaves of $\cT_k$, $h(a)$ is the length of the sequence $a$, and $\underline{R}_n(a)$ the pessimistic reward \eqref{eq:pessimistic-rewards} obtained at time $n$ by following the sequence $a$.
+\begin{theorem}[Planning performance, \citep{Hren2008}]
+\label{theorem:opd-regret}
+The simple regret of the \texttt{OPD} algorithm \eqref{eq:opd} after $K$ iterations is:
+\begin{align*}
+\text{if } \kappa>1,\quad& 
+\hat{V}^r(a^*) - \hat{V}^r({a_K}) = \cO\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right);\\
+\text{if }\kappa=1,\quad&
+\hat{V}^r(a^*) - \hat{V}^r({a_K}) = \cO\left(\gamma^{\frac{(1-\gamma)^\beta}{c}K}\right)
+\end{align*}
+where $\kappa$ is a problem-dependent measure of the proportion of near-optimal paths:
+\[
+\kappa = \limsup_{h\rightarrow\infty} \left|\left\{a\in A^h: \hat{V}^r(a)\geq \hat{V}^r - \frac{\gamma^{h+1}}{1-\gamma}\right\}\right|^{1/h}.
+\]
+\end{theorem}
 
+Hence, by using enough computational budget $K$ for planning we can get as close as we want to the optimal surrogate value $\hat{V}^r(\bu^*)$, at a polynomial rate. However, there exists a gap between $\hat{V}^r$ and the true robust objective $V^r$, which stems from three approximations: (i) the true reachable set was approximated by an enclosing interval in \eqref{eq:inclusion-property}; (ii) the time-invariance of the dynamics uncertainty $A(\theta)\in\cC_{[N],\delta}$ was handled by the interval predictor \eqref{eq:interval-predictor} as if it were a time-varying uncertainty $\forall t, A(\theta(t))\in\cC_{[N],\delta}$ ; and (iii) the lower-bound $\sum\min\leq \min\sum$ used to define the surrogate objective \eqref{eq:surrogate_objective} is not tight.
+
+However, under an additional smoothness assumption on $R$, we can bound this gap:
 \begin{proposition}
 \label{prop:control-error}
-If we assume that the reward function $R$ is lipschitz, then the approximation error is upper-bounded by:
+If the reward function $R$ is lipschitz, then the approximation error is upper-bounded by:
 \begin{equation*}
      V^r(\bu) - \hat{V}^r(\bu) = \cO\left(\frac{1}{\sqrt{N}}\right)
 \end{equation*}
@@ -472,7 +494,7 @@ If we assume that the reward function $R$ is lipschitz, then the approximation e
    \STATE Compute the dynamics confidence region $\cC_{[N],\delta}$ with \textsc{Model Estimation} \eqref{eq:generic-polytope} on $\cD_{[N]}$.
    \FOR{planning steps $[T]$}
    \STATE Get the tree node $\bu^t$ to expand with \textsc{Pessimistic Planning}  \eqref{eq:surrogate_objective} using $[\underline{x}(t,\bu), \overline{x}(t,\bu)]$.
-   \STATE For each child transition, simulate $[\underline{x}, \overline{x}]$ with \textsc{Interval Prediction} \eqref{eq:interval_predictor} using $\cC_{[N],\delta}$.
+   \STATE For each child transition, simulate $[\underline{x}, \overline{x}]$ with \textsc{Interval Prediction} \eqref{eq:interval-predictor} using $\cC_{[N],\delta}$.
    \ENDFOR
    \STATE Execute the first recommended control $u_N$, and add the observed transition $(x_N, u_N, \dot{x}_N)$ to $\cD_{[N+1]}$.
    \ENDFOR
@@ -502,7 +524,7 @@ This suggest using multiple models with different sets of features.
 
 \subsection{Robust aggregation}
 
-We temporarily ignore the parametric uncertainty over $\theta$ to simply consider several known candidate dynamics models.
+We temporarily ignore the parametric uncertainty over $\theta$ to simply consider several known candidate dynamics models, which all correspond to different modelling assumptions.
 
 \begin{assumption}[Multi-model ambiguity]
 \label{assumpt:multi-model-ambiguity}
@@ -553,11 +575,6 @@ From this definition we introduce Algorithm \ref{algo:drop}, and analyse its sam
 %\caption{Deterministic Robust Optimistic Planning}
 %\label{algo:drop}
 %\end{algorithm}
-
-We express the performance of the planning problem in terms of a measure of the proportion of near-optimal paths:
-\[
-\kappa = \limsup_{h\rightarrow\infty} \left|\left\{a\in A^h: V(a)\geq V - \frac{\gamma^{h+1}}{1-\gamma}\right\}\right|^{1/h}.
-\]
 
 \begin{theorem}[Regret bound]
 \label{theorem:drop-regret}
@@ -718,17 +735,27 @@ And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda
 \subsection{Proof of \autoref{prop:lower-bound}}
 
 \begin{proof}
-We have that $A(\theta) \in \cC_{[N],\delta}$ with probability $1-\delta$. Whenever it is the case, we have by \autoref{thm:predictor} that the inclusion property \eqref{eq:interval_property} is verified by the interval predictor \eqref{eq:interval_predictor} for all $\omega(t)\in[\underline{\omega}(t), \overline{\omega}(t)]$. This gives the following bound:
-\begin{equation*}
- \sum_{t=0}^\infty \gamma^t r(x_t) \geq \sum_{t=0}^\infty \min_{x\in[\underline{x}(t, \bu), \overline{x}(t, \bu)]} \gamma^t r(x) = \hat{v^r}(\bu)
-\end{equation*}
+	The predictor designed in \autoref{sec:prediction} verifies the inclusion property \eqref{eq:inclusion-property}. Thus, for sequence of controls $\bu$, any dynamics $A(\theta)\in C_{[N],\delta}$, and perturbations $\underline{\bw} \leq \bw \leq \overline{\bw}$, the corresponding state at time $t_n$ is bounded by $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \geq \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x) = \underline{R}_n(\bu)$.
+	
+	Thus, by taking the min over $C_{[N],\delta}$ and $[\underline{\bw}, \overline{\bw}]$, we also have for any sequence of controls $\bu$:
+	\begin{align*}
+	    V^r(\bu) &= \min_{\substack{A(\theta)\in C_{[N],\delta}\\ \underline{\bw} \leq \bw \leq \overline{\bw}}} \sum_{n=N+1}^\infty \gamma^n R(x_n)\\
+	    &\geq \sum_{n=N+1}^\infty \gamma^n \underline{R}_n(\bu)\\
+	    &= \hat{V}^r(\bu)
+	\end{align*}
+\end{proof}
 
-And finally, with probability $1-\delta$,
-\begin{align*}
-v^r(\bu) &= \min_{A(\theta) \in A(\Theta)} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-&\geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\sum_{t=0}^\infty \gamma^t r(x_t)\right] \\
-& \geq \min_{A \in \cP} \expectedvalueover{\omega(t)}\left[\hat{v^r}(\bu)\right] = \hat{v^r}(\bu)
-\end{align*}
+\subsection{Proof of \autoref{prop:control-error}}
+
+\begin{proof}
+ By the inclusion property \eqref{eq:inclusion-property}, for any sequence of controls $\bu$, dynamics $A(\theta)\in C_{[N],\delta}$ and perturbations $\underline{\bw} \leq \bw \leq \overline{\bw}$, we have that $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \leq \max_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x)$.
+ 
+ Thus, since we assume that $R$ is $L$-lipschitz,
+ \begin{align}
+     V^r(\bu) - \hat{V}^r(\bu) &\leq \sum_{n=N+1}^\infty \gamma^n \underset{{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}}{(\max - \min)} R(x)\\
+     &\leq \sum_{n=N+1}^\infty \gamma^n L \left\|\underline{x}_n(\bu) - \overline{x}_n(\bu)\right\|
+ \end{align}
+
 \end{proof}
 
 
@@ -817,26 +844,6 @@ We now turn to the proof of the theorem.
 		
 		\item If $\kappa = 1$, then $n \leq n_0 + c'(d_n-d_0)$, hence from \eqref{eq:Rndn} we have $\mathcal{R}_n = O\left(\gamma^{nc'}\right)$.
 	\end{itemize}
-\end{proof}
-
-\subsection{Proof of \autoref{prop:lower-bound}}
-
-\begin{proof}
-	For any $\theta \in \Theta$, $t \in [0, H]$ and any trajectory $(s_0, \cdots, s_t)$ sampled from $\pi$ and $T_\theta$,
-	
-	\begin{equation*}
-	s_t \in S(t, s_0, \pi) \subset \square S(t, s_0, \pi)
-	\end{equation*}
-	
-	Hence, 
-	\begin{equation*}
-	R^{T_\theta}_\pi = \sum_{t=0}^\infty \gamma^t r(s_t, a_t) \geq \sum_{t=0}^H \gamma^t r(s_t, a_t) \geq \sum_{t=0}^H \min_{s\in \square S(t, s_0, \pi)} \gamma^t r(s, \pi(s)) = \hat{v^r}(\pi)
-	\end{equation*}
-	
-	And finally,
-	\begin{align*}
-	v^r(\pi) = \min_{\theta\in\Theta} {v_\pi^{T_\theta}} = \min_{\theta\in\Theta} \expectedvalue(R^{T_\theta}_\pi) \geq \hat{v^r}(\pi)
-	\end{align*}
 \end{proof}
 
 
