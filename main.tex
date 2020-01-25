@@ -88,7 +88,7 @@
 %	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 	
 \begin{abstract}
-	We develop a framework for the adaptive control of a linear system with unknown parameters and arbitrary costs in a critical setting where failures are costly and should be prevented at all time. We build on two ideas: first, we incorporate prior knowledge of the dynamics in the form of a known structure of the uncertainty, which can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, we act in a cautious way with respect to this uncertainty by formulating a robust objective, that we solve approximately in a prediction-optimisation manner, leveraging tools from interval prediction and sequential planning literatures. Additionally, we relax our modelling assumptions by proposing an extension based on multi-model selection and aggregation. The full procedure is designed to produce reasonable and safe behaviour at deployment, get more aggressive with time, and be asymptotically optimal. We illustrate it on a practical case of autonomous driving at an intersection.
+	We develop a framework for the adaptive control of a linear system with unknown parameters and arbitrary costs, in a critical setting where failures are costly and should be prevented at all time. We build on two ideas: first, we incorporate prior knowledge of the dynamics in the form of a known structure of the uncertainty, which can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, we act in a cautious way with respect to this uncertainty by formulating a robust objective, that we solve approximately in a prediction-optimisation manner, leveraging tools from interval prediction and sequential planning literatures. We eventually relax our modelling assumptions by proposing an extension based on multi-model selection and aggregation. The full procedure is designed to produce reasonable and safe behaviour at deployment, get closer to optimality with time, and be asymptotically optimal. We illustrate it on a practical case of autonomous driving at an intersection.
 \end{abstract}	
 
 \section{Introduction}
@@ -140,7 +140,7 @@ The rest of the paper will tackle the optimisation of this objective.
 
 \paragraph{State prediction}
 
-Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to solve even in cases such as Linear-Quadratic systems (LQ) where the reward $R$ has a simple form. Here with an arbitrary function $R$, we cannot hope to derive a solution in explicit form. Our second contribution is to propose to solve \eqref{eq:robust-control} numerically by adopting a \emph{predict-then-optimise} scheme. Thus, in \autoref{sec:prediction}, as illustrated in \autoref{fig:interval-hull}, we aim to derive a \emph{set predictor} $X(t)$ for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}_N$, a confidence region $\cC_\delta$ containing $A(\theta)$, a planned control sequence $\bu$ and some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$; and verifies the inclusion property:
+Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to solve even in cases such as Linear-Quadratic systems (LQ) where the reward $R$ has a simple form. Here with an arbitrary function $R$, we cannot hope to derive a solution in explicit form. Our second contribution is to propose to solve \eqref{eq:robust-control} numerically by adopting a \emph{predict-then-optimise} scheme. Thus, in \autoref{sec:prediction}, we aim to derive a \emph{set predictor} $X(t)$ for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}_N$, a confidence region $\cC_\delta$ containing $A(\theta)$, a planned control sequence $\bu$ and some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$; and produces predictions that verify the inclusion property:
 \begin{equation}
  x(t)\in X(t),\quad\forall t\geq t_N.
 \end{equation}
@@ -152,7 +152,7 @@ Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to 
     \label{fig:interval-hull}
 \end{figure}
 
-We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
+This property is illustrated in \autoref{fig:interval-hull}. We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
 
 \paragraph{Robust planning}
 
@@ -344,16 +344,14 @@ Another strategy presented in \autoref{sec:tight-polytope} produces a much tight
 
 \label{sec:prediction}
 
-Set representation: interval prediction
+We consider interval prediction rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Thus, we represent an interval as $X(t) = [\underline{x}(t), \overline{x}(t)]\in \Real^p\times \Real^p$, and the inclusion property becomes:
 
 \begin{equation}
 \label{eq:inclusion-property}
 \underline{x}(t)\leq x(t)\leq\overline{x}(t),\quad\forall t\geq t_N.
-\end{equation}
+\end{equation} 
 
-We consider interval prediction rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. 
-
-A simple solution is proposed in \citep{efimov:hal-00701643}, where they use matrix interval arithmetics to derive the predictor:
+A simple solution to \eqref{eq:inclusion-property} is proposed in \citep{efimov:hal-00701643}, where they use matrix interval arithmetics to derive the predictor:
 \begin{proposition}
 Assuming that \eqref{eq:polytope} is satisfied for the system \eqref{eq:dynamics}, then the interval predictor:
 \begin{eqnarray}
@@ -439,10 +437,9 @@ Limitations: set-based method assumes time-varying uncertainty where we have tim
 \section{Control}
 
 \label{sec:control}
+We approximate the robust objective $V^r$ in \eqref{eq:robust-control} by considering its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the dynamics confidence region $\cC_\delta$.
 
 \begin{definition}[Surrogate objective]
-We approximate the robust objective $V^r$ in \eqref{eq:robust-control} by considering its interval prediction $[\underline{x}(t), \overline{x}(t)]$ based on the dynamics confidence region $\cC_\delta$:
-
 \begin{align}
 \underline{R}_n(\bu) \eqdef \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x) \label{eq:pessimistic-rewards} \\
 \hat{V}^r(\bu) \eqdef \sum_{n=N+1}^\infty \gamma^n \underline{R}_n(\bu) \label{eq:surrogate_objective}
@@ -607,7 +604,7 @@ The caveat is that $K$ measures the number of planning iterations, but actually 
 We first consider a simple illustrative example: the control of a $2D$-
 \paragraph{Behavioural planning for an autonomous vehicle}
 We consider the problem of safe decision-making for an autonomous vehicle. An autonomous vehicle with state $\chi_0\in\Real^4$ is driving on a highway populated with $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \chi_1,\dots,\chi_V]^\top\in\Real^{4V+4}$. In order to plan a sequence of high-level decisions, the autonomous agent relies on both a model of its own dynamics $\chi_0 = f_0(\chi_0,u)$, but also a parametrized dynamical model for each observed agent to predict their future trajectory: \[\dot{\chi}_i=f_i(x,\theta_i),\;i\in[V],\] where $f_i$ are described below, $\chi_i\in\Real^4$ is the state of an agent, $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Crucially, this system $f$ describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. 
-Already, we can appreciate a first advantage of the imposed structure \autoref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional adaptive LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
+Already, we can appreciate a first advantage of the structure imposed in \autoref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional adaptive LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
 % In order to act safely in the face of uncertainty, we follow the framework of robust decision-making: the agent must consider all the possible trajectories in the space of $Z$ that each vehicle can follow in order to take its decisions.
 
 The system 
