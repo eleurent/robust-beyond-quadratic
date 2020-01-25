@@ -692,6 +692,7 @@ $(M_t^z)_{t=1}^\infty$ is a non-negative supermartingale and $\tau$ is a random 
 Finally, an application of Fatou's lemma show that 
 $\expectedvalue[M_\tau^z] = \expectedvalue[\liminf_{t\to\infty} M_{\min(\tau,t)}^z] \leq \liminf_{t\to\infty} \expectedvalue[M_{\min(\tau,t)}^z] \leq 1.$
 
+This results allows to apply a result from \citep{pena2008self}:
 \begin{lemma}[Theorem 14.7 of \citep{pena2008self}]
 If $Z$ is a random vector and $B$ is a symmetric positive definite matrix such that
 \[\forall \gamma\in\Real^d, \ln \expectedvalue \exp \left(\gamma^\transp Z -\frac{1}{2} \gamma^\transp B \gamma \right)\leq 0,\]
