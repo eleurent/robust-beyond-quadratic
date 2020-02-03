@@ -9,7 +9,6 @@
 \usepackage{blkarray}
 \usepackage{mathtools}
 \usepackage{multirow}
-\usepackage{siunitx}
 \input{mathdef.tex}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
 
@@ -122,6 +121,14 @@ We also have access to the observation of $x(t)$ and to a noisy measurement of $
 
 \paragraph{Model estimation}
 
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{img/epc-friction}
+	\caption{\textbf{Left}: the state prediction procedure. \textbf{Right}: the model estimation procedure.}
+	\label{fig:estimation-prediction}
+\end{figure}
+
 In \autoref{sec:estimation}, having observed history of transitions $\cD_{[N]} = \{(x_n, y_n)\}_{n\in[N]}$, and given a confidence level $\delta\in(0, 1)$, our goal is to find a confidence region $\cC_{[N],\delta}$ as tight as possible and such that it holds that:
 \begin{align}
 \probability{A(\theta)\in \cC_{[N],\delta}} \geq 1-\delta
@@ -145,14 +152,7 @@ Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to 
  x(t)\in X(t),\quad\forall t\geq t_N.
 \end{equation}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=\linewidth]{img/epc-friction}
-    \caption{\textbf{Left}: the state prediction procedure. \textbf{Right}: the model estimation procedure.}
-    \label{fig:interval-hull}
-\end{figure}
-
-This property is illustrated in \autoref{fig:interval-hull}. We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
+This property is illustrated in \autoref{fig:estimation-prediction}. We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
 
 \paragraph{Robust planning}
 
@@ -214,28 +214,18 @@ The \autoref{alg:full} shows the full integration of the three procedures of est
 
 \subsection{Related Work}
 
-\paragraph{Linear Quadratic systems} There is a rich body of literature dedicated to the study of LQ systems, and we focus on those providing non-asymptotic results when the system parameters $A, B$ are unknown. In their seminal work \citet{abbasi-yadkori11a}, consider the problem of cumulative regret minimisation. They follow the \emph{Optimism in the Face of Uncertainty} paradigm from the multi-armed bandit literature, that consists in selecting an optimistic system within a high-confidence region while enforcing a controllability constraint, and computing the corresponding optimal control in closed-form by solving a Riccati equation. They show that this procedures achieves a $\tilde{\cO}\left(T^{1/2}\right)$ cumulative regret. \citet{abeille18a} provide the same result by applying Thomson Sampling rather of optimism to select a dynamical model, and rejection sampling to enforce the controllability constraint. These methods which aim at regret minimization are actively exploring to quickly reduce uncertainty, through information-seeking behaviours. Other work use noise injection for exploration such as \citep{Dean2017} or \citep{Dean2018}, who provide a polynomial-time algorithm with a cumulative regret of $\tilde{\cO}\left(T^{2/3}\right)$. In contrast, our main objective is to prevent failures, which forbids to explore uncertain regions.
-% They also suffer from a limited applicability and computationally intractable subroutines.
-%$
-The work of \citet{Dean2017} is closest to our setting: after an offline estimation phase under random exploration, they estimate a simple regret between a robust controller and the oracle optimal performance.
-    
-Our optimisation problem amounts to a sequence of controllers selection, instead of continuous controller synthesis
-    
-Optimistic exploration = information seeking and uncertainty reduction. Our objective: do not commit mistakes (do not explore uncertain regions). If some information is collected allowing to reduce uncertainty, use it to be more optimal, but do not actively seek it.
-
-Given the critical setting, we do not want to be optimistic, and try to minimise some cumulative regret. Quite the contrary, we want to be cautious, safe, prepare for the worst and plan for the best. 
+\paragraph{Linear Quadratic systems} There is a rich body of literature dedicated to the study of LQ systems, and we focus on those providing non-asymptotic results when the system parameters $A, B$ are unknown. In their seminal work \citet{abbasi-yadkori11a}, consider the problem of cumulative regret minimisation. They follow the \emph{Optimism in the Face of Uncertainty} paradigm from the multi-armed bandit literature, that consists in selecting an optimistic system within a high-confidence region while enforcing a controllability constraint, and computing the corresponding optimal control in closed-form by solving a Riccati equation. They show that this procedures achieves a $\tilde{\cO}\left(T^{1/2}\right)$ cumulative regret. \citet{abeille18a} provide the same result by applying Thomson Sampling rather of optimism to select a dynamical model, and rejection sampling to enforce the controllability constraint. These methods aim at regret minimization and explore actively to quickly reduce uncertainty, through information-seeking behaviours. Other work use noise injection for exploration such as \citep{Dean2017} or \citep{Dean2018}. However, being optimistic and minimising a cumulative regret does not fit a critical setting, where ensuring safety is the first criteria requires instead to consider the pessimistic outcomes.
+The work of \citet{Dean2017} is closest to our setting: after an offline estimation phase under random exploration, they estimate a simple regret between a robust controller and the oracle optimal performance. 
+We also focus on where previous methods often suffer from a limited applicability and computationally intractable subroutines, with the exception of \cite{Dean2018} who provide a polynomial-time algorithm.
 
 \paragraph{Robust planning}
-Robust optimization has been studied in the context of finite Markov Decision Processes with uncertain parameters by Iyengar (2005), Nilim and El Ghaoui (2005) and Wiesemann et al. (2013). They show that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies a certain rectangularity property, that amounts to an independence assumption between the uncertainty sets of each transition and is related to time-varying uncertainty.
-L1/KL ball around the empirical transition.
-They do not consider continuous states, nor handle time-invariant uncertainty. We do so by not relying on a dynamic programming evaluation of the robust cost-to-go, but on monte-carlo estimates along a full trajectory.
+Robust optimization has also been studied in the context of finite Markov Decision Processes with uncertain parameters by \citet{Iyengar2005}, \citet{Nilim2005} and \citet{Wiesemann2013}. They showed that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies a certain rectangularity property, that amounts to an independence assumption between the uncertainty sets of each transition and is related to time-varying uncertainty. Since our setting requires dealing with continuous states and time-invariant uncertainty, we rely on monte-carlo value estimates and tree-based planning rather than temporal-difference dynamic programming.
 
 \section{Model Estimation}
 
 \label{sec:estimation}
 
-In the general case, 
- assume that the dynamics $A(\theta)$ enjoy the following additional structure:
+To derive a confidence region for the dynamical parameters $\theta$, the functional relationship $A(\theta)$ must be specified.
 \begin{assumption}[Structure]
 \label{assumpt:structure}
 There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
@@ -243,7 +233,7 @@ There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such t
     A(\theta) = A + %\theta^\transp \phi \eqdef A + 
     \sum_{i=1}^d \theta_i\phi_i
 \end{equation}
-where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we also denote $\Phi_n = [\phi_1 x_n \dots \phi_d x_n]\in\Real^{p\times d}$.
+where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we denote $\Phi_n = [\phi_1 x_n \dots \phi_d x_n]\in\Real^{p\times d}$.
 
 We also assume to know an upper-bound $S$ over $\|\theta\|_\infty$.
 \end{assumption}
@@ -348,15 +338,15 @@ We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into 
      &A_0 = A + \theta_{N,\lambda}^\transp\phi, \quad\Delta A_{i} = h_i \sqrt{\frac{\beta_N(\delta)}{\lambda_{\max}(G_{N,\lambda})}}
 \end{align}
 
-Another strategy presented in \autoref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalisation of $G_{N,\lambda}$.
+Another strategy presented in Appendix \ref{sec:tight-polytope} produces a much tighter polytope, at the price of an increased computational cost required by the diagonalisation of $G_{N,\lambda}$.
 
-\paragraph{Remark} The robust objective framing involves on some bounds $\underline{\omega}(t)\leq \omega(t) \leq \overline{\omega}(t)$ over the possible perturbations we want to protect against. In the unbounded sub-Gaussian noise setting of \autoref{assumpt:gaussian-noise}, we can use the same formulation by deriving high-confidence bounds that each holds with probability $\delta_t$. By choosing $\delta_t = \frac{\delta}{t(t+1)}$, we have that the event $\{\forall t, \underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)\}$ holds with probability $1-\delta$.
+\paragraph{Remark} The robust objective \eqref{eq:robust-control} involves bounds $\underline{\omega}(t)\leq \omega(t) \leq \overline{\omega}(t)$ over the possible perturbations we want to protect against. In the unbounded sub-Gaussian noise setting of \autoref{assumpt:gaussian-noise}, we can use the same formulation by deriving local high-confidence bounds that each holds with probability $\delta_t$. By choosing $\delta_t = \frac{\delta}{t(t+1)}$, we have that the event $\{\forall t, \underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)\}$ holds with probability $1-\delta$.
 
 \section{State Prediction}
 
 \label{sec:prediction}
 
-We consider interval prediction rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Thus, we represent an interval as $X(t) = [\underline{x}(t), \overline{x}(t)]\in \Real^p\times \Real^p$, and the inclusion property becomes:
+In order to study the inclusion property \eqref{eq:inclusion-property}, we must start by choosing a set representation $X(t)$. We consider interval prediction, rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Thus, we represent an interval as $X(t) = [\underline{x}(t), \overline{x}(t)]\in \Real^p\times \Real^p$, and the inclusion property becomes:
 
 \begin{equation}
 \label{eq:inclusion-property}
@@ -376,14 +366,14 @@ Assuming that \eqref{eq:confidence} is satisfied for the system \eqref{eq:dynami
 ensures the inclusion property \eqref{eq:inclusion-property}.
 \end{proposition}
 
-However, \citet{leurent2019interval} showed that this predictor can have unstable dynamics, even for stable systems, which can cause a rapid build-up of uncertainty and produce over-conservative behaviours. They propose an enhanced predictor which produces tighter and more stable predictions, and whose stability can be assessed by solving a linear matrix inequality, at the price of an additional requirement:
+However, \citet{leurent2019interval} showed that this predictor can have unstable dynamics, even for stable systems, which can cause a rapid build-up of uncertainty. They propose an enhanced predictor which produces tighter and more stable predictions, and whose stability can be assessed by solving a linear matrix inequality, at the price of an additional requirement:
 
 \begin{assumption}
 \label{assumpt:metzler}
-There exists an orthogonal matrix $P\in\Real^{d\times d}$ such that $P^\transp A_0 P$ is Metzler, that is, all non-diagonal coefficients are non-negative.
+There exists an orthogonal matrix $P\in\Real^{d\times d}$ such that $P^\transp A_0 P$ is Metzler\footnote{A matrix is said to be Metlzer when all its non-diagonal coefficients are non-negative.}.
 \end{assumption}
 In practice, this assumption is often verified. It is for instance the case whenever $A_0$ is diagonalisable, and a fortiori when it is stabilisable. The similarity transformation of \citep{Efimov_a2013} provides a method to compute such $P$ whenever there exist $C_1,C_2$ which make $A(\theta, C_1)$ and $(A_0, C_2)$ observable.
-Under this assumption, without loss of generality up to a change of basis $x\rightarrow P^{-1}x$ that we do not write for the sake of readability, this assumption is equivalent to considering that $A_0$ itself is Metzler.
+% Under this assumption, without loss of generality up to a change of basis $x\rightarrow P^{-1}x$ that we do not write for the sake of readability, this assumption is equivalent to considering that $A_0$ itself is Metzler.
 
 \begin{theorem}[Interval Predictor \citep{leurent2019interval}]
 \label{thm:predictor}
@@ -396,46 +386,18 @@ Assuming that \eqref{eq:polytope} and \autoref{assumpt:metzler} are satisfied fo
  &  & \underline{x}(t_N)=\overline{x}(t_N)={x}(t_N)\nonumber 
 \end{eqnarray}
 ensures the inclusion property \eqref{eq:inclusion-property}.
-
-% Moreover, the stability of the predictor can be assessed with a sufficient condition in form of an LMI.
-% if there exist diagonal matrices $P$, $Q$, $Q_{+}$, $Q_{-}$, $Z_{+}$, $Z_{-}$, $\Psi_{+}$, $\Psi_{-}$, $\Psi$, $\Gamma\in\Real^{2n\times 2n}$ such that the following LMIs are satisfied:
-% \begin{gather*}
-% P+\min\{Z_{+},Z_{-}\}>0,\;\Upsilon\preceq0,\;\Gamma>0,\\
-% Q+\min\{Q_{+},Q_{-}\}+2\min\{\Psi_{+},\Psi_{-}\}>0,
-% \end{gather*}
-% where{\footnotesize{}
-% \begin{gather*}
-% \Upsilon=\left[\begin{array}{cccc}
-% \Upsilon_{11} & \Upsilon_{12} & \Upsilon_{13} & P\\
-% \Upsilon_{12}^{\top} & \Upsilon_{22} & \Upsilon_{23} & Z_{+}\\
-% \Upsilon_{13}^{\top} & \Upsilon_{23}^{\top} & \Upsilon_{33} & Z_{-}\\
-% P & Z_{+} & Z_{-} & -\Gamma
-% \end{array}\right],\\
-% \Upsilon_{11}=\mathcal{A}^{\top}P+P\mathcal{A}+Q,\;\Upsilon_{12}=\mathcal{A}^{\top}Z_{+}+PR_{+}+\Psi_{+},\\
-% \Upsilon_{13}=\mathcal{A}^{\top}Z_{-}+PR_{-}+\Psi_{-},\;\Upsilon_{22}=Z_{+}R_{+}+R_{+}^{\top}Z_{+}+Q_{+},\\
-% \Upsilon_{23}=Z_{+}R_{-}+R_{+}^{\top}Z_{-}+\Psi,\;\Upsilon_{33}=Z_{-}R_{-}+R_{-}^{\top}Z_{-}+Q_{-},\\
-% \mathcal{A}=\left[\begin{array}{cc}
-% A_{0} & 0\\
-% 0 & A_{0}
-% \end{array}\right],\;R_{+}=\left[\begin{array}{cc}
-% 0 & -\Delta A_{-}\\
-% 0 & \Delta A_{+}
-% \end{array}\right],\;R_{-}=\left[\begin{array}{cc}
-% \Delta A_{+} & 0\\
-% -\Delta A_{-} & 0
-% \end{array}\right],
-% \end{gather*}
-% }then the predictor \eqref{eq:interval-predictor} is input-to-state stable with respect to the inputs $\underline{\omega}$, $\overline{\omega}$.
 \end{theorem}
 
-
-Limitations: set-based method assumes time-varying uncertainty where we have time-invariant uncertainty: $A(\theta)$ is fixed vs $A(\theta)$ can vary in $\cC_\delta$ at each step. Consequence: conservative overset.
 \begin{figure}[tp]
 	\centering
 	\includegraphics[width=\linewidth]{img/interval-predictor}
-	\caption{Comparison of \eqref{eq:predictor-naive} to \eqref{eq:interval-predictor} for a simple system $\dot{x}(t)=-\theta x(t)+d(t)$}
+	\caption{Comparison of \eqref{eq:predictor-naive} to \eqref{eq:interval-predictor} for a simple system $\dot{x}(t)=-\theta x(t)+d(t)$, with $\theta\in[1, 2]$.}
 	\label{fig:predictor_example}
 \end{figure}
+
+The \autoref{fig:predictor_example} illustrates the differences of stability of the two predictors with a simple example. It suggests to always prefer \eqref{eq:interval-predictor} whenever \autoref{assumpt:metzler} is verified, and only use \eqref{eq:predictor-naive} as a last resort.
+
+% Limitations: set-based method assumes time-varying uncertainty where we have time-invariant uncertainty: $A(\theta)$ is fixed vs $A(\theta)$ can vary in $\cC_\delta$ at each step. Consequence: conservative overset.
 
 \section{Control}
 
@@ -454,14 +416,13 @@ This does not simply amounts to a change of reward function, since the worst cas
 
 \begin{proposition}[Lower bound]
 \label{prop:lower-bound}
-With high probability, the surrogate objective $\hat{V}^r$ is a lower bound of the true objective $V^r$:
-
+With high probability, the surrogate objective  \eqref{eq:surrogate_objective} is a lower bound of the true objective \eqref{eq:robust-control-disc}:
 \begin{equation}
 \hat{V}^r(\bu) \leq V^r(\bu)
 \end{equation}
 \end{proposition}
 
-The consequence of \autoref{prop:lower-bound} is that since all our approximations were conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens according to the surrogate objective $\hat{V}^r$, then we are guaranteed so they will not happen either when the controls are executed on the true system. 
+The consequence of \autoref{prop:lower-bound} is that since all our approximations were conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens according to the surrogate objective $\hat{V}^r$, then we are guaranteed that they will not happen either when the controls are executed on the true system. 
 
 \paragraph{Planning}
 In order to optimise $\hat{V}^r$, we turn to sequential planning algorithms. We cannot use Dynamic Programming algorithms because the state space is continuous and the pessimistic rewards are non-markovian. Instead, we turn to tree-based planning algorithms which optimise a sequence of actions based on the corresponding sequence of rewards. These methods no dot require the enumeration of the states nor the markovity of the rewards. In particular, we consider the \emph{Optimistic Planning of Deterministic Systems} (\texttt{OPD}) algorithm \citep{Hren2008} tailored for the case where the sequence of rewards is a deterministic function of the sequence of actions. Indeed, the stochasticity of the perturbations and measurements is encased in $\hat{V}^r$: both the predictor dynamics \eqref{eq:interval-predictor} and the corresponding pessimistic rewards \eqref{eq:pessimistic-rewards} are deterministic.
@@ -474,7 +435,7 @@ a_k = \argmax_{a\in\cL_k} B_a(k), \quad B_a(k) = \sum_{n=0}^{h(a)-1} \underline{
 where $\cL_k$ is the set of leaves of $\cT_k$, $h(a)$ is the length of the sequence $a$, and $\underline{R}_n(a)$ the pessimistic reward \eqref{eq:pessimistic-rewards} obtained at time $n$ by following the sequence $a$.
 \begin{theorem}[Planning performance, \citep{Hren2008}]
 \label{theorem:opd-regret}
-The simple regret of the \texttt{OPD} algorithm \eqref{eq:opd} after $K$ iterations is:
+The simple regret of the \texttt{OPD} algorithm \eqref{eq:opd} applied to the surrogate objective \eqref{eq:surrogate_objective} after $K$ iterations is:
 \begin{align*}
 \text{if } \kappa>1,\quad& 
 \hat{V}^r(a^*) - \hat{V}^r({a_K}) = \cO\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right);\\
@@ -526,7 +487,7 @@ Assume that the true dynamics $f$ lies within a finite set of candidate models $
 We want to adapt our planning algorithm in order to balance these concurrent hypotheses in a robust fashion, i.e. maximise a robust objective with discrete ambiguity:
 \begin{equation}
 \label{eq:robust-objective-discrete}
-V^r = \sup_{\bu}\min_{m\in[M]} \sum_{t=1}^\infty \gamma^t R_t^m
+V^r = \sup_{a\in\cA^\Natural}\min_{m\in[M]} \sum_{t=1}^\infty \gamma^t R_t^m
 \end{equation}
 where $R_t^m$ is the reward obtain by following the control sequence $\bu$ up to step $t$ under the dynamics $f^m$.
 This objective could be optimised in the same way as \ref{sec:control}, by computing a hull over the $M$ possible trajectories, but this would result in a coarse and lossy approximation. Instead, we can exploit the finite uncertainty structure of \autoref{assumpt:multi-model-ambiguity} to asymptotically recover the true $V^r$ by modifying the \texttt{OPD} planning algorithm in the following way:
@@ -553,20 +514,20 @@ An illustration of the computation of the robust b-values is presented in Figure
 
 \begin{theorem}[Regret bound]
 \label{theorem:drop-regret}
-\texttt{ROPD} enjoys the same regret bound as provided for \texttt{OPD} in \autoref{theorem:opd-regret}.
+The \texttt{Robust-OPD} \eqref{eq:robust-b-values} enjoys the same regret bound as provided for \texttt{OPD} in \autoref{theorem:opd-regret}, with respect to the robust objective \eqref{eq:robust-objective-discrete}.
 \end{theorem}
 
-Note that this theorem bounds the performance gap with respect to the number of node expansions, but each expansion still requires $M$ time more simulations in the multi-model setting than in the single-model setting. The solution of the robust objective \eqref{eq:robust-objective-discrete} with discrete ambiguity $f\in\{f^m\}_{m\in[M]}$ can be recovered exactly, asymptotically when the planning budget $H$ goes to infinity. This is in contrast to the results obtained \autoref{sec:control} regarding the robust objective \eqref{eq:robust-control} with continuous ambiguity $A(\theta)\in\cC_{[N],\delta}$, for which there is a gap between the asymptotic performance and the true robust value, as discussed in \autoref{thm:control-error}.
+Note that this theorem bounds the performance gap with respect to the number of node expansions, but each expansion still requires $M$ time more simulations in the multi-model setting than in the single-model setting. The solution of the robust objective \eqref{eq:robust-objective-discrete} with discrete ambiguity $f\in\{f^m\}_{m\in[M]}$ can be recovered exactly, asymptotically when the planning budget $H$ goes to infinity. This is in contrast to the results obtained in \autoref{sec:control} for the robust objective \eqref{eq:robust-control} with continuous ambiguity $A(\theta)\in\cC_{[N],\delta}$, for which \texttt{OPD} only recovers the surrogate approximation $\hat{V}^r$, as discussed in \autoref{thm:control-error}.
 
 \section{Experiments}
 
 \paragraph{Obstacle avoidance with unknown friction}
-We first consider a simple illustrative example: the control of a 2D system with position $(x,y)$ and velocity $(v_x, v_y)$ moving by means of a force $(u_x, u_y)$ in an environment with unknown anisotropic friction. The dynamics are:
+We first consider a simple illustrative example: the control of a 2D system with position $(p_x,p_y)$ and velocity $(v_x, v_y)$ moving by means of a force $(u_x, u_y)$ in an environment with unknown anisotropic friction. The dynamics are:
 
 \begin{equation*}
 \begin{bmatrix}
-\dot{x}\\
-\dot{y}\\
+\dot{p_x}\\
+\dot{p_y}\\
 \dot{v_x}\\
 \dot{v_y}\\
 \end{bmatrix} = 
@@ -577,8 +538,8 @@ We first consider a simple illustrative example: the control of a 2D system with
 0 & 0 & 0 & -\theta_y
 \end{bmatrix}
 \begin{bmatrix}
-{x}\\
-{y}\\
+{p_x}\\
+{p_y}\\
 {v_x}\\
 {v_y}\\
 \end{bmatrix}
@@ -591,40 +552,42 @@ We first consider a simple illustrative example: the control of a 2D system with
 \end{bmatrix}
 \end{equation*}
 
-The reward is non-smooth and encodes the task of reaching a goal position $x_g$ while avoiding collisions: $R(x) = \delta(x)/(1 + \|x - x_g\|_2)$  where $\delta(x)$ is $0$ whenever $x$ overlaps with an obstacle position.
+The reward is non-smooth and encodes the task of reaching a goal position $x_g$ while avoiding collisions: $R(x) = \delta(x)/(1 + \|x - x_g\|_2)$  where $\delta(x)$ is $0$ whenever $x$ collides with an obstacle.
 
 \begin{table}[htbp]
 	\caption{Mean and worst-case performance}
 	\label{tab:results}
 	\centering
-	\begin{tabular}{lcccc}
+	\begin{tabular}{lcccccc}
 		\toprule
 		\multicolumn{1}{l}{Task} &
-		\multicolumn{2}{c}{Obstacle}    &
-		\multicolumn{2}{c}{Driving}\\
-		\cmidrule(lr){2-3}
-		\cmidrule(lr){4-5}
+		\multicolumn{3}{c}{Obstacle}    &
+		\multicolumn{3}{c}{Driving}\\
+		\cmidrule(lr){2-4}
+		\cmidrule(lr){5-7}
 		Perf. &
-		\multicolumn{1}{c}{mean} &
 		\multicolumn{1}{c}{min} &
 		\multicolumn{1}{c}{mean} &
-		\multicolumn{1}{c}{min}\\
+		\multicolumn{1}{c}{failures} &
+		\multicolumn{1}{c}{min} &
+		\multicolumn{1}{c}{mean} & 
+		\multicolumn{1}{c}{failures}\\
 		\midrule
-		Oracle & \num{0} & \num{0} & \num{0} & \num{0} \\
-		Nominal & \num{0} & \num{0} & \num{0} & \num{0} \\
-		\OurAlgorithm & \num{0} & \num{0} & \num{0} & \num{0} \\
+		Oracle & {11.6} & {14.2} & 0\% & {0} & {0} & 0\\
+		{Nominal} & {2.8} & \textbf{13.8} & 4\% & {0} & {0} & 0 \\
+		Robust & \textbf{10.4} & {13.0} & \textbf{0\%} & {0} & {0} & 0 \\
 		\bottomrule
 	\end{tabular}
 \end{table}
  
-In  \autoref{fig:regret} study the evolution of the agent conservativeness as they collect more data. Given a trajectory $x_0, R_0, x_1, R_1, \dots$, we compute the cumulative return $J_n(x_n) = \sum_{k\geq n} \gamma^k R_k$ at each state, and compare it to the optimal value $V(x_n)$, the return the agent would have got if it had acted optimally with respect to the oracle model.
-
 \begin{figure}[tp]
 	\centering
 	\includegraphics[width=0.8\linewidth]{img/regret.pdf}
-	\caption{We compare the performance of the robust agent to the optimal performance $\hat{V}^r(s_n)-V^*(s_n)$, with respect to the number $n$ of interactions.}
+	\caption{The mean regret with its $95\%$ confidence interval for the robust and nominal agents with respect to time.}
 	\label{fig:regret}
 \end{figure}
+
+In  \autoref{fig:regret} study the evolution of the agent conservativeness as they collect more data. Given a trajectory $x_0, R_0, x_1, R_1, \dots$, we compute the cumulative return $J_n(x_n) = \sum_{k\geq n} \gamma^k R_k$ at each state, and compare it to the optimal value $V(x_n)$, the return the agent would have got if it had acted optimally with respect to the oracle model.
 
 \paragraph{Behavioural planning for an autonomous vehicle}
 We consider the problem of safe decision-making for an autonomous vehicle. An autonomous vehicle with state $\chi_0\in\Real^4$ is driving on a highway populated with $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \chi_1,\dots,\chi_V]^\top\in\Real^{4V+4}$. In order to plan a sequence of high-level decisions, the autonomous agent relies on both a model of its own dynamics $\chi_0 = f_0(\chi_0,u)$, but also a parametrized dynamical model for each observed agent to predict their future trajectory: \[\dot{\chi}_i=f_i(x,\theta_i),\;i\in[V],\] where $f_i$ are described below, $\chi_i\in\Real^4$ is the state of an agent, $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Already, we can appreciate a first advantage of the structure imposed in \autoref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional adaptive LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
