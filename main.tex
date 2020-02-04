@@ -601,6 +601,12 @@ We consider the problem of safe decision-making for an autonomous vehicle. An au
 
 This system dynamics $f$ describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. It can only be expressed in the form \eqref{eq:dynamics} given the knowledge of the desired routes of each vehicle, with the features $\phi$ expressing deviations of the vehicles trajectories with respect to the lane centerline being followed. Since these are unknown in practice, we adopt the multi-model perspective of \autoref{sec:multi-model} and consider one model per possible route allocation for every observed vehicle before an intersection.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\linewidth]{img/highway-small}
+	\caption{The intersection crossing task.}
+\end{figure}
+
 \begin{table}[htbp]
 	\caption{Performances on the Driving task}
 	\label{tab:driving}
