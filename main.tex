@@ -574,8 +574,8 @@ The reward is non-smooth and encodes the task of reaching a goal position $x_g$ 
 		\midrule
 		Oracle & {11.6} & {$14.2 \pm 1.3$} & 0\% \\
 		\midrule
-		{Nominal} & {2.8} & \textbf{$13.8 \pm 2.0$} & {4\%} \\
-		Robust & \textbf{10.4} & {$13.0 \pm 1.5$} & \textbf{0\%} \\
+		{Nominal} & {2.8} & \textbf{$\mathbf{13.8} \pm 2.0$} & {4\%} \\
+		Robust (ours) & \textbf{10.4} & {$13.0 \pm 1.5$} & \textbf{0\%} \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -583,7 +583,7 @@ The reward is non-smooth and encodes the task of reaching a goal position $x_g$ 
 \begin{figure}[tp]
 	\centering
 	\includegraphics[width=0.8\linewidth]{img/regret.pdf}
-	\caption{The mean regret with its $95\%$ confidence interval for the robust and nominal agents with respect to time.}
+	\caption{The mean regret with its $95\%$ confidence interval for the robust and nominal agents with respect to the number $N$ of samples.}
 	\label{fig:regret}
 \end{figure}
 
@@ -602,16 +602,16 @@ This system dynamics $f$ describes the couplings and interactions between vehicl
 	\begin{tabular}{lccc}
 		\toprule
 		\multirow{2}{*}{Agent} &
-		\multicolumn{2}{c}{Return} &
-		\multirow{2}{*}{Failures} \\
-		\cmidrule{2-3} & min &
-		mean $\pm$ std & \\
+		\multirow{2}{*}{Failures} &
+		\multicolumn{2}{c}{Return} \\
+		\cmidrule{3-4} && min &
+		mean $\pm$ std  \\
 		\midrule
-		Oracle & {6.9} & {7.4} & 0\% \\
+		Oracle & 0\% & {6.9} & $7.4 \pm 0.5$ \\
 		\midrule
-		{Nominal K} & {3.8} & \textbf{4.6} \\
-		{Nominal U} & {3.0} & {4.3} \\
-		Robust & {3.04} & {13.0} & \textbf{0\%} \\
+		{Nominal B} & 4\% & {5.2} & $\mathbf{7.3} \pm 1.5$ \\
+		{Nominal R} & 33\% & {3.5} & $6.4 \pm 0.26$ \\
+		Robust (ours) & \textbf{0\%} & \textbf{6.8} & $7.1 \pm 0.29$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
