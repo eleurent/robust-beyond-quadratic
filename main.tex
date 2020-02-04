@@ -9,6 +9,7 @@
 \usepackage{blkarray}
 \usepackage{mathtools}
 \usepackage{multirow}
+\usepackage{bm}
 \input{mathdef.tex}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
 
@@ -106,7 +107,7 @@ To address this issue, we turn to the framework of \emph{robust} decision-making
 
 \paragraph{Notations}
 
-The dynamics of the real system are described in continuous time. However, all the sensing and control performed on-board happen in discrete time, with time-step $\dd t$. For any variable $z$, we use the subscript notation to refer to these discrete times: $z_n = z(t_n)$ with $t_n = n\dd t$. We use bold symbols to denote sequences $\bz = (z_1,z_2,\dots)$.
+The dynamics of the real system are described in continuous time. However, all the sensing and control performed on-board happen in discrete time, with time-step $\dd t$. For any variable $z$, we use the subscript notation to refer to these discrete times: $z_n = z(t_n)$ with $t_n = n\dd t$. We use bold symbols to denote temporal sequences $\bz = (z_n)_{n\in\Natural}$.
 
 \paragraph{Structured dynamics}
 We consider a linear system with state $x\in\Real^p$, acted on by controls $u\in\Real^q$ and perturbations $\omega\in\Real^r$, and following a dynamics in the form:
@@ -141,9 +142,9 @@ Our first contribution is to extend the work of \citet{Abbasi2011} that provide 
 At the time step $n=N$, considering the confidence region $\cC_{[N],\delta}$ obtained in the model estimation phase, we formulate our robust control objective:
 \begin{equation}
 \label{eq:robust-control}
-\sup_{\bu\in{(\Real^q)}^\Natural} \underbrace{\inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bw\in[\underline{\bw},\overline{\bw}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\bu,\bw))\right]}_{V^r(\bu)}
+\sup_{\bu\in{(\Real^q)}^\Natural} \underbrace{\inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bom\in[\underline{\bom},\overline{\bom}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\bu,\bom))\right]}_{V^r(\bu)}
 \end{equation}
-where $\bu = (u_{N+1},u_{N+2},\dots)$ and $\bw = (\omega_N, \omega_{N+1},\dots)$ are the sequences of future controls and perturbations, respectively. The rest of the paper will tackle the optimisation of this objective.
+where $\bu = (u_{N+1},u_{N+2},\dots)$ and $\bom = (\omega_N, \omega_{N+1},\dots)$ are the sequences of future controls and perturbations, respectively. The rest of the paper will tackle the optimisation of this objective.
 
 \paragraph{State prediction}
 
@@ -163,9 +164,9 @@ In this work, we choose to approximate the solution by turning the continuous op
 The robust objective we consider becomes 
 \begin{equation}
 \label{eq:robust-control-disc}
-\sup_{\ba\in{\cA}^\Natural} \underbrace{\inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bw\in[\underline{\bw},\overline{\bw}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\ba,\bw))\right]}_{V^r(\ba)}
+\sup_{\ba\in{\cA}^\Natural} \underbrace{\inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bom\in[\underline{\bom},\overline{\bom}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\ba,\bom))\right]}_{V^r(\ba)}
 \end{equation}
-where $x_n(\ba, \bw)$ is obtained by integrating \eqref{eq:dynamics} with $u_n = \pi_{a_n}(x_n)$.
+where $x_n(\ba, \bom)$ is obtained by integrating \eqref{eq:dynamics} with $u_n = \pi_{a_n}(x_n)$.
 
 In \autoref{sec:control}, facing an optimisation problem with continuous states and discrete actions, we turn to the literature of tree-based planning. Our third contribution proposes to approximate the true robust objective ${V}^r$ by an easily-evaluable surrogate $\hat{V}^r$ that exploits the set predictor to define a pessimistic reward, used to evaluate sequences of actions in a tree-based planning algorithm.
 
@@ -448,15 +449,20 @@ where $\kappa$ is a problem-dependent measure of the proportion of near-optimal 
 \]
 \end{theorem}
 
-Hence, by using enough computational budget $K$ for planning we can get as close as we want to the optimal surrogate value $\hat{V}^r(\bu^*)$, at a polynomial rate. However, there exists a gap between $\hat{V}^r$ and the true robust objective $V^r$, which stems from three approximations: (i) the true reachable set was approximated by an enclosing interval in \eqref{eq:inclusion-property}; (ii) the time-invariance of the dynamics uncertainty $A(\theta)\in\cC_{[N],\delta}$ was handled by the interval predictor \eqref{eq:interval-predictor} as if it were a time-varying uncertainty $\forall t, A(\theta(t))\in\cC_{[N],\delta}$ ; and (iii) the lower-bound $\sum\min\leq \min\sum$ used to define the surrogate objective \eqref{eq:surrogate_objective} is not tight.
-
-However, under an additional smoothness assumption on $R$, we can bound this gap:
-\begin{theorem}[Approximation gap]
+Hence, by using enough computational budget $K$ for planning we can get as close as we want to the optimal surrogate value $\hat{V}^r(\bu^*)$, at a polynomial rate. However, there exists a gap between $\hat{V}^r$ and the true robust objective $V^r$, which stems from three approximations: (i) the true reachable set was approximated by an enclosing interval in \eqref{eq:inclusion-property}; (ii) the time-invariance of the dynamics uncertainty $A(\theta)\in\cC_{[N],\delta}$ was handled by the interval predictor \eqref{eq:interval-predictor} as if it were a time-varying uncertainty $\forall t, A(\theta(t))\in\cC_{[N],\delta}$ ; and (iii) the lower-bound $\sum\min\leq \min\sum$ used to define the surrogate objective \eqref{eq:surrogate_objective} is not tight. However, this gap can be bounded with additional assumptions:
+\begin{theorem}[Sample complexity]
 \label{thm:control-error}
-If the reward function $R$ is lipschitz, then we can bound the approximation error of \autoref{alg:full}:
+Under some assumptions specified in the proof, which amounts to
+\begin{enumerate}
+	\item the reward function $R$ is lipschitz;
+	\item a persistent excitation assumption;
+	\item a stability condition in the form of an LMI;
+\end{enumerate}
+ we can bound the approximation error of \autoref{alg:full}:
 \begin{equation*}
-\hat{V}^r(\bu) \leq {V}^r(\bu) \leq V(\bu) \leq \hat{V}^r(\bu) + \cO\left(\frac{1}{\sqrt{N}}\right)
+\hat{V}^r(\bu) \leq {V}^r(\bu) \leq V(\bu) \leq \hat{V}^r(\bu) + \Delta_\omega + \cO\left({\log N / N}\right)
 \end{equation*}
+where $\Delta_\omega$ is a constant specified in the proof, which corresponds to an irreductible suboptimality suffered from being robust to the perturbations $\omega(t)$, with knowledge of $A(\theta)$. % $\max_a \sum_n \min_\omega$
 \end{theorem}
 
 
@@ -555,27 +561,21 @@ We first consider a simple illustrative example: the control of a 2D system with
 The reward is non-smooth and encodes the task of reaching a goal position $x_g$ while avoiding collisions: $R(x) = \delta(x)/(1 + \|x - x_g\|_2)$  where $\delta(x)$ is $0$ whenever $x$ collides with an obstacle.
 
 \begin{table}[htbp]
-	\caption{Mean and worst-case performance}
-	\label{tab:results}
+	\caption{Performances on the Obstacle task}
+	\label{tab:obstacle}
 	\centering
-	\begin{tabular}{lcccccc}
+	\begin{tabular}{lccc}
 		\toprule
-		\multicolumn{1}{l}{Task} &
-		\multicolumn{3}{c}{Obstacle}    &
-		\multicolumn{3}{c}{Driving}\\
-		\cmidrule(lr){2-4}
-		\cmidrule(lr){5-7}
-		Perf. &
-		\multicolumn{1}{c}{min} &
-		\multicolumn{1}{c}{mean} &
-		\multicolumn{1}{c}{failures} &
-		\multicolumn{1}{c}{min} &
-		\multicolumn{1}{c}{mean} & 
-		\multicolumn{1}{c}{failures}\\
+		\multirow{2}{*}{Agent} &
+		\multicolumn{2}{c}{Return} &
+		\multirow{2}{*}{Failures} \\
+		\cmidrule{2-3} & min &
+		mean $\pm$ std & \\
 		\midrule
-		Oracle & {11.6} & {14.2} & 0\% & {0} & {0} & 0\\
-		{Nominal} & {2.8} & \textbf{13.8} & 4\% & {0} & {0} & 0 \\
-		Robust & \textbf{10.4} & {13.0} & \textbf{0\%} & {0} & {0} & 0 \\
+		Oracle & {11.6} & {$14.2 \pm 1.3$} & 0\% \\
+		\midrule
+		{Nominal} & {2.8} & \textbf{$13.8 \pm 2.0$} & {4\%} \\
+		Robust & \textbf{10.4} & {$13.0 \pm 1.5$} & \textbf{0\%} \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -594,6 +594,27 @@ We consider the problem of safe decision-making for an autonomous vehicle. An au
 %This allows to scale to larger systems: in our experiments, we used a state space of dimension $44$ ($V=10$) where \citep{Dean2018,abeille18a} only reported numerical experiments with states of dimensions 3 and 4, respectively.
 
 This system dynamics $f$ describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. It can only be expressed in the form \eqref{eq:dynamics} given the knowledge of the desired routes of each vehicle, with the features $\phi$ expressing deviations of the vehicles trajectories with respect to the lane centerline being followed. Since these are unknown in practice, we adopt the multi-model perspective of \autoref{sec:multi-model} and consider one model per possible route allocation for every observed vehicle before an intersection.
+
+\begin{table}[htbp]
+	\caption{Performances on the Driving task}
+	\label{tab:driving}
+	\centering
+	\begin{tabular}{lccc}
+		\toprule
+		\multirow{2}{*}{Agent} &
+		\multicolumn{2}{c}{Return} &
+		\multirow{2}{*}{Failures} \\
+		\cmidrule{2-3} & min &
+		mean $\pm$ std & \\
+		\midrule
+		Oracle & {6.9} & {7.4} & 0\% \\
+		\midrule
+		{Nominal K} & {3.8} & \textbf{4.6} \\
+		{Nominal U} & {3.0} & {4.3} \\
+		Robust & {3.04} & {13.0} & \textbf{0\%} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 \section*{Conclusion}
 
@@ -738,11 +759,11 @@ And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda
 \subsection{Proof of \autoref{prop:lower-bound}}
 
 \begin{proof}
-	The predictor designed in \autoref{sec:prediction} verifies the inclusion property \eqref{eq:inclusion-property}. Thus, for sequence of controls $\bu$, any dynamics $A(\theta)\in C_{[N],\delta}$, and perturbations $\underline{\bw} \leq \bw \leq \overline{\bw}$, the corresponding state at time $t_n$ is bounded by $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \geq \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x) = \underline{R}_n(\bu)$.
+	The predictor designed in \autoref{sec:prediction} verifies the inclusion property \eqref{eq:inclusion-property}. Thus, for sequence of controls $\bu$, any dynamics $A(\theta)\in C_{[N],\delta}$, and perturbations $\underline{\bom} \leq \bom \leq \overline{\bom}$, the corresponding state at time $t_n$ is bounded by $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \geq \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x) = \underline{R}_n(\bu)$.
 	
-	Thus, by taking the min over $C_{[N],\delta}$ and $[\underline{\bw}, \overline{\bw}]$, we also have for any sequence of controls $\bu$:
+	Thus, by taking the min over $C_{[N],\delta}$ and $[\underline{\bom}, \overline{\bom}]$, we also have for any sequence of controls $\bu$:
 	\begin{align*}
-	    V^r(\bu) &= \min_{\substack{A(\theta)\in C_{[N],\delta}\\ \underline{\bw} \leq \bw \leq \overline{\bw}}} \sum_{n=N+1}^\infty \gamma^n R(x_n)\\
+	    V^r(\bu) &= \min_{\substack{A(\theta)\in C_{[N],\delta}\\ \underline{\bom} \leq \bom \leq \overline{\bom}}} \sum_{n=N+1}^\infty \gamma^n R(x_n)\\
 	    &\geq \sum_{n=N+1}^\infty \gamma^n \underline{R}_n(\bu)\\
 	    &= \hat{V}^r(\bu)
 	\end{align*}
@@ -755,13 +776,13 @@ We first bound the model estimation error.
 Under sufficient excitations in the features 
 \begin{align}
 \label{eq:excitation}
-\exists \underline{\phi},\overline{\phi}>0, n_0: \forall n\geq n_0,i,j\in[p],\nonumber\\ \underline{\phi}^2 \leq \sum_k \sum_l \phi_{n,k,i}\Sigma_{p,k,l}^{-1}\phi_{n,l,j} \leq \overline{\phi}^2,
+\exists \underline{\phi},\overline{\phi}>0, n_0: \forall n\geq n_0,\nonumber\\ \underline{\phi}^2 \leq \lambda(\Phi_{n}^\transp\Sigma_{p}^{-1}\Phi_{n}) \leq \overline{\phi}^2,
 \end{align}
 then,
 \[\|A(\theta) - A(\theta_{[N],\lambda})\|_2 = \cO\left( \sqrt{\frac{\log N}{N}} \right) \]
 \end{lemma}
 \begin{proof}
-By \eqref{eq:g_n_lambda} and \eqref{eq:excitation}, we have $G_{[N],\lambda,i,j} \geq N\underline{\phi}^2 $
+By \eqref{eq:g_n_lambda} and \eqref{eq:excitation}, we have $\lambda_{\min}(G_{[N],\lambda,i,j}) \geq N\underline{\phi}^2 $
 
 Hence, by \eqref{eq:confidence-ellipsoid} we have 
 \begin{align*}
@@ -782,7 +803,7 @@ And $A(\theta)$ belongs to a linear image of this ball. By writing a the $j^{th}
 ((A(\theta)&-A(\theta_{[N],\lambda}))^\transp (A(\theta) - A(\theta_{[N],\lambda})))_{i,j}\\
 %&= (\phi_i(\theta-\theta_{[N],\lambda}))^\transp \phi_j(\theta-\theta_{[N],\lambda}) \\
 &= (\theta-\theta_{[N],\lambda})^\transp\phi_{i}^{\transp}\phi_j(\theta-\theta_{[N],\lambda}) \\
-&\leq \lambda_{\max}(\phi_{i}^{\transp}\phi_j) \|\theta - \theta_{[N],\lambda}\|_{2} = \cO\left( \sqrt{\frac{\log N}{N}} \right) 
+&\leq \lambda_{\max}(\phi_{i}^{\transp}\phi_j) \|\theta - \theta_{[N],\lambda}\|_{2}^2 = \cO\left( {\frac{\log N}{N}} \right) 
 \end{align*}
 
 \end{proof}
@@ -790,10 +811,17 @@ And $A(\theta)$ belongs to a linear image of this ball. By writing a the $j^{th}
 Then, we propagate this estimation error through the state prediction.
 
 \begin{lemma}
-
-\[\|\ox(t) - \ux(t)\| \leq C_\omega(t) +\cO\left( \sqrt{\frac{\log N}{N}} \right) \]
-where $C_\omega(t)$ is the interval size $\|\ox(t) - \ux(t)\|$ obtained by running \eqref{eq:interval-predictor} with $\Delta A=0$.
-
+If there exist $P>0,Q_0\in\Real^{p\times p}$, $\rho>0$ such that
+\begin{align*}
+\begin{bmatrix}
+A_0^\transp P + P A_0^\transp + Q_0 & P|D| & P|\Delta A| \\
+|D|^\transp P & -\rho I_r & 0\\
+|\Delta A|^\transp P & 0 & -\lambda_{\max}(|\Delta A|) I_p
+\end{bmatrix}< 0,
+\end{align*}
+then for all $t> t_N$,
+\[\|\ox(t) - \ux(t)\| \leq \left(C_0 + \cO\left({\frac{\log N}{N}} \right)\right)C_\omega(t) \]
+where $C_\omega(t) = \sup_{\tau\in[t_N,t]} \|\overline{\omega}(\tau) - \underline{\omega}(\tau)\|_2^2$ and $C_0 = \sqrt{{\rho\lambda_{\max}(P)}/({\lambda_{\min}(P)\lambda_{\min}(Q_0)})}$.
 \end{lemma}
 \begin{proof}
 Let $e = \ox - \ux$. Assuming that eventually after $n\geq N \geq N_0$, $A_0 = A(\theta_{[N],\lambda})$ becomes close enough to $A(\theta)$ to always be Metlzer. Then, \eqref{eq:interval-predictor} gives the dynamics:
@@ -802,8 +830,6 @@ Let $e = \ox - \ux$. Assuming that eventually after $n\geq N \geq N_0$, $A_0 = A
 \end{align*}
 where $|M| = M^+ + M^-$.
 
-Moreover, it holds that $-\ux^+ -\ox^- \leq e \leq \ox^+ + \ux^-$, which implies $|\ux^+ + \ox^-| \leq 2 |e|$.
-
 We define $V = e^\transp P e$, which is non-negative definite provided that
 $
 P>0,
@@ -811,46 +837,85 @@ $ and compute its derivative:
 \begin{align*}
 \dot{V} ={}& X^\transp
 \begin{bmatrix}
-A_0^\transp P + P A_0^\transp + Q & P|\Delta A| & P|D|\\
-|\Delta A|^\transp P & -\alpha I_n & 0\\
-D^\transp|P| & 0 & -\rho I_p
+A_0^\transp P + P A_0^\transp + Q & P|D| & P|\Delta A| \\
+|D|^\transp P & -\rho I_r & 0\\
+|\Delta A|^\transp P & 0 & -\alpha I_p
 \end{bmatrix}
 X\\
 & - e^\transp Q e + \alpha |\ux^+ + \ox^-|^2 + \rho |\overline{\omega} - \underline{\omega}|^2
 \end{align*}
 with $X=\begin{bmatrix}
-e\\ \ux^+ + \ox^- \\ \overline{\omega} - \underline{\omega}
-\end{bmatrix}$. Hence, 
+e & \overline{\omega} - \underline{\omega} &  \ux^+ + \ox^-
+\end{bmatrix}^\transp$, for any $Q\in\Real^{p\times p}$, $\rho,\alpha\in\Real$ . 
+
+Moreover, it holds that $-\ux^+ -\ox^- \leq e \leq \ox^+ + \ux^-$, which implies $|\ux^+ + \ox^-| \leq 2 |e|$. Hence,
 \begin{align*}
 \dot{V} \leq {}& X^\transp
 \underbrace{\begin{bmatrix}
-A_0^\transp P + P A_0^\transp + Q + 2\alpha^2 I_p & P|\Delta A| & P|D|\\
-|\Delta A|^\transp P & -\alpha I_n & 0\\
-D^\transp|P| & 0 & -\rho I_p
+A_0^\transp P + P A_0^\transp + Q + 4\alpha I_p & P|D| & P|\Delta A| \\
+|D|^\transp P & -\rho I_r & 0\\
+|\Delta A|^\transp P & 0 & -\alpha I_p
 \end{bmatrix}}_{\Upsilon}
 X\\
-& - e^\transp Q e + \rho |\overline{\omega} - \underline{\omega}|^2
+& - e^\transp Q e + \rho \|\overline{\omega} - \underline{\omega}\|_2^2
 \end{align*}
 
-Thus, if $\Upsilon < 0$, $Q>0$, $\rho > 0$, $V$ is bounded and can only increases from $V(e(t_N)) = 0$ to a $V(e)$ such that:
+Thus, if we had $\Upsilon < 0$, $Q>0$, $\rho > 0$, then we would have
 \[
-e^\transp Q e = X^\transp \Upsilon X + \rho |\overline{\omega} - \underline{\omega}|^2
+\dot{V} \leq -\mu V + \rho \|\overline{\omega} - \underline{\omega}\|_2^2
 \]
+with $\mu = \frac{\lambda_{\min}(Q)}{\lambda_{\max}(P)}$. Since $V(t_N) = 0$, this further implies that for all $t>t_N$, 
+\begin{equation}
+\label{eq:lyap-bound}
+V(t) \leq \frac{\rho}{\mu} C_\omega(t)
+\end{equation}
+
+We now examine the condition $\Upsilon < 0$.
+We resort to its Schur complement: $\Upsilon < 0$ if and only if $\alpha > 0$ and $R > S$, where $S= \alpha^{-1}\begin{bmatrix}|\Delta A|^\transp P & 0\end{bmatrix}^\transp \begin{bmatrix}|\Delta A|^\transp P & 0\end{bmatrix}$ and $R$ is the top-left block of $-\Upsilon$:
+\[R = \begin{bmatrix}
+-A_0^\transp P - P A_0^\transp - Q - 4\alpha I_p & -P|D|\\
+-|D|^\transp P & \rho I_r\\
+\end{bmatrix}\]
+
+Let $Q_0 = Q-4\alpha I_p$.
+Assume that $P$ is fixed, we have $\lambda_{\max}(S) \leq \alpha^{-1}\lambda_{\max}(P)^2\lambda_{\max}(|\Delta A|)^2$.
+Thus, by taking $\alpha_N = \lambda_{\max}(|\Delta A|)^2 = \cO(\log N / N)$, $S = \begin{bmatrix}
+S_0 & 0\\0 & 0
+\end{bmatrix}$ becomes $\cO(1)$ with respect to $N$.
+Thus, we can always find a $Q_0$ such that
+\[R-S = \begin{bmatrix}
+-A_0^\transp P - P A_0^\transp - Q_0 - S_0 & -P|D|\\
+-|D|^\transp P & \rho I_r\\
+\end{bmatrix} > 0 \]
+
+We recover \eqref{eq:lyap-bound} with $\mu = \frac{\lambda_{\min}(Q)}{\lambda_{\max}(P)} = \frac{\lambda_{\min}(Q_0) - \alpha_N}{\lambda_{\max}(P)}$.
+Finally, we obtain
+\begin{align*}
+\|e(t)\|_2^2 &\leq \lambda_{\min}(P)^{-1} V(t)\\
+& \leq \frac{\rho\lambda_{\max}(P)/\lambda_{\min}(P)}{\lambda_{\min}(Q_0) - \alpha_N} C_\omega(t)\\
+\end{align*}
+Developing at the first order in $\alpha_N$ gives
+\begin{align*}
+\|e(t)\|_2 &\leq C_0\left(1 + \frac{\alpha_N}{2\lambda_{\min}(Q_0)} + \cO(\alpha_N^2)\right)C_\omega(t)\\
+&\leq \left(C_0 + \cO(\log N/N)\right)C_\omega(t)
+\end{align*}
 \end{proof}
 
 
 Finally, we propagate the state prediction error bound to the pessimistic rewards and surrogate objective to get our final result.
 \begin{proof}
   
- For any sequence of controls $\bu$, dynamics $A(\theta)\in C_{[N],\delta}$ and perturbations $\underline{\bw} \leq \bw \leq \overline{\bw}$, we clearly have 
- \[V(\bu)^r \leq V(\bu) = \expectedvalue_{\bw}\sum_n \gamma^n R(x_n)\]
+ For any sequence of controls $\bu$, dynamics $A(\theta)\in C_{[N],\delta}$ and perturbations $\underline{\bom} \leq \bom \leq \overline{\bom}$, we clearly have 
+ \[V(\bu)^r \leq V(\bu) = \expectedvalue_{\bom}\sum_n \gamma^n R(x_n)\]
  
  Moreover, by the inclusion property \eqref{eq:inclusion-property}, we have that $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \leq \max_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x)$. Assuming $R$ is $L$-lipschitz,
- \begin{align}
+ \begin{align*}
      V(\bu) - \hat{V}^r(\bu) &\leq \sum_{n=N+1}^\infty \gamma^n \underset{{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}}{(\max - \min)} R(x)\\
      &\leq \sum_{n=N+1}^\infty \gamma^n L \left\|\underline{x}_n(\bu) - \overline{x}_n(\bu)\right\|_2\\
-     &\leq L\sum_{n>N} \gamma^n C_{\omega,n} + \cO\left(\sqrt{\log N / N}\right))
- \end{align}
+     &\leq L(C_0 + \cO\left({\log N / N}\right)) \sum_{n>N} \gamma^n C_{\omega}(t_n)\\
+     &= \Delta_\omega + \cO\left({\log N / N}\right)
+ \end{align*}
+ with $\Delta_\omega = L C_0\sum_{n>N} \gamma^n C_{\omega}(t_n)$.
 \end{proof}
 
 
