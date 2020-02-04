@@ -123,10 +123,16 @@ We also have access to the observation of $x(t)$ and to a noisy measurement of $
 \paragraph{Model estimation}
 
 
-\begin{figure}
+\begin{figure}[t]
 	\centering
-	\includegraphics[width=\linewidth]{img/epc-friction}
-	\caption{\textbf{Left}: the state prediction procedure. \textbf{Right}: the model estimation procedure.}
+	\includegraphics[width=0.6\linewidth]{img/ellipsoid}
+	\caption{The model estimation procedure. The size of the confidence region $C_{[N],\delta}$ shrinks with the number of samples $N$.}
+\end{figure}
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.8\linewidth]{img/obstacle_small}
+	\caption{The state prediction procedure. At each timestep (red to green), we bound the set of reachable states considering model uncertainty \eqref{eq:confidence}}
 	\label{fig:estimation-prediction}
 \end{figure}
 
@@ -567,15 +573,15 @@ The reward is non-smooth and encodes the task of reaching a goal position $x_g$ 
 	\begin{tabular}{lccc}
 		\toprule
 		\multirow{2}{*}{Agent} &
-		\multicolumn{2}{c}{Return} &
-		\multirow{2}{*}{Failures} \\
-		\cmidrule{2-3} & min &
-		mean $\pm$ std & \\
+		\multirow{2}{*}{Failures} &
+		\multicolumn{2}{c}{Return} \\
+		\cmidrule{3-4} & & min &
+		mean $\pm$ std \\
 		\midrule
-		Oracle & {11.6} & {$14.2 \pm 1.3$} & 0\% \\
+		Oracle & 0\% & {11.6} & {$14.2 \pm 1.3$} \\
 		\midrule
-		{Nominal} & {2.8} & \textbf{$\mathbf{13.8} \pm 2.0$} & {4\%} \\
-		Robust (ours) & \textbf{10.4} & {$13.0 \pm 1.5$} & \textbf{0\%} \\
+		{Nominal} & {4\%} & {2.8} & \textbf{$\mathbf{13.8} \pm 2.0$} \\
+		Robust (ours) & \textbf{0\%} & \textbf{10.4} & {$13.0 \pm 1.5$} \\
 		\bottomrule
 	\end{tabular}
 \end{table}
