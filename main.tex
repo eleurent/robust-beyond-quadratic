@@ -451,11 +451,11 @@ where $\kappa$ is a problem-dependent measure of the proportion of near-optimal 
 Hence, by using enough computational budget $K$ for planning we can get as close as we want to the optimal surrogate value $\hat{V}^r(\bu^*)$, at a polynomial rate. However, there exists a gap between $\hat{V}^r$ and the true robust objective $V^r$, which stems from three approximations: (i) the true reachable set was approximated by an enclosing interval in \eqref{eq:inclusion-property}; (ii) the time-invariance of the dynamics uncertainty $A(\theta)\in\cC_{[N],\delta}$ was handled by the interval predictor \eqref{eq:interval-predictor} as if it were a time-varying uncertainty $\forall t, A(\theta(t))\in\cC_{[N],\delta}$ ; and (iii) the lower-bound $\sum\min\leq \min\sum$ used to define the surrogate objective \eqref{eq:surrogate_objective} is not tight.
 
 However, under an additional smoothness assumption on $R$, we can bound this gap:
-\begin{theorem}
+\begin{theorem}[Approximation gap]
 \label{thm:control-error}
-If the reward function $R$ is lipschitz, then the approximation error of \autoref{alg:full} is upper-bounded by:
+If the reward function $R$ is lipschitz, then we can bound the approximation error of \autoref{alg:full}:
 \begin{equation*}
-     V^r(\bu) - \hat{V}^r(\bu) = \cO\left(\frac{1}{\sqrt{N}}\right)
+\hat{V}^r(\bu) \leq {V}^r(\bu) \leq V(\bu) \leq \hat{V}^r(\bu) + \cO\left(\frac{1}{\sqrt{N}}\right)
 \end{equation*}
 \end{theorem}
 
@@ -758,7 +758,7 @@ Under sufficient excitations in the features
 \exists \underline{\phi},\overline{\phi}>0, n_0: \forall n\geq n_0,i,j\in[p],\nonumber\\ \underline{\phi}^2 \leq \sum_k \sum_l \phi_{n,k,i}\Sigma_{p,k,l}^{-1}\phi_{n,l,j} \leq \overline{\phi}^2,
 \end{align}
 then,
-\[\|\theta - \theta_{[N],\lambda}\|_{2} = \cO\left( \sqrt{\frac{\log N}{N}} \right) \]
+\[\|A(\theta) - A(\theta_{[N],\lambda})\|_2 = \cO\left( \sqrt{\frac{\log N}{N}} \right) \]
 \end{lemma}
 \begin{proof}
 By \eqref{eq:g_n_lambda} and \eqref{eq:excitation}, we have $G_{[N],\lambda,i,j} \geq N\underline{\phi}^2 $
@@ -774,25 +774,40 @@ and \eqref{eq:beta_n} gives
 + (\lambda d)^{1/2}S\\
 &\leq \sqrt{d\log (N\overline{\phi}^2) / \lambda^{d/2}} + \cO(1)
 \end{align*}
+Thus,
+\[\|\theta - \theta_{[N],\lambda}\|_{2} = \cO\left( \sqrt{\frac{\log N}{N}} \right) \]
 
-which yields the desired bound.
+And $A(\theta)$ belongs to a linear image of this ball. By writing a the $j^{th}$ column of a matrix $M$ as $M_j$, and its coefficient $i,j$ as $M_{i,j}$,
+\begin{align*}
+((A(\theta)&-A(\theta_{[N],\lambda}))^\transp (A(\theta) - A(\theta_{[N],\lambda})))_{i,j}\\
+%&= (\phi_i(\theta-\theta_{[N],\lambda}))^\transp \phi_j(\theta-\theta_{[N],\lambda}) \\
+&= (\theta-\theta_{[N],\lambda})^\transp\phi_{i}^{\transp}\phi_j(\theta-\theta_{[N],\lambda}) \\
+&\leq \lambda_{\max}(\phi_{i}^{\transp}\phi_j) \|\theta - \theta_{[N],\lambda}\|_{2} = \cO\left( \sqrt{\frac{\log N}{N}} \right) 
+\end{align*}
+
 \end{proof}
 
 Then, we propagate this estimation error through the state prediction.
 
 \begin{lemma}
-	\todo{Which result?}
+
+\[\|\ox(t) - \ux(t)\| \leq C_\omega(t) +\cO\left( \sqrt{\frac{\log N}{N}} \right) \]
+where $C_\omega(t)$ is the interval size $\|\ox(t) - \ux(t)\|$ obtained by running \eqref{eq:interval-predictor} with $\Delta A=0$.
+
 \end{lemma}
 \begin{proof}
-Let $\delta x = \ox - \ux$. Assuming that eventually after $n\geq n_0$ $A_0$ becomes close enough to $A(\theta)$ to always be Metlzer. Then, \eqref{eq:interval-predictor} gives the dynamics:
+Let $e = \ox - \ux$. Assuming that eventually after $n\geq N \geq N_0$, $A_0 = A(\theta_{[N],\lambda})$ becomes close enough to $A(\theta)$ to always be Metlzer. Then, \eqref{eq:interval-predictor} gives the dynamics:
 \begin{align*}
-\dot{\delta x} = A_0\delta x + |\Delta A|(\ox^+ + \ux^-) + |D|(\overline{\omega} - \underline{\omega})
+\dot{e} = A_0e + |\Delta A|(\ox^+ + \ux^-) + |D|(\overline{\omega} - \underline{\omega})
 \end{align*}
 where $|M| = M^+ + M^-$.
 
-Moreover, it holds that $-\ux^+ -\ox^- \leq \delta x \leq \ox^+ + \ux^-$, which implies $|\ux^+ + \ox^-| \leq 2 |\delta x|$.
+Moreover, it holds that $-\ux^+ -\ox^- \leq e \leq \ox^+ + \ux^-$, which implies $|\ux^+ + \ox^-| \leq 2 |e|$.
 
-We define $V = \delta x^\transp P \delta x$, and compute its derivative:
+We define $V = e^\transp P e$, which is non-negative definite provided that
+$
+P>0,
+$ and compute its derivative:
 \begin{align*}
 \dot{V} ={}& X^\transp
 \begin{bmatrix}
@@ -801,33 +816,40 @@ A_0^\transp P + P A_0^\transp + Q & P|\Delta A| & P|D|\\
 D^\transp|P| & 0 & -\rho I_p
 \end{bmatrix}
 X\\
-& - \delta x^\transp Q \delta x + \alpha |\ux^+ + \ox^-|^2 + \rho |\overline{\omega} - \underline{\omega}|^2
+& - e^\transp Q e + \alpha |\ux^+ + \ox^-|^2 + \rho |\overline{\omega} - \underline{\omega}|^2
 \end{align*}
 with $X=\begin{bmatrix}
-\delta x\\ \ux^+ + \ox^- \\ \overline{\omega} - \underline{\omega}
+e\\ \ux^+ + \ox^- \\ \overline{\omega} - \underline{\omega}
 \end{bmatrix}$. Hence, 
 \begin{align*}
 \dot{V} \leq {}& X^\transp
-\begin{bmatrix}
+\underbrace{\begin{bmatrix}
 A_0^\transp P + P A_0^\transp + Q + 2\alpha^2 I_p & P|\Delta A| & P|D|\\
 |\Delta A|^\transp P & -\alpha I_n & 0\\
 D^\transp|P| & 0 & -\rho I_p
-\end{bmatrix}
+\end{bmatrix}}_{\Upsilon}
 X\\
-& - \delta x^\transp Q \delta x + \rho |\overline{\omega} - \underline{\omega}|^2
+& - e^\transp Q e + \rho |\overline{\omega} - \underline{\omega}|^2
 \end{align*}
 
+Thus, if $\Upsilon < 0$, $Q>0$, $\rho > 0$, $V$ is bounded and can only increases from $V(e(t_N)) = 0$ to a $V(e)$ such that:
+\[
+e^\transp Q e = X^\transp \Upsilon X + \rho |\overline{\omega} - \underline{\omega}|^2
+\]
 \end{proof}
+
 
 Finally, we propagate the state prediction error bound to the pessimistic rewards and surrogate objective to get our final result.
 \begin{proof}
- By the inclusion property \eqref{eq:inclusion-property}, for any sequence of controls $\bu$, dynamics $A(\theta)\in C_{[N],\delta}$ and perturbations $\underline{\bw} \leq \bw \leq \overline{\bw}$, we have that $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \leq \max_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x)$.
+  
+ For any sequence of controls $\bu$, dynamics $A(\theta)\in C_{[N],\delta}$ and perturbations $\underline{\bw} \leq \bw \leq \overline{\bw}$, we clearly have 
+ \[V(\bu)^r \leq V(\bu) = \expectedvalue_{\bw}\sum_n \gamma^n R(x_n)\]
  
- Thus, assuming $R$ is $L$-lipschitz,
+ Moreover, by the inclusion property \eqref{eq:inclusion-property}, we have that $\underline{x}_n \leq x_n \leq \overline{x}_n$, which implies that $R(x_n) \leq \max_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x)$. Assuming $R$ is $L$-lipschitz,
  \begin{align}
-     V^r(\bu) - \hat{V}^r(\bu) &\leq \sum_{n=N+1}^\infty \gamma^n \underset{{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}}{(\max - \min)} R(x)\\
-     &\leq \sum_{n=N+1}^\infty \gamma^n L \left\|\underline{x}_n(\bu) - \overline{x}_n(\bu)\right\|\\
-     &\leq L/(1-\gamma) \cO\left(\sqrt{\log N / N}\right)
+     V(\bu) - \hat{V}^r(\bu) &\leq \sum_{n=N+1}^\infty \gamma^n \underset{{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}}{(\max - \min)} R(x)\\
+     &\leq \sum_{n=N+1}^\infty \gamma^n L \left\|\underline{x}_n(\bu) - \overline{x}_n(\bu)\right\|_2\\
+     &\leq L\sum_{n>N} \gamma^n C_{\omega,n} + \cO\left(\sqrt{\log N / N}\right))
  \end{align}
 \end{proof}
 
