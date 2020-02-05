@@ -96,12 +96,12 @@ We develop a framework for the adaptive model predictive control of a linear sys
 
 \section{Introduction}
 
-Despite the recent successes of Reinforcement learning in cracking many hard problems, this tool has hardly been applied in real industrial issues. This could be attributed to two undesirable properties which limit its practical applications: the dependence on a tremendous amount of interaction data that cannot always be simulated, and the reliance on trial-and-error and random exploration. In this paper, we consider the problem of controlling an unknown linear system $x(t)$ so as to maximise an \emph{arbitrary} bounded reward function $R$, in a critical setting where mistakes are costly and must be avoided at all time. 
-This choice of rich reward space is crucial to have sufficient flexibility to model non-convex and non-smooth functions that naturally arise in many practical problems such as combinatorial optimisation, obstacle avoidance, etc., while quadratic costs are only suited for the tracking of a reference trajectory known a priori.
+Despite the recent successes of Reinforcement Learning in cracking many hard problems \citep[e.g.][]{mnih2015humanlevel,Silver1140}, this tool has hardly been applied in real industrial issues. This could be attributed to two undesirable properties which limit its practical applications. First, it depends on a tremendous amount of interaction data that cannot always be simulated. This issue is alleviated by model-based methods -- which we consider in this work -- that benefit from better sample efficiencies by exploiting a richer data stream than their model-free counterparts. Second, it relies on trial-and-error and random exploration. In this paper, we consider the problem of controlling an unknown linear system $x(t)$ so as to maximise an \emph{arbitrary} bounded reward function $R$, in a critical setting where mistakes are costly and must be avoided at all time. 
+This choice of rich reward space is crucial to have sufficient flexibility to model non-convex and non-smooth functions that naturally arise in many practical problems involving combinatorial optimisation, branching decisions, etc., while quadratic costs are mostly suited for the tracking of a reference trajectory already known a priori.
 
-Since experiencing failures is out of question, the only way to prevent them from the outset, when the system is first deployed, is to rely on some sort of prior knowledge. In this work, we assume that the system dynamics are partially known, in the form of a parametrized dynamical system with unknown parameters. We argue that this assumption is realistic given that most industrial applications to date have been relying on physical models to describe their processes and engineered controllers to operate them, rather than machine learning. Our framework relaxes this modelling effort by allowing some structured uncertainty around the nominal model. We adopt a data-driven scheme where we wish to estimate the parameters more accurately as we interact with the true system. Most model-based reinforcement learning algorithms only rely on the estimated dynamics to derive the corresponding optimal controller, but these methods often suffer from \emph{model bias}: they ignore the error that exists between the learned and true dynamics, which can dramatically degrade the control performances \citep{Schneider1997}. In particular, the framework of maximising an objective under constraints naturally pushes systems to operate in the vicinity of constraint saturation, which makes it more prone to failure when the model is imperfect.
+Since experiencing failures is out of question, the only way to prevent them from the outset, when the system is first deployed, is to rely on some sort of prior knowledge. In this work, we assume that the system dynamics are partially known, in the form of a parametrized dynamical system with unknown parameters. We argue that this assumption is realistic given that most industrial applications to date have been relying on physical models to describe their processes and well-engineered controllers to operate them, rather than machine learning. Our framework relaxes this modelling effort by allowing some structured uncertainty around the nominal model. We adopt a data-driven scheme where we wish to estimate the parameters more accurately as we interact with the true system. Most model-based reinforcement learning algorithms only rely on the estimated dynamics to derive the corresponding optimal controller, but these methods often suffer from \emph{model bias}: they ignore the error that exists between the learned and true dynamics, which can dramatically degrade the control performances \citep{Schneider1997}. This is all the more relevant when maximising an objective under constraints --or penalties-- which naturally pushes the systems to operate in the vicinity of constraint saturation and makes it prone to failures.
 
-To address this issue, we turn to the framework of \emph{robust} decision-making: instead of merely considering a point estimate of the dynamics, we build an entire \emph{confidence region} that contains the true dynamics with high probability, and optimise the decisions so as to maximise the worst-case outcome with respect to this uncertainty. Minimax problem are hard to solve, and all the more in our setting where the reward function $R$ is generic. In particular, this excludes a number of tools from the robust synthesis literature, such as $\cH_\infty$ \todo{(ref needed)} control or system-level synthesis \todo{(ref needed)}. We turn instead to more general planning algorithms. The continuous state space prevents us from using dynamic programming techniques, so we consider tree-based planning instead. Though some work address continuous actions \todo{ref needed}, we resort to a first approximation and discretise the decision space by adopting a hierarchical control architecture. We  formulate the problem high-level decision of selecting a low-level controller among a finite basis \todo{(ref from temporal abstraction)}. For instance, this could amount to choosing a short-term goal to follow, or a skill to execute such as a driving maneuver. The passage from continuous to discrete optimization induces a suboptimality, but it can be mitigated by diversifying the controller basis. However, tree-based planning algorithms are only designed for a single known generative model instead of an entire confidence region for the system dynamics. Hence, we adapt them to the robust framework by following a two-steps procedure: we first predict a set of states that can be reached under a planned control sequence with respect to all possible dynamics. This reachability set is used to provide a conservative pessimistic reward to the planning algorithm. The next section aims to clarify and formalize these ideas.
+To address this issue, we turn to the framework of \emph{robust} decision-making: instead of merely considering a point estimate of the dynamics, we build an entire \emph{confidence region} that contains the true dynamics with high probability, and optimise the decisions so as to maximise the worst-case outcome with respect to this uncertainty. Minimax problem are hard to solve, and all the more in our setting where the reward function $R$ is generic. In particular, this excludes a number of tools from the robust synthesis literature, such as $\cH_\infty$ \citep[see, e.g.][]{Basar1996} control or system-level synthesis \citep{Dean2017,Dean2018}. We turn instead to more general planning algorithms. The continuous state space prevents us from using dynamic programming techniques, so we consider tree-based planning instead. Though there exist work addressing continuous actions \citep{Busoniu2018,Weinstein2012}, we resort to a first approximation and discretise the decision space by adopting a hierarchical control architecture. At each time, the agent can select low-level controller to execute among a finite basis, e.g. choose a short-term goal to reach or a skill to execute such as a driving maneuver. The discretisation induces a suboptimality, but it can be mitigated by diversifying the controller basis. Tree-based planning algorithms are relevant in this context of discrete action, but are only designed for a single known generative model instead of an entire confidence region for the system dynamics. Hence, we adapt them to the robust framework by following a two-steps procedure: we first predict a set of states that can be reached under a planned control sequence with respect to all possible dynamics. This reachability set is used to provide a conservative pessimistic reward to the planning algorithm. The next subsection aims to clarify and formalize these ideas, and state our contributions.
 
 
 \subsection{Problem Statement and Our Contributions}
@@ -112,14 +112,13 @@ The dynamics of the real system are described in continuous time. However, all t
 
 \paragraph{Structured dynamics}
 We consider a linear system with state $x\in\Real^p$, acted on by controls $u\in\Real^q$ and perturbations $\omega\in\Real^r$, and following a dynamics in the form:
-
 \begin{equation}
 \label{eq:dynamics}
 \dot{x}(t)=A(\theta)x(t) + B u(t) + D \omega(t),\;t\geq0.
 \end{equation}
 The dynamics $A(\theta)\in\Real^{p\times p}$  depends on some parameter $\theta$ that belongs to a compact set $\Theta \subset \Real^d$. The control matrix $B\in\Real^{p\times q}$ and disturbance matrix $D\in\Real^{p\times r}$ are known.
 
-We also have access to the observation of $x(t)$ and to a noisy measurement of $\dot{x}(t)$ in the form $\dot{x}(t) + C\nu(t)$, where $\nu(t)\in\Real^s$ is a measurement noise and $C\in\Real^{p\times s}$ is known. Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further, and we denote $\eta(t) = C\nu(t) + D\omega(t)$.
+We also have access to the observation of $x(t)$ and to a noisy measurement of $\dot{x}(t)$ in the form $y(t)=\dot{x}(t) + C\nu(t)$, where $\nu(t)\in\Real^s$ is a measurement noise and $C\in\Real^{p\times s}$ is known. Assumptions over the disturbance $\omega$ and noise $\nu$ will be detailed further, and we denote $\eta(t) = C\nu(t) + D\omega(t)$.
 
 \paragraph{Model estimation}
 
@@ -143,7 +142,7 @@ In \autoref{sec:estimation}, having observed history of transitions $\cD_{[N]} =
 \probability{A(\theta)\in \cC_{[N],\delta}} \geq 1-\delta
 \label{eq:confidence}
 \end{align}
-Our first contribution is to extend the work of \citet{Abbasi2011} that provide a confidence ellipsoid for the regularised least-square estimator to our setting of vector observations and matrix features, instead of scalar observations and vector features.
+Such regions are illustrated in \autoref{fig:estimation}. Our first contribution extends the work of \citet{Abbasi2011} who provide a confidence ellipsoid for the regularised least-square estimator to our setting of feature matrices, rather than feature vectors.
 
 \paragraph{Robust objective}
 
@@ -156,71 +155,56 @@ The rest of the paper tackles the optimisation of \eqref{eq:robust-control}.
 
 \paragraph{State prediction}
 
-Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to solve even in cases such as linear-quadratic systems (LQ) where the reward $R$ has a simple form. Here with an arbitrary function $R$, we cannot hope to derive a solution in explicit form. Our second contribution is to propose to solve \eqref{eq:robust-control} numerically by adopting a \emph{predict-then-optimise} scheme. Thus, in \autoref{sec:prediction}, we aim to derive a \emph{set predictor} $X(t)$ for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}_N$, a confidence region $\cC_\delta$ verifying \eqref{eq:confidence}, a planned control sequence $\bu$ and some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$; and produces predictions of sets $X(t)$ that verify the inclusion property:
+Maximin problems such as \eqref{eq:robust-control} are notoriously difficult to solve even in cases such as linear-quadratic systems (LQ) where the reward $R$ has a simple form. With arbitrary functions $R$, we cannot hope to derive a solution in explicit form. Our second contribution is to propose to solve \eqref{eq:robust-control} numerically by adopting a \emph{predict-then-optimise} scheme. In \autoref{sec:prediction}, we aim to derive a \emph{set predictor} $X(t)$ for the system \eqref{eq:dynamics}, illustrated in \autoref{fig:prediction}. This predictor takes the information on the observed current state ${x}_N$, a confidence region $\cC_\delta$ verifying \eqref{eq:confidence}, a planned control sequence $\bu$ and some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$; and outputs a set $X(t)$ that must verify the inclusion property:
 \begin{equation}
 \label{eq:inclusion-generic}
  x(t)\in X(t),\quad\forall t\geq t_N.
 \end{equation}
 
-This property is illustrated in \autoref{fig:estimation-prediction}. We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
+We leverage recent results from the uncertain system simulation literature to efficiently compute such a predictor.
 
 \paragraph{Robust planning}
 
 Since $R$ is generic, potentially non-smooth and non-convex, solving the optimal -- not to mention the robust -- control objective in the original continuous control space $(\Real^q)^\Natural$ is intractable.
-In this work, we choose to approximate the solution by turning the continuous optimisation problem \eqref{eq:robust-control} into a discrete one, by optimising over a finite set of \emph{actions} $\cA$. Each action $a\in\cA$ corresponds to the selection of a low-level controller $\pi_a$, that we take affine:
-\[u(t) = \pi_a(x(t)) \eqdef -K_a x(t) + u_a\]
+In this work, we choose to approximate the solution by turning the continuous optimisation problem \eqref{eq:robust-control} into a discrete one and optimising over a finite set of \emph{actions} $\cA$. Each action $a\in\cA$ corresponds to the selection of a low-level controller $\pi_a$, that we take affine:
+\[u(t) = \pi_a(x(t)) \eqdef -K_a x(t) + u_a.\]
+For instance, a controller tracking a relevant subgoal $x_g$ can be encoded as $\pi_g = K(x_g - x)$.
 
-The robust objective we consider becomes 
+The robust objective \eqref{eq:robust-control} becomes 
 \begin{equation}
 \label{eq:robust-control-disc}
-\sup_{\ba\in{\cA}^\Natural} \underbrace{\inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bom\in[\underline{\bom},\overline{\bom}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\ba,\bom))\right]}_{V^r(\ba)}
+\sup_{\ba\in{\cA}^\Natural} \underbrace{\inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bom\in[\underline{\bom},\overline{\bom}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\ba,\bom))\right]}_{V^r(\ba)},
 \end{equation}
 where $x_n(\ba, \bom)$ is obtained by integrating \eqref{eq:dynamics} with $u_n = \pi_{a_n}(x_n)$.
 
-In \autoref{sec:control}, facing an optimisation problem with continuous states and discrete actions, we turn to the literature of tree-based planning. Our third contribution proposes to approximate the true robust objective ${V}^r$ by an easily-evaluable surrogate $\hat{V}^r$ that exploits the set predictor to define a pessimistic reward, used to evaluate sequences of actions in a tree-based planning algorithm.
+In \autoref{sec:control}, facing an optimisation problem with continuous states and discrete actions, we turn to the literature of tree-based planning. Our third contribution proposes to approximate the true robust objective ${V}^r$ by an easily-evaluable surrogate $\hat{V}^r$ that exploits the set predictor \eqref{eq:inclusion-generic} to define a pessimistic reward, used to evaluate sequences of actions in a tree-based planning algorithm.
 
 The \autoref{alg:full} shows the full integration of the three procedures of estimation, prediction and control.
 
-\paragraph{Model selection} In \autoref{sec:multi-model}, we question our modelling assumption and relax them to a more flexible setting. 
+\paragraph{Model selection} In \autoref{sec:multi-model}, our forth contribution extends our framework to consider multiple modelling assumptions, while ensuring tight uncertainty estimation through data-driven model rejection, and safety via robust model-selection during planning.
 
-\paragraph{Experiments} We illustrate the \autoref{alg:full} in a simple 2D example, before moving to a more realistic simulation of an autonomous driving application.
-
-% \begin{algorithm}[tb]
-%   \caption{Robust Estimation, Prediction and Control (v1)}
-%   \label{alg:full}
-% \begin{algorithmic}
-%   \STATE {\bfseries Input:} confidence level $\delta$
-%   \FOR{$N = 1,2,3,\dots$} 
-%   \STATE Compute the dynamics confidence region $\cC_{[N],\delta}$ with \textsc{Model Estimation} \eqref{eq:generic-polytope} on $\cD_{[N]}$.
-%   \FOR{planning steps $k\in[K]$}
-%   \STATE Get the tree node $\bu_k$ to expand with \textsc{Pessimistic Planning}  \eqref{eq:opd} using $\underline{R_n}$ over $[\underline{x}_{n}, \overline{x}_{n}]$. \COMMENT{Selection}
-%   \STATE For each action, simulate the child transition $[\underline{x}_{n+1}, \overline{x}_{n+1}]$ with \textsc{Interval Prediction} \eqref{eq:interval-predictor} using $\cC_{[N],\delta}$. \COMMENT{Expansion}
-%   \ENDFOR
-%   \STATE Execute the first recommended control $u_N$, and add the observed transition $(x_N, u_N, \dot{x}_N)$ to $\cD_{[N+1]}$.
-%   \ENDFOR
-% \end{algorithmic}
-% \end{algorithm}
+\paragraph{Experiments} Finally, our last contribution is to demonstrate the benefits of our proposed \autoref{alg:full} in two numerical experiments, a simple illustrative example and a more challenging simulation for an autonomous driving application.
 
 \begin{algorithm}[tb]
 	\caption{Robust Estimation, Prediction and Control}
 	\label{alg:full}
 	\begin{algorithmic}
-		\STATE {\bfseries Input:} confidence level $\delta$
-		\FOR{$N = 1,2,3,\dots$} 
+		\STATE {\bfseries Input:} confidence level $\delta$, structure $A,\phi$, reward $R$
+		\STATE $\cD_{[0]}\gets\emptyset,\, \ba_1\gets\emptyset$
+		\FOR{$N = 0,1,2,\dots$} 
 		\STATE $\cC_{[N],\delta} \gets$\textsc{Model Estimation}$(\cD_{[N]})$. \eqref{eq:polytope}
 		\FOR{planning steps $k\in[K]$}
 		\FOR{$b\in A$}
 		\STATE $[\underline{x}_{n+1}, \overline{x}_{n+1}]\gets$ \textsc{Interval Prediction}(
-		\STATE $\qquad\qquad\qquad\qquad\cC_{[N],\delta}, a_kb$). \eqref{eq:interval-predictor}
+		\STATE $\qquad\qquad\qquad\qquad\cC_{[N],\delta}, \ba_kb$). \eqref{eq:interval-predictor}
 		\ENDFOR
-		\STATE $a_{k+1}$ $\gets$\textsc{Pessimistic Planning}$($
+		\STATE $\ba_{k+1}$ $\gets$\textsc{Pessimistic Planning}$($
 		\STATE$\qquad\qquad\underline{R_{n+1}}([\underline{x}_{n+1}, \overline{x}_{n+1}]))$.  \eqref{eq:opd}
 		\ENDFOR
 		\STATE Execute the first recommended control $u_N$, and add the observed transition $(x_N, y_N)$ to $\cD_{[N+1]}$.
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
-
 
 \subsection{Related Work}
 
@@ -238,25 +222,24 @@ Robust optimization has also been studied in the context of finite Markov Decisi
 To derive a confidence region for the dynamical parameters $\theta$, the functional relationship $A(\theta)$ must be specified.
 \begin{assumption}[Structure]
 \label{assumpt:structure}
-There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$:
+There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$,
 \begin{equation}
     A(\theta) = A + %\theta^\transp \phi \eqdef A + 
-    \sum_{i=1}^d \theta_i\phi_i
+    \sum_{i=1}^d \theta_i\phi_i,
 \end{equation}
 where $\phi_i\in\Real^{p\times p}$ for all $i\in[d]$. For all $n$, we denote $\Phi_n = [\phi_1 x_n \dots \phi_d x_n]\in\Real^{p\times d}$.
 
-We also assume to know an upper-bound $S$ over $\|\theta\|_\infty$.
+We also assume to know a bound $S$ such that $\theta\in[-S,S]^d$.
 \end{assumption}
 
-For readability, we denote the noisy measurement of $\dot{x}$ as:
+We abuse notations and include additional known terms in the measurement $y(t)$ as:
 \begin{equation}
 \label{eq:measurement}
-    y(t) = \dot{x}(t) + C\nu(t) - A x(t) - Bu(t)
+    y(t) = \dot{x}(t) + C\nu(t) - A x(t) - Bu(t).
 \end{equation}
-which is possible since the nominal dynamics $A$, the state $x(t)$ and the control $u(t)$ are known.
 Thus, we obtain the system
 \[
-y_n = \Phi_n\theta + \eta_n
+y_n = \Phi_n\theta + \eta_n.
 \]
 
 \paragraph{Regularised least square} We consider the weighted $L_2$-regularised regression problem with weights  $\Sigma_p\in\Real^{p\times p}$ and parameter $\lambda\in\Real^+_*$:
@@ -264,7 +247,7 @@ y_n = \Phi_n\theta + \eta_n
 
 \begin{equation}
     \label{eq:regression_min}
-    \min_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2
+    \min_{\theta\in\Real^d} \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2.
 \end{equation}
 
 
@@ -275,7 +258,7 @@ The solution can be obtained as:
 The solution to \eqref{eq:regression_min} is:
 \begin{equation}
     \label{eq:vector_rls}
-    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} y_n
+    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} y_n,
 \end{equation}
 where 
 \begin{equation}
@@ -286,7 +269,7 @@ where
 
 By simply substituting the expression of $y_n$ into \eqref{eq:vector_rls}, we obtain the regression error:
 \begin{align}
-    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta 
+    \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta.
 \end{align}
 
 
@@ -998,14 +981,12 @@ We now turn to the proof of the theorem.
 
 \begin{proof}
 	\citet{Hren2008} first show in Theorem 2 that the simple regret of their optimistic planner is bounded by $\frac{\gamma^{d_n}}{1 - \gamma}$ where $d_n$ is the depth of $\mathcal{T}_n$. This properties relies on the fact that the returned action belongs to the deepest explored branch, which we can show likewise by contradiction using Lemma \ref{lemma:uvb}. This yields directly that $a = i_0$ where $i$ is some node of maximal depth $d_n$ expanded at round $t\leq n$, which by selection rule verifies $B_a^r(t) = B_i^r(t) = \max_{x\in\mathcal{A}} B_x^r(t)$ and:
-	\begin{align}
+	\begin{align*}
 	\label{eq:Rndn}
-	V^r - V_a^r &= V_{a^{\star}}^r - V_a^r \\
-	&\leq B_{a^{\star}}^r(t) - V_a^r \\
-	&\leq B_{a}^r(t) - U_a^r(t) \\
+	V^r - V_a^r = V_{a^{\star}}^r - V_a^r  \leq B_{a^{\star}}^r(t) - V_a^r &\leq B_{a}^r(t) - U_a^r(t) \\
 	&= B_{i}^r(t) - U_i^r(t) \\
 	&= \frac{\gamma^{d_n}}{1-\gamma}.
-	\end{align}
+	\end{align*}
 	
 	Secondly, they bound the depth $d_n$ of $\mathcal{T}_n$ with respect to $n$. To that end, they show that the expanded nodes always belong to the sub-tree $\mathcal{T}_\infty$ of all the nodes of depth $d$ that are $\frac{\gamma^d}{1-\gamma}$-optimal. Indeed, if a node $i$ of depth $d$ is expanded at round $n$, then $B_i^r(n) \geq B_j^r(n)$ for all $j\in \mathcal{L}_n$ by selection rule, thus the max-backups of \eqref{eq:robust-b-values} up to the root yield $B^r_i(n) = B_\emptyset^r(n)$. Moreover, by Lemma \ref{lemma:uvb} we have that $B_\emptyset^r(n) \geq V_\emptyset^r = V^r$ and so $V_i^r \geq U_i^r(n) = B_i^r(n) - \frac{\gamma^d}{1-\gamma} \geq V^r - \frac{\gamma^d}{1-\gamma}$, thus $i \in \mathcal{T}_\infty$.
 	
@@ -1018,9 +999,9 @@ We now turn to the proof of the theorem.
 	
 	\begin{itemize}
 		\item If $\kappa > 1$, then $n \leq n_0 + c'\kappa^{d_0+1}\frac{\kappa^{d_n-d_0}-1}{\kappa-1}$ and thus $d_n \geq d_0 + \log_\kappa \frac{(n-n_0)(\kappa - 1)}{c'\kappa^{d_0+1}}$.
-		We conclude from \eqref{eq:Rndn} that $\mathcal{R}_n \leq \frac{\gamma^{d_n}}{1-\gamma} = \frac{1}{1-\gamma} \left( \frac{(n-n_0)(\kappa - 1)}{c'\kappa^{d_0+1}} \right)^\frac{\log \gamma}{\log \kappa} = O\left(n^{-\frac{\log 1/\gamma}{\log \kappa}}\right)$.
+		We conclude that $\mathcal{R}_n \leq \frac{\gamma^{d_n}}{1-\gamma} = \frac{1}{1-\gamma} \left( \frac{(n-n_0)(\kappa - 1)}{c'\kappa^{d_0+1}} \right)^\frac{\log \gamma}{\log \kappa} = O\left(n^{-\frac{\log 1/\gamma}{\log \kappa}}\right)$.
 		
-		\item If $\kappa = 1$, then $n \leq n_0 + c'(d_n-d_0)$, hence from \eqref{eq:Rndn} we have $\mathcal{R}_n = O\left(\gamma^{nc'}\right)$.
+		\item If $\kappa = 1$, then $n \leq n_0 + c'(d_n-d_0)$, hence we have $\mathcal{R}_n = O\left(\gamma^{nc'}\right)$.
 	\end{itemize}
 \end{proof}
 
