@@ -460,15 +460,15 @@ Hence, by using enough computational budget $K$ for planning we can get as close
 \label{thm:control-error}
 Under some assumptions specified in the proof, which amounts to
 \begin{enumerate}
-	\item the reward function $R$ is lipschitz;
-	\item a persistent excitation assumption;
+	\item a regularity (lipschitz) assumption for the reward $R$;
+	\item a persistent excitation (PE) assumption;
 	\item a stability condition in the form of an LMI;
 \end{enumerate}
  we can bound the approximation error of \autoref{alg:full}:
 \begin{equation*}
 \hat{V}^r(\bu) \leq {V}^r(\bu) \leq V(\bu) \leq \hat{V}^r(\bu) + \Delta_\omega + \cO\left({\log N / N}\right)
 \end{equation*}
-where $\Delta_\omega$ is a constant specified in the proof, which corresponds to an irreductible suboptimality suffered from being robust to the perturbations $\omega(t)$, with knowledge of $A(\theta)$. % $\max_a \sum_n \min_\omega$
+where $\Delta_\omega$ is a constant specified in the proof, which corresponds to an irreductible suboptimality suffered from being robust to instantaneous perturbations $\omega(t)$, with knowledge of $A(\theta)$. % $\max_a \sum_n \min_\omega$
 \end{theorem}
 
 
@@ -785,20 +785,20 @@ And since $\|\theta\|_{G_{N, \lambda}^{-1}}^2 \leq 1/\lambda_{\min}(G_{N,\lambda
 
 We first bound the model estimation error.
 \begin{lemma}
-Under sufficient excitations in the features 
+If the features $\Phi_n$ are persistently exciting:
 \begin{align}
 \label{eq:excitation}
-\exists \underline{\phi},\overline{\phi}>0, n_0: \forall n\geq n_0,\nonumber\\ \underline{\phi}^2 \leq \lambda(\Phi_{n}^\transp\Sigma_{p}^{-1}\Phi_{n}) \leq \overline{\phi}^2,
+\exists \underline{\phi},\overline{\phi}>0, n_0: \forall n\geq n_0,\nonumber\\ \underline{\phi}^2 \leq \lambda_{\min}(\Phi_{n}^\transp\Sigma_{p}^{-1}\Phi_{n}) \leq \overline{\phi}^2,
 \end{align}
 then,
 \[\|A(\theta) - A(\theta_{[N],\lambda})\|_2 = \cO\left( \sqrt{\frac{\log N}{N}} \right) \]
 \end{lemma}
 \begin{proof}
-By \eqref{eq:g_n_lambda} and \eqref{eq:excitation}, we have $\lambda_{\min}(G_{[N],\lambda,i,j}) \geq N\underline{\phi}^2 $
+By \eqref{eq:g_n_lambda} and \eqref{eq:excitation}, we have $$\lambda_{\min}(G_{[N],\lambda,i,j}) \geq (N-n_0)\underline{\phi}^2 + \sum_{n<n_0}\Phi_{n}^\transp\Sigma_{p}^{-1}\Phi_{n}$$
 
 Hence, by \eqref{eq:confidence-ellipsoid} we have 
 \begin{align*}
-	\|\theta - \theta_{[N],\lambda}\|_{G_{[N],\lambda}} \geq \sqrt{N}\underline{\phi} \|\theta - \theta_{[N],\lambda}\|_{2} 
+	\|\theta - \theta_{[N],\lambda}\|_{G_{[N],\lambda}} \geq (\sqrt{N}\underline{\phi} + \cO(1))\|\theta - \theta_{[N],\lambda}\|_{2}
 \end{align*}
 and \eqref{eq:beta_n} gives
 
@@ -810,7 +810,7 @@ and \eqref{eq:beta_n} gives
 Thus,
 \[\|\theta - \theta_{[N],\lambda}\|_{2} = \cO\left( \sqrt{\frac{\log N}{N}} \right) \]
 
-And $A(\theta)$ belongs to a linear image of this ball. By writing a the $j^{th}$ column of a matrix $M$ as $M_j$, and its coefficient $i,j$ as $M_{i,j}$,
+And $A(\theta)$ belongs to a linear image of this $L^2$-ball. By writing a the $j^{th}$ column of a matrix $M$ as $M_j$, and its coefficient $i,j$ as $M_{i,j}$,
 \begin{align*}
 ((A(\theta)&-A(\theta_{[N],\lambda}))^\transp (A(\theta) - A(\theta_{[N],\lambda})))_{i,j}\\
 %&= (\phi_i(\theta-\theta_{[N],\lambda}))^\transp \phi_j(\theta-\theta_{[N],\lambda}) \\
