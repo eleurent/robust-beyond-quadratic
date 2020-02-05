@@ -10,6 +10,7 @@
 \usepackage{mathtools}
 \usepackage{multirow}
 \usepackage{bm}
+\def\sectionautorefname{Section}
 \input{mathdef.tex}
 \newcommand{\todo}[1]{\textcolor{red}{#1}}
 
@@ -127,13 +128,14 @@ We also have access to the observation of $x(t)$ and to a noisy measurement of $
 	\centering
 	\includegraphics[trim={0 2cm 0 0}, clip, width=0.6\linewidth]{img/ellipsoid}
 	\caption{The model estimation procedure. The size of the confidence region $C_{[N],\delta}$ shrinks with the number of samples $N$.}
+	\label{fig:estimation}
 \end{figure}
 
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=0.8\linewidth]{img/obstacle_small}
 	\caption{The state prediction procedure. At each timestep (red to green), we bound the set of reachable states considering model uncertainty \eqref{eq:confidence}}
-	\label{fig:estimation-prediction}
+	\label{fig:prediction}
 \end{figure}
 
 In \autoref{sec:estimation}, having observed history of transitions $\cD_{[N]} = \{(x_n, y_n)\}_{n\in[N]}$, and given a confidence level $\delta\in(0, 1)$, our goal is to find a confidence region $\cC_{[N],\delta}$ as tight as possible and such that it holds that:
@@ -156,6 +158,7 @@ The rest of the paper tackles the optimisation of \eqref{eq:robust-control}.
 
 Minimax problems such as \eqref{eq:robust-control} are notoriously difficult to solve even in cases such as linear-quadratic systems (LQ) where the reward $R$ has a simple form. Here with an arbitrary function $R$, we cannot hope to derive a solution in explicit form. Our second contribution is to propose to solve \eqref{eq:robust-control} numerically by adopting a \emph{predict-then-optimise} scheme. Thus, in \autoref{sec:prediction}, we aim to derive a \emph{set predictor} $X(t)$ for the system \eqref{eq:dynamics}, which takes the information on the observed current state ${x}_N$, a confidence region $\cC_\delta$ verifying \eqref{eq:confidence}, a planned control sequence $\bu$ and some admissible bounds on the perturbation $[\underline{\omega}(t),\overline{\omega}(t)]$; and produces predictions of sets $X(t)$ that verify the inclusion property:
 \begin{equation}
+\label{eq:inclusion-generic}
  x(t)\in X(t),\quad\forall t\geq t_N.
 \end{equation}
 
@@ -323,7 +326,7 @@ At each time $t\geq0$ the noise $\eta(t)$ is an independent sub-Gaussian noise w
 For instance, this is the case when $\nu$ and $\omega$ are Gaussian noises with respective covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. Also note that \autoref{assumpt:bounded-noise} implies that $\eta$ is $\|\eta\|_\infty I_p$-sub-Gaussian, and is therefore a stronger assumption.
 \end{assumption}
 
-\begin{theorem}[Confidence ellipsoid, matrix version of \citealt{Abbasi2011}]
+\begin{theorem}[Confidence ellipsoid, a matricial version of \citealt{Abbasi2011}]
 \label{thm:confidence_ellipsoid}
 Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\delta$ that
 \begin{align}
@@ -353,7 +356,7 @@ Another strategy presented in Appendix \ref{sec:tight-polytope} produces a much 
 
 \label{sec:prediction}
 
-To study the inclusion property \eqref{eq:inclusion-property}, we must start by choosing a set representation $X(t)$. We consider interval prediction, rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Thus, we represent an interval as $X(t) = [\underline{x}(t), \overline{x}(t)]\in \Real^p\times \Real^p$, and the inclusion property becomes:
+To study the inclusion property \eqref{eq:inclusion-generic}, we must start by choosing a set representation $X(t)$. We consider interval prediction, rather than zonotope prediction for instance, for the sake of simplicity of implementation and computational efficiency. Thus, we represent an interval as $X(t) = [\underline{x}(t), \overline{x}(t)]\in \Real^p\times \Real^p$, and the inclusion property becomes:
 \begin{equation}
 \label{eq:inclusion-property}
 \underline{x}(t)\leq x(t)\leq\overline{x}(t),\quad\forall t\geq t_N.
@@ -408,7 +411,7 @@ The \autoref{fig:predictor_example} illustrates the differences of stability of 
 
 % Limitations: set-based method assumes time-varying uncertainty where we have time-invariant uncertainty: $A(\theta)$ is fixed vs $A(\theta)$ can vary in $\cC_\delta$ at each step. Consequence: conservative overset.
 
-\section{Control}
+\section{Robust Control}
 
 \label{sec:control}
 To evaluate the robust objective $V^r$ \eqref{eq:robust-control}, we approximate it thanks to the interval prediction $[\underline{x}(t), \overline{x}(t)]$ of \autoref{sec:prediction}.
@@ -421,7 +424,7 @@ To evaluate the robust objective $V^r$ \eqref{eq:robust-control}, we approximate
 where $\underline{x}_n(\bu), \overline{x}_n(\bu)$ follow the dynamics defined in \eqref{eq:interval-predictor}.
 \end{definition}
 
-This amounts to a change of reward function, except the worst case is assessed over the whole past trajectory being optimized, i.e. this pessimistic reward $\underline{R_n}$ is not \emph{markovian}.
+This amounts to a change of reward function, except the worst case is assessed over the whole past trajectory, which means that this pessimistic reward $\underline{R_n}$ is not \emph{markovian}.
 
 \begin{proposition}[Lower bound]
 \label{prop:lower-bound}
@@ -507,14 +510,10 @@ This objective could be optimised in the same way as in \autoref{sec:control}, b
 \begin{definition}[Robust sequence upper bounds] We replace the upper-bound \eqref{eq:opd} on sequence values in \texttt{OPD} by:
 \begin{equation}
 \label{eq:robust-b-values}
-B_a^r(k)  \eqdef
-\begin{cases}
-\min_{m\in[M]} \sum_{n=0}^{h-1} \gamma^n R_n^m  + \frac{\gamma^h}{1-\gamma} &\text{if } a \text{ is a leaf;}\\
-\max_{b\in\mathcal{A}} B_{ab}^r(k) & \text{else.}
-\end{cases}
+B_a^r(k)  \eqdef \min_{m\in[M]} \sum_{n=0}^{h-1} \gamma^n R_n^m  + \frac{\gamma^h}{1-\gamma}
 \end{equation}
 \end{definition}
-An illustration of the computation of the robust b-values is presented in Figure \ref{fig:drop}. We analyse the sample complexity of the corresponding robust planning algorithm.
+An illustration of the computation of the robust b-values is presented in Figure \ref{fig:drop}. Note that it is not equivalent to solving each control problem independently and following the action with highest mininimal value, as we illustrate in \autoref{sec:min-max-order}. We analyse the sample complexity of the corresponding robust planning algorithm.
 
 \begin{figure}
 \centering
@@ -533,7 +532,7 @@ Note that this theorem bounds the performance gap with respect to the number of 
 \section{Experiments}
 
 \paragraph{Obstacle avoidance with unknown friction}
-We first consider a simple illustrative example: the control of a 2D system with position $(p_x,p_y)$ and velocity $(v_x, v_y)$ moving by means of a force $(u_x, u_y)$ in an environment with unknown anisotropic friction. The dynamics are:
+We first consider a simple illustrative example, shown in \autoref{fig:prediction}: the control of a 2D system with position $(p_x,p_y)$ and velocity $(v_x, v_y)$ moving by means of a force $(u_x, u_y)$ in an environment with unknown anisotropic friction. The dynamics are:
 
 \begin{equation*}
 \begin{bmatrix}
@@ -563,28 +562,10 @@ We first consider a simple illustrative example: the control of a 2D system with
 \end{bmatrix}
 \end{equation*}
 
-The reward is non-smooth and encodes the task of reaching a goal state $x_g$ while avoiding collisions: $R(x) = \delta(x)/(1 + \|x - x_g\|_2)$  where $\delta(x)$ is $0$ whenever $x$ collides with an obstacle, $1$ otherwise.
+The reward is non-smooth and encodes the task of reaching a goal state $x_g$ while avoiding collisions: $R(x) = \delta(x)/(1 + \|x - x_g\|_2)$  where $\delta(x)$ is $0$ whenever $x$ collides with an obstacle, $1$ otherwise. The actions $\cA$ are constant controls in the up, down, left and right directions.
 
-\begin{table}[htbp]
-	\caption{Performances on the Obstacle task}
-	\label{tab:obstacle}
-	\centering
-	\begin{tabular}{lccc}
-		\toprule
-		\multirow{2}{*}{Agent} &
-		\multirow{2}{*}{Failures} &
-		\multicolumn{2}{c}{Return} \\
-		\cmidrule{3-4} & & min &
-		mean $\pm$ std \\
-		\midrule
-		Oracle & 0\% & {11.6} & {$14.2 \pm 1.3$} \\
-		\midrule
-		{Nominal} & {4\%} & {2.8} & \textbf{$\mathbf{13.8} \pm 2.0$} \\
-		Robust (ours) & \textbf{0\%} & \textbf{10.4} & {$13.0 \pm 1.5$} \\
-		\bottomrule
-	\end{tabular}
-\end{table}
- 
+We run \autoref{alg:full} for 100 simulations, and compare in \autoref{tab:obstacle} its performances to that of the nominal agent, i.e. the non-robust adaptive control approach that plans with the estimated dynamics $\theta_{[N],\lambda}$. We observe that though the robust agent performs worse than the nominal agent on average, it manages to ensure safety and attains a better worst-case performance. We also study the evolution of the simple regret $V(x_n) - J_n(x_n)$ with respect to the number of samples $N$, where $J_n(x_n) = \sum_{i > n} \gamma^i R_i$ is the empirical return at state $x_n$ in a trajectory $x_0, R_0, x_1, R_1, \dots$, while $V(x_n)$ is the optimal value that the agent would get by acting optimally from $x_n$ with knowledge of the dynamics. The mean regret is shown in \autoref{fig:regret}, along with its 95\% confidence interval. We see that \autoref{alg:full} has a regret $\hat{V}^r - V$ decreasing at least polynomially with $N$, as expected from \autoref{thm:control-error}. \todo{The nominal gets better on average}.
+
 \begin{figure}[tp]
 	\centering
 	\includegraphics[width=0.8\linewidth]{img/regret.pdf}
@@ -592,37 +573,52 @@ The reward is non-smooth and encodes the task of reaching a goal state $x_g$ whi
 	\label{fig:regret}
 \end{figure}
 
-We run \autoref{alg:full} for 100 simulations, and compare in \autoref{tab:obstacle} its performances to that of a nominal agent that plans with the estimated dynamics $\theta_{[N],\lambda}$. We also study the evolution of the simple regret $V(x_n) - J_n(x_n)$ with respect to the number of samples $N$, where $J_n(x_n) = \sum_{i > n} \gamma^i R_i$ is the empirical return at state $x_n$ in a trajectory $x_0, R_0, x_1, R_1, \dots$, while $V(x_n)$ is the optimal value that the agent would get by acting optimally from $x_n$ with knowledge of the dynamics. The \autoref{fig:regret} shows that $\hat{V}^r - V$ decreases with $N$, as expected from \autoref{thm:control-error}.
+\begin{table}[tbp]
+	\caption{Performances on the obstacle avoidance task}
+	\label{tab:obstacle}
+	\centering
+	\begin{tabular}{lccc}
+		\toprule
+		Agent &
+		failures &
+		min return &
+		mean return $\pm$ std  \\
+		\midrule
+		Oracle & 0\% & {11.6} & {$14.2 \pm 1.3$} \\
+		\midrule
+		{Nominal} & {4\%} & {2.8} & \textbf{$\mathbf{13.8} \pm 2.0$} \\
+		\autoref{alg:full} & \textbf{0\%} & \textbf{10.4} & {$13.0 \pm 1.5$} \\
+		\bottomrule
+	\end{tabular}
+\end{table}
 
 \paragraph{Behavioural planning for an autonomous vehicle}
-We consider the problem of safe decision-making for an autonomous vehicle. An autonomous vehicle with state $\chi_0\in\Real^4$ is driving on a highway populated with $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \chi_1,\dots,\chi_V]^\top\in\Real^{4V+4}$. In order to plan a sequence of high-level decisions, the autonomous agent relies on both a model of its own dynamics $\chi_0 = f_0(\chi_0,u)$, but also a parametrized dynamical model for each observed agent to predict their future trajectory: \[\dot{\chi}_i=f_i(x,\theta_i),\;i\in[V],\] where $f_i$ are described below, $\chi_i\in\Real^4$ is the state of an agent, $\theta_i\in\Real^5$ is the corresponding vector of unknown parameters. Already, we can appreciate a first advantage of the structure imposed in \autoref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional adaptive LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
-%This allows to scale to larger systems: in our experiments, we used a state space of dimension $44$ ($V=10$) where \citep{Dean2018,abeille18a} only reported numerical experiments with states of dimensions 3 and 4, respectively.
-
-This system dynamics $f$ describes the couplings and interactions between vehicles, so that the autonomous agent can properly anticipate their reactions. It can only be expressed in the form \eqref{eq:dynamics} given the knowledge of the desired routes of each vehicle, with the features $\phi$ expressing deviations of the vehicles trajectories with respect to the lane centerline being followed. Since these are unknown in practice, we adopt the multi-model perspective of \autoref{sec:multi-model} and consider one model per possible route allocation for every observed vehicle before an intersection.
+We consider the \href{https://github.com/eleurent/highway-env}{highway-env} environment \citep{highway-env}, a  simulator for autonomous driving decision problems. An autonomous vehicle with state $\chi_0\in\Real^4$ is approaching an intersection among $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \chi_1,\dots,\chi_V]^\top\in\Real^{4V+4}$. These other vehicles follow parametrized behaviours $\dot{\chi}_i=f_i(x,\theta_i)$ with unknown parameters $\theta_i\in\Real^5$. Here, we appreciate a first advantage of the structure imposed in \autoref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional adaptive LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
+%This allows to scale to larger systems: in our experiments, we used a state space of dimension $44$ ($V=10$) where e.g. \citep{Dean2018,abeille18a} reported numerical experiments with states of dimensions 3 and 4, respectively.
+This system dynamics $f$, which describes the couplings and interactions between vehicles, can only be expressed in the form of \autoref{assumpt:structure} given the knowledge of the desired routes of each vehicle. Then, the features $\phi$ express deviations of the vehicles trajectories to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \autoref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. Again, we compare \autoref{alg:full} to a nominal agent planning with the estimated parameter $\theta_{[N],\lambda}$, with two different modelling assumptions: we assume that Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error at the planning time. There performances are compared in \autoref{tab:driving}. Again, the robust approach is less efficient on average than planning with the nominal model, but it does better in terms of worst-case performance and manages to avoid collisions, contrary to the nominal baselines that suffer from model bias.
 
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\linewidth]{img/highway-small}
-	\caption{The intersection crossing task.}
+	\caption{The intersection crossing task. We show the trajectory intervals corresponding to behavioural uncertainty for each observed vehicle, and the multi-model assumption over the followed route.}
 \end{figure}
 
-\begin{table}[htbp]
-	\caption{Performances on the Driving task}
+\begin{table}[tbp]
+	\caption{Performances on the driving task}
 	\label{tab:driving}
 	\centering
 	\begin{tabular}{lccc}
 		\toprule
-		\multirow{2}{*}{Agent} &
-		\multirow{2}{*}{Failures} &
-		\multicolumn{2}{c}{Return} \\
-		\cmidrule{3-4} && min &
-		mean $\pm$ std  \\
+		Agent &
+		failures &
+        min return &
+		mean return $\pm$ std  \\
 		\midrule
 		Oracle & 0\% & {6.9} & $7.4 \pm 0.5$ \\
 		\midrule
-		{Nominal B} & 4\% & {5.2} & $\mathbf{7.3} \pm 1.5$ \\
-		{Nominal R} & 33\% & {3.5} & $6.4 \pm 0.26$ \\
-		Robust (ours) & \textbf{0\%} & \textbf{6.8} & $7.1 \pm 0.29$ \\
+		{Nominal 1} & 4\% & {5.2} & $\mathbf{7.3} \pm 1.5$ \\
+		{Nominal 2} & 33\% & {3.5} & $6.4 \pm 0.26$ \\
+		\autoref{alg:full} & \textbf{0\%} & \textbf{6.8} & $7.1 \pm 0.29$ \\
 		\bottomrule
 	\end{tabular}
 \end{table}
@@ -936,7 +932,17 @@ We start by showing the following lemma:
 
 
 \begin{lemma}[Robust values ordering]
-	In addition to the robust B-value defined in \eqref{eq:robust-b-values}, we also define the robust value of a sequence of actions $a$
+	In addition to the robust B-value defined in \eqref{eq:robust-b-values}, that we extend to inner nodes	
+	\begin{equation}
+	\label{eq:br}
+	B_a^r(k)  \eqdef
+	\begin{cases}
+	\min_{m\in[M]} \sum_{n=0}^{h-1} \gamma^n R_n^m  + \frac{\gamma^h}{1-\gamma}&\text{if } a \text{ is a leaf;}\\
+	\max_{b\in\mathcal{A}} B_{ab}^r(k) & \text{else.}
+	\end{cases},
+	\end{equation}
+	
+	we also define the robust value of a sequence of actions $a$
 	\begin{equation}
 	\label{eq:max_vr}
 	V_a^r \eqdef \max_{\bu \in a\mathcal{A^\infty}} \min_{m\in[1, M]} \sum_{n=h(a)+1}^\infty \gamma^n R^m_n
@@ -949,7 +955,7 @@ We start by showing the following lemma:
 	\min_{m\in[M]} \sum_{n=0}^{h-1} \gamma^n R_n^m &\text{if } a \text{ is a leaf;}\\
 	\max_{b\in\mathcal{A}} U_{ab}^r(n) & \text{else.}
 	\end{cases}
-	\end{equation}.
+	\end{equation}
 	
 	Then, the robust values, U-values and B-values exhibit similar properties as the optimal values, U-values and B-values, that is: for all $0 < t < T$ and $a\in\mathcal{T}_T$,
 	\begin{equation}
@@ -985,7 +991,7 @@ We start by showing the following lemma:
 	U^r_i(n) \leq V^r_i  \leq B^r_i(n)
 	\end{equation}
 	
-	Finally, \eqref{eq:urvrbr} is extended to the rest of $\mathcal{T}_n$ by recursive application of \eqref{eq:max_vr}, \eqref{eq:ur} and \eqref{eq:robust-b-values}.
+	Finally, \eqref{eq:urvrbr} is extended to the rest of $\mathcal{T}_n$ by recursive application of \eqref{eq:max_vr}, \eqref{eq:ur} and \eqref{eq:br}.
 \end{proof}
 
 We now turn to the proof of the theorem.
@@ -1018,6 +1024,22 @@ We now turn to the proof of the theorem.
 	\end{itemize}
 \end{proof}
 
+\section{On the ordering of min and max}
+	\label{sec:min-max-order}
+
+	In the definition of $B_{i}^{r}(n)$ and $U_{i}^{r}(n)$ it is essential that the minimum among the models is only taken at the end of trajectories, in the same way as for the robust objective \eqref{eq:robust-objective-discrete} in which the worst-case dynamics is only determined after the action sequence has been fully specified. Assume that $U_{a}^{r}(n)$ is instead naively defined as:
+	
+	\[
+	U_{a}^{r}(n)=\min_{m\in[1,M]}U_{a}^{m}(n),
+	\]
+	
+	This would not recover the robust policy, as we show in \autoref{fig:min-max-order} with a simple counter-example.
+	\begin{figure}[htp]
+		\centering
+		\includegraphics[width=\linewidth]{img/min-max-order}
+		\caption{From left to right: two simple models and corresponding u-values with optimal sequences in blue; the naive version of the robust values returns sub-optimal paths in red; our robust U-value properly recovers the robust policy in green.}
+		\label{fig:min-max-order}
+	\end{figure}
 
 \section{The use case of autonomous driving}
 
