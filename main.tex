@@ -175,7 +175,7 @@ For instance, a tracking a subgoal $x_g$ can be achieved with $\pi_g = K(x_g - x
 \end{equation}
 where $x_n(\ba, \bom)$ stems from \eqref{eq:dynamics} with $u_n = \pi_{a_n}(x_n)$.
 
-In \autoref{sec:control}, facing a sequential decision problem with continuous states and discrete actions, we turn to the literature of tree-based planning algorithms. Our third contribution adapts them to the robust objective \eqref{eq:robust-control-disc} by approximating it with an easily-evaluable surrogate $\hat{V}^r$ that exploits the set predictor \eqref{eq:inclusion-generic} to define a pessimistic reward. In our main result, we show that the best surrogate performance achieved during planning is guaranteed to be attained on the true system, and provide an upper bound for the approximation gap and simple regret of our framework in \autoref{thm:control-error}.
+In \autoref{sec:control}, facing a sequential decision problem with continuous states and discrete actions, we turn to the literature of tree-based planning algorithms. Our third contribution adapts them to the robust objective \eqref{eq:robust-control-disc} by approximating it with a tractable surrogate $\hat{V}^r$ that exploits the set predictor \eqref{eq:inclusion-generic} to define a pessimistic reward. In our main result, we show that the best surrogate performance achieved during planning is guaranteed to be attained on the true system, and provide an upper bound for the approximation gap and simple regret of our framework in \autoref{thm:control-error}.
 
 The \autoref{alg:full} shows the full integration of the three procedures of estimation, prediction and control. 
 
