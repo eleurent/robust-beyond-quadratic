@@ -127,7 +127,7 @@ We consider a linear system with state $x\in\Real^p$, acted on by controls $u\in
 \begin{figure}[t]
 	\centering
 	\includegraphics[trim={0 2cm 0 0}, clip, width=0.6\linewidth]{img/ellipsoid}
-	\caption{The model estimation procedure, running on the obstacle avoidance problem of \autoref{sec:experiments}. The size of the confidence region $C_{[N],\delta}$ shrinks with the number of samples $N$.}
+	\caption{The model estimation procedure, running on the obstacle avoidance problem of \autoref{sec:experiments}. The confidence region $C_{[N],\delta}$ shrinks with the number of samples $N$.}
 	\label{fig:estimation}
 \end{figure}
 
@@ -1061,8 +1061,7 @@ We now turn to the proof of the theorem.
 \section{Experimental setting}
 \label{sec:experimental-setting}
 
-In both experiments, we used $\gamma=0.9$ and $\delta=0.9$.
-The perturbations were sampled uniformly in $[-0.1, 0.1]^r$ while the measurements are gaussian with covariance $\Sigma_r = 0.1 I_s$.
+In both experiments, we used $\gamma=0.9$,  $\delta=0.9$ and a planning budget $K=100$. The perturbations were sampled uniformly in $[-0.1, 0.1]^r$ while the measurements are gaussian with covariance $\Sigma_r = 0.1 I_s$. 
 
 \subsection{Autonomous Driving}
 
