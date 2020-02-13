@@ -92,7 +92,7 @@
 %	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
 	
 \begin{abstract}
-We develop a framework for the adaptive model predictive control of a linear system with unknown parameters and arbitrary bounded costs, in a critical setting where failures are costly and should be prevented at all time.  Our approach builds on two ideas: first, we incorporate prior knowledge of the dynamics in the form of a known structure that shapes uncertainty, which can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, in order to handle this uncertainty we formulate a robust control objective. Leveraging tools from the interval prediction literature, we convert the confidence regions on parameters into confidence sets on trajectories induced by the controls. These controls are then optimised resorting to tree-based planning methods. We eventually relax our modeling assumptions with a multi-model extension based on a data-driven robust model selection mechanism. The full procedure is designed to produce reasonable and safe behaviours at deployment while recovering an asymptotic optimality. We illustrate it on a practical case of autonomous driving at a crossroads intersection among vehicles with uncertain behaviours.\footnote[2]{Source code and videos are available in the Supplementary Material}
+We develop a framework for the adaptive model predictive control of a linear system with unknown parameters and arbitrary bounded costs, in a critical setting where failures are costly and should be prevented at all time.  Our approach builds on two ideas: first, we incorporate prior knowledge of the dynamics in the form of a known structure that shapes uncertainty, which can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, in order to handle this uncertainty we formulate a robust control objective. Leveraging tools from the interval prediction literature, we convert the confidence regions on parameters into confidence sets on trajectories induced by the controls. These controls are then optimised resorting to tree-based planning methods. We eventually relax our modeling assumptions with a multi-model extension based on a data-driven robust model selection mechanism. The full procedure is designed to produce reasonable and safe behaviours at deployment while recovering an asymptotic optimality. We illustrate it on a practical case of autonomous driving at a crossroads intersection among vehicles with uncertain behaviours.\footnote[2]{Source code and videos are available in the Supplementary Material.}
 \end{abstract}	
 
 \section{Introduction}
@@ -216,7 +216,7 @@ Robust optimization with generic costs has also been studied in the context of f
 
 \label{sec:estimation}
 
-To derive a confidence region for the dynamical parameters $\theta$, the functional relationship $A(\theta)$ must be specified.
+To derive a confidence region \eqref{eq:confidence} for the dynamical parameters $\theta$, the functional relationship $A(\theta)$ must be specified.
 \begin{assumption}[Structure]
 \label{assumpt:structure}
 There exists a known feature tensor $\phi\in \Real^{d \times p \times p}$ such that for all $\theta\in\Theta$,
@@ -491,7 +491,7 @@ An illustration of the computation of the robust upper-bounds is presented in Fi
 
 \begin{figure}
 \centering
-\includegraphics[width=0.4\linewidth]{img/robust-control-tree}
+\includegraphics[width=0.45\linewidth]{img/robust-control-tree}
 \caption{The computation of robust B-values in \eqref{eq:robust-b-values}. The simulation of trajectories for every dynamics model $f^m$ is represented as stacked versions of the expanded tree $\mathcal{T}_k$.}
 \label{fig:drop}
 \end{figure}
@@ -600,7 +600,7 @@ The system dynamics $f$, which describes the couplings and interactions between 
 
 \section*{Conclusion}
 
-We present a framework for the robust estimation, prediction and control of a partially known linear system with generic costs. Leveraging tools from linear regression, interval prediction, and tree-based planning, we guarantee the predicted performance for the true system and provide a regret bound. The applicability of the method is further improved by a multi-model extension, and demonstrated on two simulated applications.
+We present a framework for the robust estimation, prediction and control of a partially known linear system with generic costs. Leveraging tools from linear regression, interval prediction, and tree-based planning, we guarantee the predicted performance and provide a regret bound. The applicability of the method is further improved by a multi-model extension and demonstrated on two simulated applications.
 
 \clearpage
 \bibliography{references}
