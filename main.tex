@@ -12,6 +12,7 @@
 \usepackage{bm}
 \usepackage{enumitem}
 \usepackage{comment}
+\usepackage{listings}
 \def\sectionautorefname{Section}
 \input{mathdef.tex}
 
@@ -615,7 +616,7 @@ We present a framework for the robust estimation, prediction and control of a pa
 \end{center}
 
 \paragraph{Outline}
-In \autoref{sec:proof}, we provide a proof for every novel result introduced in this paper. \autoref{sec:tight-polytope} describes a better method of conversion from ellipsoid to polytope than that of \eqref{eq:polytope}. \autoref{sec:min-max-order} highlights the fact that robustness cannot be recovered by aggregating independent solutions to many optimal control problem. Finally, \autoref{sec:experimental-setting} gives additional details on the setting of our experiments.
+In \autoref{sec:proof}, we provide a proof for every novel result introduced in this paper. \autoref{sec:attachments} describes the attached video files and source code. \autoref{sec:tight-polytope} gives a better method of conversion from ellipsoid to polytope than that of \eqref{eq:polytope}. \autoref{sec:min-max-order} highlights the fact that robustness cannot be recovered by aggregating independent solutions to many optimal control problem. Finally, \autoref{sec:experimental-setting} provides additional details on the setting of our experiments.
 
 \section{Proofs}
 \label{sec:proof}
@@ -1003,6 +1004,29 @@ We now turn to the proof of the theorem.
 		\item If $\kappa = 1$, then $K \leq n_0 + c(d_K-d_0)$, hence we have $r_K = O\left(\gamma^{Kc}\right)$.
 	\end{itemize}
 \end{proof}
+
+\section{Description of attached files}
+\label{sec:attachments}
+
+\paragraph{Videos}
+The \texttt{video} folder contains videos comparing trajectories of the oracle planner and \autoref{alg:full}. The oracle planner has access to the true dynamics and follows aggressive trajectories that nearly saturate the collision constraints. In contrast, the \autoref{alg:full} produces more conservative trajectories. In the obstacle experiment, we show the confidence ellipsoid over $\theta = (\theta_x,\theta_y)$ in the right panel. In the driving experiment, we show the multi-model rejection and robust selection procedure through the display of several trajectory hulls for all possible destinations of the observed vehicles.
+
+\paragraph{Source code}
+We describe where the main contributions of this work are implemented in the attached code.
+\begin{enumerate}
+	\item The confidence ellipsoid \eqref{eq:confidence-ellipsoid} is implemented in the \texttt{ellipsoid()} method in \url{code/rl_agents/agents/tree_search/robust_epc.py}
+	\item The corresponding polytope \eqref{eq:polytope} is implemented in the \texttt{polytope()} method of \url{code/rl_agents/agents/tree_search/robust_epc.py}
+	\item The simple predictor of \eqref{eq:predictor-naive} is implemented in the \texttt{step\_simple\_predictor()} method of \url{code/rl_agents/agents/common/interval.py}
+	\item The enhanced predictor of \eqref{eq:interval-predictor} is implemented in the \texttt{step\_interval\_predictor()} method of \url{code/rl_agents/agents/common/interval.py}
+	\item The pessimistic reward of \eqref{eq:pessimistic-rewards} is implemented in the \texttt{pessimistic\_reward()} method of \url{code/obstacle_env/envs/obstacle.py} and the \texttt{check\_collision()} method of \url{code/highway_env/vehicle/uncertainty/prediction.py}
+	\item The robust upper-bound of \eqref{eq:robust-b-values} is implemented in the \texttt{RobustNode} class of \url{code/rl_agents/agents/tree_search/robust.py}
+\end{enumerate}
+The experiments can be reproduced by running:
+\lstset{language=bash}
+\begin{lstlisting}
+cd scripts
+python experiments.py configs/<env>/env.json configs/<env>/agents/<agent>.json
+\end{lstlisting}
 
 
 \section{A tighter conversion from ellipsoid to polytope}
