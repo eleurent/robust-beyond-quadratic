@@ -1012,7 +1012,7 @@ We now turn to the proof of the theorem.
 The \texttt{video} folder contains videos comparing trajectories of the oracle planner and \autoref{alg:full}. The oracle planner has access to the true dynamics and follows aggressive trajectories that nearly saturate the collision constraints. In contrast, the \autoref{alg:full} produces more conservative trajectories. In the obstacle experiment, we show the confidence ellipsoid over $\theta = (\theta_x,\theta_y)$ in the right panel. In the driving experiment, we show the multi-model rejection and robust selection procedure through the display of several trajectory hulls for all possible destinations of the observed vehicles.
 
 \paragraph{Source code}
-We describe where the main contributions of this work are implemented in the attached code.
+The attached \texttt{code} directory contains an implementation of \autoref{alg:full}. We relate the algorithmic steps of this paper to their location in the source code.
 \begin{enumerate}
 	\item The confidence ellipsoid \eqref{eq:confidence-ellipsoid} is implemented in the \texttt{ellipsoid()} method in \url{code/rl_agents/agents/tree_search/robust_epc.py}
 	\item The corresponding polytope \eqref{eq:polytope} is implemented in the \texttt{polytope()} method of \url{code/rl_agents/agents/tree_search/robust_epc.py}
