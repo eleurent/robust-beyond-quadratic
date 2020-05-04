@@ -1,8 +1,34 @@
-%%%%%%%% ICML 2020 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
-
 \documentclass{article}
 
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2020
+
+% ready for submission
+ \usepackage{neurips_2020}
+
+% to compile a preprint version, e.g., for submission to arXiv, add add the
+% [preprint] option:
+%     \usepackage[preprint]{neurips_2020}
+
+% to compile a camera-ready version, add the [final] option, e.g.:
+%     \usepackage[final]{neurips_2020}
+
+% to avoid loading the natbib package, add option nonatbib:
+%\usepackage[nonatbib]{neurips_2020}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
 % Custom packages
+\usepackage{graphicx}
+\usepackage{subfigure}
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -13,85 +39,58 @@
 \usepackage{enumitem}
 \usepackage{comment}
 \usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+
 \def\sectionautorefname{Section}
 \input{mathdef.tex}
 
-% Recommended, but optional, packages for figures and better typesetting:
-\usepackage{microtype}
-\usepackage{graphicx}
-\usepackage{subfigure}
-\usepackage{booktabs} % for professional tables
 
-% hyperref makes hyperlinks in the resulting PDF.
-% If your build breaks (sometimes temporarily if a hyperlink spans a page)
-% please comment out the following usepackage line and replace
-% \usepackage{icml2020} with \usepackage[nohyperref]{icml2020} above.
-\usepackage{hyperref}
 
-% Attempt to make hyperref and algorithmic work together better:
-\newcommand{\theHalgorithm}{\arabic{algorithm}}
 
-% Use the following line for the initial blind version submitted for review:
-%\usepackage{icml2020}
+\title{Robust Estimation, Prediction and Control with \\ Linear Dynamics and Generic Costs}
 
-% If accepted, instead use the following line for the camera-ready submission:
-\usepackage[accepted,preprint]{icml2020}
+% The \author macro works with any number of authors. There are two commands
+% used to separate the names and addresses of multiple authors: \And and \AND.
+%
+% Using \And between authors leaves it to LaTeX to determine where to break the
+% lines. Using \AND forces a line break at that point. So, if LaTeX puts 3 of 4
+% authors names on the first line, and the last on the second line, try using
+% \AND instead of \And before the third author name.
 
-% The \icmltitle you define below is probably too long as a header.
-% Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Robust Estimation, Prediction and Control}
+\author{%
+	David S.~Hippocampus\thanks{Use footnote for providing further information
+		about author (webpage, alternative address)---\emph{not} for acknowledging
+		funding agencies.} \\
+	Department of Computer Science\\
+	Cranberry-Lemon University\\
+	Pittsburgh, PA 15213 \\
+	\texttt{hippo@cs.cranberry-lemon.edu} \\
+	% examples of more authors
+	% \And
+	% Coauthor \\
+	% Affiliation \\
+	% Address \\
+	% \texttt{email} \\
+	% \AND
+	% Coauthor \\
+	% Affiliation \\
+	% Address \\
+	% \texttt{email} \\
+	% \And
+	% Coauthor \\
+	% Affiliation \\
+	% Address \\
+	% \texttt{email} \\
+	% \And
+	% Coauthor \\
+	% Affiliation \\
+	% Address \\
+	% \texttt{email} \\
+}
 
 \begin{document}
-	
-	\twocolumn[
-	\icmltitle{Robust Estimation, Prediction and Control with \\ Linear Dynamics and Generic Costs}
-	
-	% It is OKAY to include author information, even for blind
-	% submissions: the style file will automatically remove it for you
-	% unless you've provided the [accepted] option to the icml2020
-	% package.
-	
-	% List of affiliations: The first argument should be a (short)
-	% identifier you will use later to specify author affiliations
-	% Academic affiliations should list Department, University, City, Region, Country
-	% Industry affiliations should list Company, City, Region, Country
-	
-	% You can specify symbols, otherwise they are numbered in order.
-	% Ideally, you should not use this facility. Affiliations will be numbered
-	% in order of appearance and this is the preferred way.
-	\icmlsetsymbol{equal}{*}
-	
-	\begin{icmlauthorlist}
-		\icmlauthor{Edouard Leurent}{seq,val,ren}
-		\icmlauthor{Denis Efimov}{val}
-		\icmlauthor{Odalric-Ambrym Maillard}{seq}
-	\end{icmlauthorlist}
-	
-	\icmlaffiliation{seq}{Inria Lille Nord-Europe, SequeL Project, Lille, France}
-	\icmlaffiliation{val}{Inria Lille Nord-Europe, Valse Project, Lille, France}
-	\icmlaffiliation{ren}{Renault Group, Guyancourt, France}
-	
-	\icmlcorrespondingauthor{Edouard Leurent}{edouard.leurent@inria.fr}
-	
-	% You may provide any keywords that you
-	% find helpful for describing your paper; these are used to populate
-	% the "keywords" metadata in the PDF but will not be shown in the document
-	\icmlkeywords{Machine Learning, ICML}
-	
-	\vskip 0.3in
-	]
-	
-	% this must go after the closing bracket ] following \twocolumn[ ...
-	
-	% This command actually creates the footnote in the first column
-	% listing the affiliations and the copyright notice.
-	% The command takes one argument, which is text to display at the start of the footnote.
-	% The \icmlEqualContribution command is standard text for equal contribution.
-	% Remove it (just {}) if you do not need this facility.
-	
-	\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
-%	\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
-	
+
 \begin{abstract}
 We develop a framework for the adaptive model predictive control of a linear system with unknown parameters and arbitrary bounded costs, in a critical setting where failures are costly and should be prevented at all time.  Our approach builds on two ideas: first, we incorporate prior knowledge of the dynamics in the form of a known structure that shapes uncertainty, which can be tightened as we collect interaction data by building high-confidence regions through least-square regression. Second, in order to handle this uncertainty we formulate a robust control objective. Leveraging tools from the interval prediction literature, we convert the confidence regions on parameters into confidence sets on trajectories induced by the controls. These controls are then optimised resorting to tree-based planning methods. We eventually relax our modelling assumptions with a multi-model extension based on a data-driven robust model selection mechanism. The full procedure is designed to produce reasonable and safe behaviours at deployment while recovering an asymptotic optimality. We illustrate it on a practical case of autonomous driving at a crossroads intersection among vehicles with uncertain behaviours.\footnote[2]{Source code and videos are available in the Supplementary Material.}
 \end{abstract}	
@@ -127,14 +126,14 @@ We consider a linear system with state $x\in\Real^p$, acted on by controls $u\in
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[trim={0 2cm 0 0}, clip, width=0.6\linewidth]{img/ellipsoid}
+	\includegraphics[trim={0 2cm 0 0}, clip, width=0.3\linewidth]{img/ellipsoid}
 	\caption{The model estimation procedure, running on the obstacle avoidance problem of \autoref{sec:experiments}. The confidence region $C_{[N],\delta}$ shrinks with the number of samples $N$.}
 	\label{fig:estimation}
 \end{figure}
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.8\linewidth]{img/obstacle_small}
+	\includegraphics[trim={4cm 0 0 0}, clip, width=0.3\linewidth]{img/obstacle_small}
 	\caption{The state prediction procedure running on the obstacle avoidance problem of \autoref{sec:experiments}. At each time step (red to green), we bound the set of reachable states under model uncertainty \eqref{eq:confidence}}
 	\label{fig:prediction}
 \end{figure}
@@ -188,19 +187,15 @@ The \autoref{alg:full} shows the full integration of the three procedures of est
 	\caption{Robust Estimation, Prediction and Control}
 	\label{alg:full}
 	\begin{algorithmic}
-		\STATE {\bfseries Input:} confidence level $\delta$, structure $(A,\phi)$, reward $R$
-		\STATE $\cD_{[0]}\gets\emptyset,\, \ba_1\gets\emptyset$
+		\STATE {\bfseries Input:} confidence level $\delta$, structure $(A,\phi)$, reward $R$, $\cD_{[0]}\gets\emptyset,\, \ba_1\gets\emptyset$
 		\FOR{$N = 0,1,2,\dots$} 
 		\STATE $\cC_{[N],\delta} \gets$\textsc{Model Estimation}$(\cD_{[N]})$. \eqref{eq:polytope}
 		\FOR{each planning step $k\in[K]$}
-		\FOR{each action $b\in \cA$}
-		\STATE $[\underline{x}_{n+1}, \overline{x}_{n+1}]\gets$ \textsc{Interval Prediction}(
-		\STATE $\qquad\qquad\qquad\qquad\cC_{[N],\delta}, \ba_kb$). \eqref{eq:interval-predictor}
+		\STATE $[\underline{x}_{n+1}, \overline{x}_{n+1}]\gets$ \textsc{Interval Prediction}($\cC_{[N],\delta}, \ba_kb$) for each action $b\in \cA$. \eqref{eq:interval-predictor}
+
+		\STATE $\ba_{k+1}$ $\gets$\textsc{Pessimistic Planning}$(\underline{R_{n+1}}([\underline{x}_{n+1}, \overline{x}_{n+1}]))$.  \eqref{eq:opd}
 		\ENDFOR
-		\STATE $\ba_{k+1}$ $\gets$\textsc{Pessimistic Planning}$($
-		\STATE$\qquad\qquad\underline{R_{n+1}}([\underline{x}_{n+1}, \overline{x}_{n+1}]))$.  \eqref{eq:opd}
-		\ENDFOR
-		\STATE Execute the recommended control $u_{N+1}$, and add the observed transition $(x_{N+1}, y_{N+1}, u_{N+1})$ to $\cD_{[N+1]}$.
+		\STATE Execute the control $u_{N+1}$, and add the observed transition $(x_{N+1}, y_{N+1}, u_{N+1})$ to $\cD_{[N+1]}$.
 		\ENDFOR
 	\end{algorithmic}
 \end{algorithm}
@@ -254,37 +249,37 @@ The solution can be obtained as:
 The solution to \eqref{eq:regression_min} is
 \begin{align}
     \label{eq:vector_rls}
-    \theta_{N,\lambda} &= G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} y_n,\\
-	\label{eq:g_n_lambda}
-    \text{where }\quad G_{N, \lambda} &= \sum_{n=1}^N \Phi_{n}^\transp\Sigma_p^{-1}\Phi_{n}  + \lambda I_d \in \Real^{d\times d}.
+    \theta_{N,\lambda} = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1} y_n,\qquad
+%    \label{eq:g_n_lambda}
+    \text{where }\quad G_{N, \lambda} = \sum_{n=1}^N \Phi_{n}^\transp\Sigma_p^{-1}\Phi_{n}  + \lambda I_d \in \Real^{d\times d}.
 \end{align}
 \end{proposition}
 
 Substituting $y_n$ into \eqref{eq:vector_rls} yields the regression error:
-\begin{align}
+$
     \theta_{N,\lambda} - \theta = G_{N, \lambda}^{-1}\sum_{n=1}^N \Phi_n^\transp \Sigma_p^{-1}\eta_n - \lambda G_{N, \lambda}^{-1}\theta.
-\end{align}
+$
 
 
-Depending on the assumption we have over the noise $\eta_n$, we can bound this error in different ways.
-
-
-\subsection{Bounded noise}
-
-\begin{assumption}[Bounded noise]
-\label{assumpt:bounded-noise}
-The noise $\eta(t)$ is bounded in $\|\cdot\|_\infty$.
-\end{assumption}
-
-In particular, we denote the coefficient-wise bounds over perturbations as $\underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)$. This is a deterministic assumption, then by Hölder inequality a confidence region $\cC_{[N],0}$ can be derived based on a $L_1$-ball estimate of $\theta$ at time $N$, i.e. a polytope with $2d$ vertices:
-\begin{equation}
-\label{eq:bounded-noise-polytope}
-\|\theta_{N,\lambda}\! -\! \theta\|_1\! \leq \! \|G_{N, \lambda}^{-1}\!\sum_{n=1}^N \!\Phi_n^\transp\! \Sigma_p^{-1}\!\|_1\|\eta\|_\infty\! +\!\lambda\|G_{N, \lambda}^{-1}\!\|_1S
-\end{equation}
-
-There may be cases where \autoref{assumpt:bounded-noise} does not hold. For instance, when the noise $\eta$ is Gaussian, then $\|\eta\|_\infty=+\infty$ which makes \eqref{eq:bounded-noise-polytope} uninformative. Then, another probabilistic assumption can be made.
-
-\subsection{Sub-Gaussian noise}
+To bound this error, we need the noise $\eta_n$ to concentrate.
+%Depending on the assumption we have over the noise $\eta_n$, we can bound this error in different ways.
+%
+%\subsection{Bounded noise}
+%
+%\begin{assumption}[Bounded noise]
+%\label{assumpt:bounded-noise}
+%The noise $\eta(t)$ is bounded in $\|\cdot\|_\infty$.
+%\end{assumption}
+%
+%In particular, we denote the coefficient-wise bounds over perturbations as $\underline{\omega}(t) \leq \omega(t) \leq \overline{\omega}(t)$. This is a deterministic assumption, then by Hölder inequality a confidence region $\cC_{[N],0}$ can be derived based on a $L_1$-ball estimate of $\theta$ at time $N$, i.e. a polytope with $2d$ vertices:
+%\begin{equation}
+%\label{eq:bounded-noise-polytope}
+%\|\theta_{N,\lambda}\! -\! \theta\|_1\! \leq \! \|G_{N, \lambda}^{-1}\!\sum_{n=1}^N \!\Phi_n^\transp\! \Sigma_p^{-1}\!\|_1\|\eta\|_\infty\! +\!\lambda\|G_{N, \lambda}^{-1}\!\|_1S
+%\end{equation}
+%
+%There may be cases where \autoref{assumpt:bounded-noise} does not hold. For instance, when the noise $\eta$ is Gaussian, then $\|\eta\|_\infty=+\infty$ which makes \eqref{eq:bounded-noise-polytope} uninformative. Then, another probabilistic assumption can be made.
+%
+%\subsection{Sub-Gaussian noise}
 
 \begin{assumption}[Sub-Gaussian Noise]
 \label{assumpt:gaussian-noise}
@@ -293,51 +288,45 @@ At each time $t\geq0$ the noise $\eta(t)$ is an independent sub-Gaussian noise w
     \forall u\in\Real^p,\, \expectedvalue \left[ \exp{\left( u^\transp \eta(t)\right)}\right] \leq \exp{\left( \frac{1}{2} u^\transp \Sigma_p u\right)}.
 \end{equation*}
 \end{assumption}
-For instance, it is the case when $\nu$ and $\omega$ are Gaussian noises with covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. Note that \autoref{assumpt:bounded-noise} implies that $\eta$ is sub-Gaussian with covariance proxy $\Sigma_p=\|\eta\|_\infty I_p$.
+For instance, it is the case when $\nu$ and $\omega$ are Gaussian noises with covariance matrices $\Sigma_r$ and $\Sigma_s$, with $\Sigma_p \eqdef C\Sigma_r C^\transp + D\Sigma_s D^\transp$. 
+%Note that \autoref{assumpt:bounded-noise} implies that $\eta$ is sub-Gaussian with covariance proxy $\Sigma_p=\|\eta\|_\infty I_p$.
 
 \begin{theorem}[Confidence ellipsoid, a matricial version of \citealt{Abbasi2011}]
 \label{thm:confidence_ellipsoid}
 Under \autoref{assumpt:gaussian-noise}, it holds with probability at least $1-\delta$ that
 \begin{align}
     \label{eq:confidence-ellipsoid}
-    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} \leq \beta_N(\delta),
-\end{align}
-with
-\begin{equation}
-	\label{eq:beta_n}
+    \| \theta_{N,\lambda}  - \theta\|_{G_{N,\lambda}} \leq \beta_N(\delta), \quad \text{with}\quad
+%	\label{eq:beta_n}
     \beta_N(\delta)\eqdef \sqrt{2\ln \left(\frac{\det(G_{N,\lambda})^{1/2}}{\delta\det(\lambda I_d)^{1/2}}\right)}
      + (\lambda d)^{1/2}S.
-\end{equation}
+\end{align}
 \end{theorem}
 
 We can enclose this confidence ellipsoid $\eqref{eq:confidence-ellipsoid}$ into a polytope $C_{[N],\delta}$. For simplicity, we present here a simple but coarse strategy: bound the ellipsoid by its enclosing sphere, and then the sphere by its enclosing hypercube. We obtain
 \begin{align}
     \label{eq:polytope}
-     &\cC_{[N],\delta} = \left\{ A_{0}+\sum_{i=1}^{2^d}\alpha_{i}\Delta A_{i}: \alpha\geq 0,  \sum_{i=1}^{2^d}\alpha_{i}=1\right\}
+     \cC_{[N],\delta} = \left\{ A + \theta_{N,\lambda}^\transp\phi +\sum_{i=1}^{2^d}\alpha_{i}\Delta A_{i}: \alpha\geq 0,  \sum_{i=1}^{2^d}\alpha_{i}=1\right\} \text{ where }\Delta A_{i} = {h_i} \sqrt{\frac{\beta_N(\delta)}{\lambda_{\max}(G_{N,\lambda})}}, h_i\in\{-1,1\}^d.
 \end{align}
-where $A_{0,N} = A + \theta_{N,\lambda}^\transp\phi, \Delta A_{i} = {h_i} \sqrt{\frac{\beta_N(\delta)}{\lambda_{\max}(G_{N,\lambda})}}, h_i\in\{-1,1\}^d$. Another strategy presented in the Supplementary Material produces a much tighter polytope, at the price of an increased computational cost required by the diagonalisation of $G_{N,\lambda}$.
+Another strategy presented in the Supplementary Material produces a much tighter polytope, at the price of an increased computational cost required by the diagonalisation of $G_{N,\lambda}$.
 
-\paragraph{Remark} The robust objective \eqref{eq:robust-control} involves bounds $\underline{\omega}(t)\leq \omega(t) \leq \overline{\omega}(t)$ over the possible perturbations we want to protect against. In the unbounded sub-Gaussian noise setting of \autoref{assumpt:gaussian-noise}, we can use the same formulation by deriving local high-confidence bounds that each holds with confidence $\delta_n$. By choosing $\delta_n = \frac{\delta}{n(n+1)}$, the event $\{\forall n, \underline{\omega}(t_n) \leq \omega(t_n) \leq \overline{\omega}(t_n)\}$ holds with probability $1-\delta$.
+\paragraph{Remark} The robust objective \eqref{eq:robust-control} involves bounds $\underline{\omega}(t)\leq \omega(t) \leq \overline{\omega}(t)$ over the possible perturbations we want to protect against. We use local bounds that each holds with confidence $\delta_n = \frac{\delta}{n(n+1)}$, so that the event $\{\forall n, \underline{\omega}(t_n) \leq \omega(t_n) \leq \overline{\omega}(t_n)\}$ holds with probability $1-\delta$.
 
 \section{State Prediction}
 
 \label{sec:prediction}
 
 To study the inclusion property \eqref{eq:inclusion-generic}, we must start by choosing a set representation $X(t)$. We consider interval prediction, rather than zonotope prediction for instance \citep[e.g.][]{le2012}, for the sake of simplicity of implementation and computational efficiency. We represent an interval as $X(t) = [\underline{x}(t), \overline{x}(t)]\in \Real^p\times \Real^p$, and \eqref{eq:inclusion-generic} becomes:
-\begin{equation}
-\label{eq:inclusion-property}
-\underline{x}(t)\leq x(t)\leq\overline{x}(t),\quad\forall t\geq t_N.
-\end{equation} 
-
-A simple solution to \eqref{eq:inclusion-property} is proposed in \citep{Efimov2012}, where, given bounds $\underline{A}\leq A(\theta)\leq\overline{A}$ from $\cC_{[N],\delta}$ they use matrix interval arithmetic to derive the predictor:
+$
+%\label{eq:inclusion-property}
+\underline{x}(t)\leq x(t)\leq\overline{x}(t), \forall t\geq t_N.
+$
+A simple solution to \eqref{eq:inclusion-generic} is proposed in \citep{Efimov2012}, where, given bounds $\underline{A}\leq A(\theta)\leq\overline{A}$ from $\cC_{[N],\delta}$ they use matrix interval arithmetic to derive the predictor:
 \begin{proposition}[Simple predictor of \citealt{Efimov2012}]
-Assuming that \eqref{eq:confidence} is satisfied for the system \eqref{eq:dynamics}, then the interval predictor:
+Assuming that \eqref{eq:confidence} is satisfied for the system \eqref{eq:dynamics}, then the interval predictor following $\underline{x}(t_N)=\overline{x}(t_N)={x}(t_N)$ and:
 \begin{eqnarray}
-\dot{\underline{x}}(t) & = & \underline{A}^{+}\underline{x}^{+}(t)-\overline{A}^{+}\underline{x}^{-}(t)-\underline{A}^{-}\overline{x}^{+}(t) +\overline{A}^{-}\overline{x}^{-}(t)\nonumber \\
- &  &+Bu(t) + D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\label{eq:predictor-naive}\\
-\dot{\overline{x}}(t) & = & \overline{A}^{+}\overline{x}^{+}(t)-\underline{A}^{+}\overline{x}^{-}(t)-\overline{A}^{-}\underline{x}^{+}(t)+\underline{A}^{-}\underline{x}^{-}(t)\nonumber \\
- &  &+Bu(t) + D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber \\
- &  & \underline{x}(t_N)=\overline{x}(t_N)={x}(t_N),\nonumber 
+\dot{\underline{x}}(t) = \underline{A}^{+}\underline{x}^{+}(t)-\overline{A}^{+}\underline{x}^{-}(t)-\underline{A}^{-}\overline{x}^{+}(t) +\overline{A}^{-}\overline{x}^{-}(t) +Bu(t) + D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\label{eq:predictor-naive}\\
+\dot{\overline{x}}(t) = \overline{A}^{+}\overline{x}^{+}(t)-\underline{A}^{+}\overline{x}^{-}(t)-\overline{A}^{-}\underline{x}^{+}(t)+\underline{A}^{-}\underline{x}^{-}(t)\nonumber+Bu(t) + D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber
 \end{eqnarray}
 ensures the inclusion property \eqref{eq:inclusion-property} with confidence level $\delta$.
 \end{proposition}
@@ -355,22 +344,18 @@ In practice, this assumption is often verified. It is for instance the case when
 
 \begin{proposition}[Enhanced predictor of \citealt{leurent2019interval}]
 \label{prop:predictor}
-Assuming that \eqref{eq:polytope} and \autoref{assumpt:metzler} are satisfied for the system \eqref{eq:dynamics}, then the interval predictor:
+Assuming that \eqref{eq:polytope} and \autoref{assumpt:metzler} are satisfied for the system \eqref{eq:dynamics}, then the interval predictor following $ \underline{x}(t_N)=\overline{x}(t_N)={x}(t_N)$ and:
 \begin{eqnarray}
-\dot{\underline{x}}(t) & = & A_{0}\underline{x}(t)-\Delta A_{+}\underline{x}^{-}(t)-\Delta A_{-}\overline{x}^{+}(t)\nonumber \\
- &  & +Bu(t)+D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\nonumber\\
-\dot{\overline{x}}(t) & = & A_{0}\overline{x}(t)+\Delta A_{+}\overline{x}^{+}(t)+\Delta A_{-}\underline{x}^{-}(t) \label{eq:interval-predictor} \\
- &  & +Bu(t)+D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber \\
- &  & \underline{x}(t_N)=\overline{x}(t_N)={x}(t_N)\nonumber 
+\dot{\underline{x}}(t) & = & A_{0}\underline{x}(t)-\Delta A_{+}\underline{x}^{-}(t)-\Delta A_{-}\overline{x}^{+}(t)  +Bu(t)+D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\label{eq:interval-predictor}\\
+\dot{\overline{x}}(t) & = & A_{0}\overline{x}(t)+\Delta A_{+}\overline{x}^{+}(t)+\Delta A_{-}\underline{x}^{-}(t)  +Bu(t)+D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t),\nonumber
 \end{eqnarray}
 ensures the inclusion property \eqref{eq:inclusion-property} with confidence level $\delta$..
 \end{proposition}
 
 \begin{figure}[tp]
 	\centering
-	{\includegraphics[trim={0 0.6cm 0 0.4cm}, clip, width=\linewidth]{img/interval-predictor}}
-    \vspace{-0.7cm}
-	\caption{Comparison of \eqref{eq:predictor-naive} and \eqref{eq:interval-predictor} for a simple system \\$\dot{x}(t)=-\theta x(t)+\omega(t)$, with $\theta\in[1, 2]$ and $\omega(t) \in [-0.05, 0.05]$.}
+	{\includegraphics[trim={0 0.6cm 0 0.4cm}, clip, width=0.6\linewidth]{img/interval-predictor}}
+	\caption{Comparison of \eqref{eq:predictor-naive} and \eqref{eq:interval-predictor} for a simple system $\dot{x}(t)=-\theta x(t)+\omega(t)$, with $\theta\in[1, 2]$ and $\omega(t) \in [-0.05, 0.05]$.}
 	\label{fig:predictor_example}
 \end{figure}
 
@@ -384,23 +369,22 @@ ensures the inclusion property \eqref{eq:inclusion-property} with confidence lev
 In order to evaluate the robust objective $V^r$ \eqref{eq:robust-control}, we approximate it thanks to the interval prediction $[\underline{x}(t), \overline{x}(t)]$ of \autoref{sec:prediction}.
 
 \begin{definition}[Surrogate objective]
-	Let
+	Let $\underline{x}_n(\bu), \overline{x}_n(\bu)$ following the dynamics defined in \eqref{eq:interval-predictor} and
 \begin{align}
 \label{eq:surrogate_objective} 
-\hat{V}^r(\bu) &\eqdef \sum_{n=N+1}^\infty \gamma^n \underline{R}_n(\bu)\\ 
-\text{where}\quad\underline{R}_n(\bu) &\eqdef \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x) \label{eq:pessimistic-rewards}
+\hat{V}^r(\bu) \eqdef \sum_{n=N+1}^\infty \gamma^n \underline{R}_n(\bu)\quad\text{where}\quad\underline{R}_n(\bu) \eqdef \min_{x\in[\underline{x}_n(\bu), \overline{x}_n(\bu)]}  R(x). %\label{eq:pessimistic-rewards}
 \end{align}
-and $\underline{x}_n(\bu), \overline{x}_n(\bu)$ follow the dynamics defined in \eqref{eq:interval-predictor}.
+
 \end{definition}
 
 This amounts to changing the reward function, except that the worst case is assessed over the whole past trajectory, which makes this pessimistic reward $\underline{R_n}$ \emph{not markovian}.
 
 \begin{proposition}[Lower bound]
 \label{prop:lower-bound}
-The surrogate objective  \eqref{eq:surrogate_objective} is a lower bound of the true objective  \eqref{eq:robust-control-disc}: 
-\begin{equation*}
-\hat{V}^r(\bu) \leq V^r(\bu)
-\end{equation*}
+The surrogate objective  \eqref{eq:surrogate_objective} is a lower bound of the objective  \eqref{eq:robust-control-disc}.
+%\begin{equation*}
+%\hat{V}^r(\bu) \leq V^r(\bu)
+%\end{equation*}
 \end{proposition}
 A direct consequence is that since all our approximations are conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens according to the surrogate objective $\hat{V}^r$, then we are guaranteed that they will not happen either when the controls are executed on the true system. 
 
@@ -492,7 +476,7 @@ An illustration of the computation of the robust upper-bounds is presented in Fi
 
 \begin{figure}
 \centering
-\includegraphics[width=0.45\linewidth]{img/robust-control-tree}
+\includegraphics[width=0.3\linewidth]{img/robust-control-tree}
 \caption{The computation of robust B-values in \eqref{eq:robust-b-values}. The simulation of trajectories for every dynamics model $f^m$ is represented as stacked versions of the expanded tree $\mathcal{T}_k$.}
 \label{fig:drop}
 \end{figure}
@@ -544,7 +528,7 @@ We run \autoref{alg:full} for 100 simulations, and compare in \autoref{tab:obsta
 
 \begin{figure}[tp]
 	\centering
-	\includegraphics[width=0.8\linewidth]{img/regret.pdf}
+	\includegraphics[width=0.5\linewidth]{img/regret.pdf}
 	\caption{The mean regret along with its $95\%$ confidence interval with respect to $N$, for the robust and nominal agents.}
 	\label{fig:regret}
 \end{figure}
@@ -575,7 +559,7 @@ The system dynamics $f$, which describes the couplings and interactions between 
 
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=0.7\linewidth]{img/highway-small}
+	\includegraphics[width=0.4\linewidth]{img/highway-small}
 	\caption{The intersection crossing task. We show the trajectory intervals corresponding to behavioural uncertainty for each observed vehicle, and the multi-model assumption over the followed route.}
 \end{figure}
 
