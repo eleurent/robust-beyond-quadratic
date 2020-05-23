@@ -48,7 +48,6 @@ publisher = {Curran Associates, Inc.},
 }
 
 
-
 @InProceedings{abbasi-yadkori11a,
   title = 	 {Regret Bounds for the Adaptive Control of Linear Quadratic Systems},
   author = 	 {Yasin Abbasi-Yadkori and Csaba Szepesvári},
@@ -96,6 +95,56 @@ year = {2018},
 publisher = {Curran Associates, Inc.},
 }
 
+@Article{Lu1997,
+	author={Lu, Xiao-Yun
+	and Spurgeon, Sarah K.},
+	title={Robust sliding mode control of uncertain nonlinear systems},
+	journal={Systems {\&} Control Letters},
+	year={1997},
+	month={Nov},
+	day={03},
+	volume={32},
+	number={2},
+	pages={75-90},
+	keywords={Robustness; Sliding mode control; Dynamic feedback; Zero dynamics; Uniform ultimate boundedness},
+	abstract={A dynamic sliding mode controller design method is proposed for multiple input-output systems with additive uncertainties. A previous result on the stability of triangular systems is generalised to the case of uniform ultimate boundedness of controlled triangular systems. This is used to prove the stability of the overall closed-loop system. The uncertain system with appropriately chosen sliding mode control is shown to be ultimately bounded if the zero dynamics of the nominal system are uniformly asymptotically (exponentially) stable. The design method is demonstrated with two examples.},
+	issn={0167-6911},
+	url={http://www.sciencedirect.com/science/article/pii/S0167691197000613}
+}
+
+@INPROCEEDINGS{Lopez2019,
+	author={B. T. {Lopez} and J. E. {Slotine} and J. P. {How}},
+	booktitle={2019 American Control Conference (ACC)}, 
+	title={Dynamic Tube MPC for Nonlinear Systems}, 
+	year={2019},
+	volume={},
+	number={},
+	pages={1655-1662},
+}
+
+@article{Limon2010,
+	abstract = {This paper is devoted to solve the problem that the predictive controllers may present when the target operation point changes. Model predictive controllers (MPC) are capable to steer an uncertain system to a given target operation point fulfilling the constraints. But if the target changes significantly the controller may not success due to the loss of feasibility of the optimization problem and the inadequacy of the terminal conditions. This paper presents a novel formulation of a robust model predictive controller (MPC) for tracking changing targets based on a single optimization problem. The plant is assumed to be modelled as a linear system with additive uncertainties confined to a bounded known polyhedral set. Under mild assumptions, the proposed MPC is feasible under any change of the target and steers the uncertain system to (a neighborhood of) the target if this is admissible. If the target is not admissible, and hence unreachable, the system is steered to the closest admissible operating point. The controller formulation has some parameters which provide extra degrees of freedom. These new parameters allow control objectives such as disturbance rejection, output offset prioritization or enlargement of the domain of attraction to be dealt with. The paper shows how these parameters can be calculated off-line. In order to demonstrate the benefits of the proposed controller, it has been tested on a real plant: the four tanks plant which is a multivariable nonlinear system configured to exhibit non-minimum phase transmission zeros. Experimental results show the robust stability and offset-free tracking of the controlled plant. {\textcopyright} 2009 Elsevier Ltd. All rights reserved.},
+	author = {Limon, D. and Alvarado, I. and Alamo, T. and Camacho, E. F.},
+	doi = {10.1016/j.jprocont.2009.11.007},
+	issn = {09591524},
+	journal = {Journal of Process Control},
+	keywords = {Constrained linear systems,Model predictive control,Offset-free,Robust control,Tracking},
+	title = {{Robust tube-based MPC for tracking of constrained linear systems with additive disturbances}},
+	year = {2010}
+}
+
+
+@inproceedings{Turchetta2016,
+	abstract = {In classical reinforcement learning agents accept arbitrary short term loss for long term gain when exploring their environment. This is infeasible for safety critical applications such as robotics, where even a single unsafe action may cause system failure or harm the environment. In this paper, we address the problem of safely exploring finite Markov decision processes (MDP). We define safety in terms of an a priori unknown safety constraint that depends on states and actions and satisfies certain regularity conditions expressed via a Gaussian process prior. We develop a novel algorithm, SAFEMDP, for this task and prove that it completely explores the safely reachable part of the MDP without violating the safety constraint. To achieve this, it cautiously explores safe states and actions in order to gain statistical confidence about the safety of unvisited state-action pairs from noisy observations collected while navigating the environment. Moreover, the algorithm explicitly considers reachability when exploring the MDP, ensuring that it does not get stuck in any state with no safe way out. We demonstrate our method on digital terrain models for the task of exploring an unknown map with a rover.},
+	archivePrefix = {arXiv},
+	arxivId = {1606.04753},
+	author = {Turchetta, Matteo and Berkenkamp, Felix and Krause, Andreas},
+	booktitle = {Advances in Neural Information Processing Systems},
+	eprint = {1606.04753},
+	issn = {10495258},
+	title = {{Safe exploration in finite Markov decision processes with Gaussian processes}},
+	year = {2016}
+}
 
 @inproceedings{kirschner18heteroscedastic,
 	Author = {Johannes Kirschner and Andreas Krause},
