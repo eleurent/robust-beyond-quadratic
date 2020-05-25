@@ -123,7 +123,7 @@ The \emph{robust control objective} $V^r$ \citep{Bental2009,Bertsimas2011,Goriss
 \sup_{\bu\in{(\Real^q)}^\Natural} {V^r(\bu)}, \qquad \text{ where }\qquad {V^r(\bu)} \eqdef \inf_{\substack{A(\theta) \in \cC_{[N],\delta} \\ \bom\in[\underline{\bom},\overline{\bom}]^\Natural}} \left[\sum_{n=N+1}^\infty \gamma^n R(x_n(\bu,\bom))\right],
 \end{equation}
 $\gamma\in(0,1)$ is a discount factor, and $x_n(\bu,\bom)$ is the state reached at step $n$ under controls $\bu$ and perturbations $\bom$ within the given admissible bounds $[\underline\omega(t),\overline\omega(t)]$. Maximin problems such as $\eqref{eq:robust-control}$ are notoriously hard if the reward $R$ has a simple form. With arbitrary functions $R$, we cannot hope to derive an explicit solution.
-In our second contribution, we propose a robust MPC algorithm for solving \eqref{eq:robust-control} numerically. In \Cref{sec:prediction}, we leverage recent results from the uncertain system simulation literature to derive an \emph{interval predictor} $[\underline{x}(t),\overline{x}(t)]$ for the system \eqref{eq:dynamics}, illustrated in \Cref{fig:prediction}. This predictor takes the information on the observed current state ${x}_N$, the confidence region $\cC_\delta$, planned control sequence $\bu$ and admissible perturbation bounds $[\underline{\omega}(t),\overline{\omega}(t)]$; and must verify the \emph{inclusion property}:
+In our second contribution, we propose a robust MPC algorithm for solving \eqref{eq:robust-control} numerically. In \Cref{sec:prediction}, we leverage recent results from the uncertain system simulation literature to derive an \emph{interval predictor} $[\underline{x}(t),\overline{x}(t)]$ for the system \eqref{eq:dynamics}, illustrated in \Cref{fig:prediction}. This predictor takes the information on the current state ${x}_N$, the confidence region $\cC_\delta$, planned control sequence $\bu$ and admissible perturbation bounds $[\underline{\omega}(t),\overline{\omega}(t)]$; and must verify the \emph{inclusion property}:
 \begin{equation}
 \label{eq:inclusion-property}
 \underline{x}(t)\leq x(t)\leq\overline{x}(t), \forall t\geq t_N.
@@ -381,7 +381,7 @@ Hence, by using enough computational budget $K$ for planning we can get as close
 \begin{theorem}[Regret bound]
 \label{thm:control-error}
 Under three conditions:
-\begin{enumerate}
+\begin{enumerate}[nosep]
 	\item a Lipschitz regularity assumption for the reward $R$;
 	\item a persistent excitation assumption:
 	$
@@ -406,13 +406,11 @@ with probability at least $1-\delta$, where $\Delta_\omega$ is a constant which 
 
 The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction} and \ref{sec:control} relies on strong modelling assumptions, such as the linear dynamics \eqref{eq:dynamics} and \Cref{assumpt:structure}. But what if they are wrong?
 
-\paragraph{Model adequacy}
-
+\textbf{Model adequacy}~~~
 One of the major benefits of using the family of linear models, compared to richer model classes, is that they provide strict conditions allowing to quantify the adequacy of the modelling assumptions to the observations.
 Given $N-1$ observations, \Cref{sec:estimation} provides a polytopic confidence region \eqref{eq:polytope} that contains $A(\theta)$ with probability at least $1-\delta$. Since the dynamics are linear, we can propagate this confidence region to the next observation: $y_{N}$ must belong to the Minkowski sum of a polytope representing model uncertainty $\cP(A_{0} x_N + Bu_N, \Delta A_{1}x_N,\dots, \Delta A_{2^d}x_N)$ and a polytope $\cP(0_p, \underline{\eta}, \overline{\eta})$ bounding the perturbation and measurement noises. \citet{delos2015} provide a way to test this membership in polynomial time using linear programming. Whenever it is not verified, we can confidently reject the $(A,\phi)$-modelling \Cref{assumpt:structure}. This enables us to consider a rich set of potential features $\left((A^1, \phi^1), \dots, (A^M, \phi^M)\right)$ rather than relying on a single assumption, and only retain those that are consistent with the observations so far. Then, every remaining hypothesis must be considered during planning.
 
-\paragraph{Robust selection}
-
+\textbf{Robust selection}~~~
 We temporarily ignore the parametric uncertainty on $\theta$ to simply consider several candidate dynamics models, which all correspond to different modelling assumptions. We also restrict to deterministic dynamics, which is the case of \eqref{eq:interval-predictor}.
 
 \begin{assumption}[Multi-model ambiguity]
@@ -457,7 +455,7 @@ This result is of independent interest: the solution of a robust objective \eqre
 \section{Experiments}
 \label{sec:experiments}
 
-\paragraph{Obstacle avoidance with unknown friction}
+\textbf{Obstacle avoidance with unknown friction}~~~
 We first consider a simple illustrative example, shown in \Cref{fig:prediction}: the control of a 2D system %with position $(p_x,p_y)$ and velocity $(v_x, v_y)$ 
 moving by means of a force $(u_x, u_y)$ in an medium with anisotropic linear friction with unknown coefficients $(\theta_x, \theta_y)$.
 %$
@@ -491,17 +489,6 @@ The reward is non-smooth and encodes the task of navigating to reach a goal stat
 For the reasons mentioned above, no robust baseline applies to our setting. Rather than comparing \Cref{alg:full} to RL baselines which inevitably commit many failures, we consider the nominal agent i.e. the non-robust adaptive control approach that plans with the estimated dynamics $\theta_{[N],\lambda}$, and thus enjoys the same prior knowledge of dynamics structure and reward. This highlights the benefits of the robust formulation solely rather than stemming from algorithm design.
 The results of 100 simulations are shown in \Cref{tab:obstacle}: the robust agent performs worse than the nominal agent on average, but manages to ensure safety and attains a better worst-case performance. We also study the evolution of the simple regret $V(x_n) - J_n(x_n)$ with respect to the number of samples $N$, where $J_n(x_n) = \sum_{i > n} \gamma^i R_i$ is the empirical return from state $x_n$, while $V(x_n)$ is the optimal value that the agent would get by acting optimally from $x_n$ with knowledge of the dynamics. The mean regret $\hat{V}^r - V$, shown in \Cref{fig:regret} with its 95\% confidence interval, decreases polynomially with $N$ as expected from \Cref{thm:control-error}. Thus, \Cref{alg:full} gets more aggressive as it is more confident, while ensuring safety at all time. In contrast, the nominal agent has an even smaller regret but collided with obstacles in $4\%$ of simulations.
 
-%\begin{figure}[tp]
-%	\centering
-%	\includegraphics[width=0.3\linewidth]{img/regret.pdf}
-%	\caption{The mean regret along with its $95\%$ confidence interval with respect to $N$, for the robust and nominal agents.}
-%	\label{fig:regret}
-%\end{figure}
-%\begin{figure}[t]
-%	\centering
-%	\includegraphics[width=0.4\linewidth]{img/highway-small}
-%	\caption{The intersection crossing task. We show the trajectory intervals corresponding to behavioural uncertainty for each observed vehicle, and the multi-model assumption over the followed route.}
-%\end{figure}
 \begin{figure}[!tbp]
 	\centering
 	\begin{minipage}[t]{0.43\textwidth}
@@ -519,22 +506,6 @@ The results of 100 simulations are shown in \Cref{tab:obstacle}: the robust agen
 \end{figure}
 
 \begin{table}[tbp]
-%	\caption{Performances on the obstacle avoidance task}
-%	\label{tab:obstacle}
-%	\centering
-%	\begin{tabular}{lccc}
-%		\toprule
-%		Agent &
-%		failures &
-%		min return &
-%		mean return $\pm$ std  \\
-%		\midrule
-%		Oracle & 0\% & {11.6} & {$14.2 \pm 1.3$} \\
-%		\midrule
-%		{Nominal} & {4\%} & {2.8} & \textbf{$\mathbf{13.8} \pm 2.0$} \\
-%		\Cref{alg:full} & \textbf{0\%} & \textbf{10.4} & {$13.0 \pm 1.5$} \\
-%		\bottomrule
-%	\end{tabular}
 
 \parbox{.49\linewidth}{
 	\centering
@@ -578,10 +549,10 @@ The results of 100 simulations are shown in \Cref{tab:obstacle}: the robust agen
 }
 \end{table}
 
-\paragraph{Behavioural planning for an autonomous vehicle}
+\textbf{Behavioural planning for an autonomous vehicle}~~~
 We consider the \href{https://github.com/eleurent/highway-env}{highway-env} environment \citep{highway-env} for simulated driving decision problems. An autonomous vehicle with state $\chi_0\in\Real^4$ is approaching an intersection among $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \dots,\chi_V]^\top\in\Real^{4V+4}$. These vehicles follow parametrized behaviours $\dot{\chi}_i=f_i(x,\theta_i)$ with unknown parameters $\theta_i\in\Real^5$. We appreciate a first advantage of the structure imposed in \Cref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
 %This allows to scale to larger systems: in our experiments, we used a state space of dimension $44$ ($V=10$) where e.g. \citep{Dean2018,abeille18a} reported numerical experiments with states of dimensions 3 and 4, respectively.
-The system dynamics $f$, which describes the couplings and interactions between vehicles, can only be expressed in the form of \Cref{assumpt:structure} given the knowledge of the desired route for each vehicle, with features $\phi$ expressing deviations to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \Cref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. We compare \Cref{alg:full} to a nominal agent planning with the estimated parameter $\theta_{[N],\lambda}$, with two different modelling assumptions: we assume that Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error. Their performances are compared in \Cref{tab:driving}. Again, the robust approach is less efficient on average than planning with a nominal model, but it does better in terms of worst-case performance and manages to avoid collisions, contrary to the nominal baselines that suffer from model bias. We provide more details about the system and videos of the experiments in the Supplementary Material.
+The system dynamics $f$, which describes the interactions between vehicles, can only be expressed in the form of \Cref{assumpt:structure} given the knowledge of the desired route for each vehicle, with features $\phi$ expressing deviations to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \Cref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. In \Cref{tab:driving}, we compare \Cref{alg:full} to a nominal agent planning with the estimated parameter $\theta_{[N],\lambda}$, with two different modelling assumptions: we assume that Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error. Again, the robust approach is less efficient on average than planning with a nominal model, but it does better in terms of worst-case performance and manages to avoid collisions, contrary to the nominal baselines that suffer from model bias. We provide more details about the system and videos of the experiments in the Supplementary Material.
 
 %
 %\begin{table}[t]
