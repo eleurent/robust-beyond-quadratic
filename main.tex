@@ -49,7 +49,7 @@
 
 
 
-\title{Interval-based Robust Control of Linear Systems with Generic Costs}
+\title{Interval-based Robust-Adaptive Control of Linear Systems with Generic Costs}
 
 % The \author macro works with any number of authors. There are two commands
 % used to separate the names and addresses of multiple authors: \And and \AND.
@@ -95,8 +95,11 @@
 \maketitle
 
 \begin{abstract}
-We develop a framework for the adaptive model predictive control (MPC) of a linear system with unknown parameters, in a critical setting where failures are costly and should be prevented at all time. Through the careful selection and non-trivial combination of tools from different communities --namely linear regression, interval prediction and tree-based planning--, we provide an integrated solution to the problem of maximin control with arbitrary bounded costs. We provide the first end-to-end analysis in this fairly general setting by ensuring that theoretical guarantees at each layer can be combined. The full procedure is designed to produce reasonable and safe behaviours, which progressively recover an asymptotic optimality. Finally, we relax our modelling assumptions in a multi-model extension based on a data-driven robust model selection mechanism. In addition to our theoretical results we strived to preserve tractable computations for practical applicability, as we illustrate on a simulated application of autonomous driving at a crossroads intersection.\footnote{Source code and videos are available in the Supplementary Material.}
+We develop a framework for the robust adaptive model predictive control (MPC) of a linear system with unknown parameters, in a critical setting where failures are costly and should be prevented at all time. So far, this problem has been studied in the case of quadratic costs --known as the LQ problem--, which limits applications to stabilisation tasks. In this paper, we extend this setting to consider arbitrary bounded costs, including non-convex and potentially non-smooth costs that arise in many practical problems. To this end, we carefully select and bring together several tools from different communities, namely linear regression, recent results in interval prediction, and tree-based planning. Thanks to the non-trivial combination of theoretical guarantees at each layer, we provide the first end-to-end regret analysis in this setting. The full procedure is designed to produce safe behaviours which progressively recover an asymptotic optimality. Finally, we relax our modelling assumptions in a multi-model extension based on a data-driven robust model selection mechanism. In addition to our theoretical results we strived to preserve tractable computations for practical applicability, as we illustrate on a simulated application of autonomous driving at a crossroads intersection.\footnote{Source code and videos are available in the Supplementary Material.}
 \end{abstract}	
+
+
+
 
 \section{Introduction}
 
