@@ -600,7 +600,7 @@ Beyond industrial perspectives, this work could be of general interest for risk-
 \end{center}
 
 \paragraph{Outline}
-In \Cref{sec:proof}, we provide a proof for every novel result introduced in this paper. \Cref{sec:attachments} describes the attached video files and source code. \Cref{sec:tight-polytope} gives a better method of conversion from ellipsoid to polytope than that of \eqref{eq:polytope}. \Cref{sec:min-max-order} highlights the fact that robustness cannot be recovered by aggregating independent solutions to many optimal control problem. Finally, \Cref{sec:experimental-setting} provides additional details on our experiments.
+In \Cref{sec:proof}, we provide a proof for every novel result introduced in this paper. \Cref{sec:attachments} describes the attached video files and source code. \Cref{sec:experimental-setting} provides additional details on our experiments. \Cref{sec:tight-polytope} gives a better method of conversion from ellipsoid to polytope than that of \eqref{eq:polytope}. Finally, \Cref{sec:min-max-order} highlights the fact that robustness cannot be recovered by aggregating independent solutions to many optimal control problem. 
 
 \section{Proofs}
 \label{sec:proof}
@@ -996,22 +996,205 @@ We now turn to the proof of the theorem.
 The \texttt{video} folder contains videos comparing trajectories of the oracle planner and \Cref{alg:full}. The oracle planner has access to the true dynamics and follows aggressive trajectories that nearly saturate the collision constraints. In contrast, the \Cref{alg:full} produces more conservative trajectories. In the obstacle experiment, we show the confidence ellipsoid over $\theta = (\theta_x,\theta_y)$ in the right panel. In the driving experiment, we show the multi-model rejection and robust selection procedure through the display of several trajectory hulls for all possible destinations of the observed vehicles.
 
 \paragraph{Source code}
-The attached \texttt{code} directory contains an implementation of \Cref{alg:full}. We relate the algorithmic steps of this paper to their location in the source code.
-\begin{enumerate}
-	\item The confidence ellipsoid \eqref{eq:confidence-ellipsoid} is implemented in the \texttt{ellipsoid()} method in \url{code/rl_agents/agents/tree_search/robust_epc.py}
-	\item The corresponding polytope \eqref{eq:polytope} is implemented in the \texttt{polytope()} method of \url{code/rl_agents/agents/tree_search/robust_epc.py}
-	\item The simple predictor of \eqref{eq:predictor-naive} is implemented in the \texttt{step\_simple\_predictor()} method of \url{code/rl_agents/agents/common/interval.py}
-	\item The enhanced predictor of \eqref{eq:interval-predictor} is implemented in the \texttt{step\_interval\_predictor()} method of \url{code/rl_agents/agents/common/interval.py}
-	\item The pessimistic reward of \eqref{eq:surrogate-objective} is implemented in the \texttt{pessimistic\_reward()} method of \url{code/obstacle_env/envs/obstacle.py} and the \texttt{check\_collision()} method of \url{code/highway_env/vehicle/uncertainty/prediction.py}
-	\item The robust upper-bound of \eqref{eq:robust-b-values} is implemented in the \texttt{RobustNode} class of \url{code/rl_agents/agents/tree_search/robust.py}
-\end{enumerate}
-The experiments can be reproduced by running:
-\lstset{language=bash}
-\begin{lstlisting}
-cd scripts
-python experiments.py configs/<env>/env.json configs/<env>/agents/<agent>.json
-\end{lstlisting}
+The attached \texttt{code} directory contains an implementation of \Cref{alg:full}. The \texttt{README.md} file relates the algorithmic steps of this paper to their location in the source code, and contains instructions to reproduce our experimental results.
 
+\section{Experimental details}
+\label{sec:experimental-setting}
+
+In both experiments, we used $\gamma=0.9$,  $\delta=0.9$ and a planning budget $K=100$. The perturbations were sampled uniformly in $[-0.1, 0.1]^r$ while the measurements are Gaussian with covariance $\Sigma_r = 0.1 I_s$. 
+
+\subsection{Obstacle Avoidance}
+
+\paragraph{States}
+
+
+
+\paragraph{Actions}
+\paragraph{Reward}
+\paragraph{Dynamics}
+
+$
+\begin{bmatrix}
+\dot{p_x}\\
+\dot{p_y}\\
+\dot{v_x}\\
+\dot{v_y}\\
+\end{bmatrix} = 
+\begin{bmatrix}
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 \\
+0 & 0 & -\theta_x & 0 \\
+0 & 0 & 0 & -\theta_y
+\end{bmatrix}
+\begin{bmatrix}
+{p_x}\\
+{p_y}\\
+{v_x}\\
+{v_y}\\
+\end{bmatrix}
++
+\begin{bmatrix}
+0\\
+0\\
+{u_x}\\
+{u_y}\\
+\end{bmatrix}.
+$
+
+Note that \Cref{assumpt:metzler} is always verified. 
+
+\subsection{Autonomous Driving}
+
+In the following, we describe the structure of the dynamical system $f$ representing the couplings and interactions between several vehicles.
+
+\paragraph{States}
+
+In addition to the ego-vehicle, the scene contains $V$ other vehicles. Any vehicle $i\in[0,V]$ is represented by its position $(x_i, y_i)$, its forward velocity $v_i$ its heading $\psi_i$. The resulting joint state is the traffic description: $x = (x_i, y_i, v_i, psi_i)_{i\in[0,V]}\in\Real^{4V+4}$.
+
+\paragraph{Actions}
+
+The ego-vehicle is following a fixed path, and the tasks consists in adapting its velocity by means of three actions $\cA = \{$faster, constant velocity, slower$\}$. They are achieved by a longitudinal linear controller that tracks the desired velocity $v_0$, as described below in the system dynamics.
+
+\paragraph{Reward}
+
+The reward function $R$ is the following:
+\[
+R(x) = 
+\begin{cases}
+1 & \text{if the ego-vehicle is at full velocity;}\\
+0 & \text{if the ego-vehicle has collided with another vehicle;}\\
+0.5 & \text{else.}
+\end{cases}\]
+
+\paragraph{Dynamics}
+
+The kinematics of any vehicle $i\in[V]$ are represented by the Kinematic Bicycle Model:
+\begin{align}
+\dot{x}_i &= v_i\cos(\psi_i), \nonumber\\
+\dot{y}_i &= v_i\sin(\psi_i), \nonumber\\
+\dot{v}_i &= a_i, \nonumber\\
+\dot{\psi}_i &= \frac{v_i}{l}\sin(\beta_i), \nonumber
+\end{align}
+where $(x_i, y_i)$ is the vehicle position, $v_i$ is its forward velocity and $\psi_i$ is its heading, $l$ is the vehicle half-length, $a_i$ is the acceleration command and $\beta_i$ is the slip angle at the centre of gravity, used as a steering command.
+
+\paragraph{Longitudinal dynamics}
+Longitudinal behaviour is modelled by a linear controller using three features: a desired velocity, a braking term to drive slower than the front vehicle, and a braking term to respect a safe distance to the front vehicle.
+
+Denoting $f_i$ the index of the front vehicle preceding vehicle $i$, the acceleration command can be presented as follows:
+\begin{equation*}
+a_i = \begin{bmatrix}
+\theta_{i,1} & \theta_{i,2} & \theta_{i,3}
+\end{bmatrix} \begin{bmatrix}
+v_0 - v_i \\
+-(v_{f_i}-v_i)^- \\
+-(x_{f_i} - x_i - (d_0 + v_iT))^- \\
+\end{bmatrix},
+\label{eq:theta_a}
+\end{equation*}
+where $v_0, d_0$ and $T$ respectively denote the speed limit, jam distance and time gap given by traffic rules.
+
+\paragraph{Lateral dynamics}
+
+The lane $L_i$ with the lateral position $y_{L_i}$ and heading $\psi_{L_i}$ is tracked by a cascade controller of lateral position and heading $\beta_i$, which is selected in a way the closed-loop dynamics take the form:
+
+\begin{align}
+\label{eq:heading-command}
+\dot{\psi}_i &= \theta_{i,5}\left(\psi_{L_i}+\sin^{-1}\left(\frac{\tilde{v}_{i,y}}{v_i}\right)-\psi_i\right),\\
+\tilde{v}_{i,y} &= \theta_{i,4} (y_{L_i}-y_i). \nonumber
+\end{align}
+We assume that the drivers choose their steering command $\beta_i$ such that \eqref{eq:heading-command} is always achieved: $\beta_i = \sin^{-1}(\frac{l}{v_i}\dot{\psi}_i)$.
+
+\paragraph{LPV formulation}
+
+The system presented so far is non-linear and must be cast into the LPV form. We approximate the non-linearities induced by the trigonometric operators through equilibrium linearisation around $y_i=y_{L_i}$ and $\psi_i=\psi_{L_i}$.
+
+This yields the following longitudinal dynamics:
+\begin{align*}
+\dot{x}_i &= v_i,\\
+\dot v_i &= \theta_{i,1} (v_0 - v_i) + \theta_{i,2} (v_{f_i} - v_i) + \theta_{i,3}(x_{f_i} - x_i - d_0 - v_i T),
+\end{align*}
+where $\theta_{i,2}$ and $\theta_{i,3}$ are set to $0$ whenever the corresponding features are not active.
+
+It can be rewritten in the form $$\dot{X} = A(\theta)(X-X_c) + \omega.$$ For example, in the case of two vehicles only:
+\begin{equation*}
+X = \begin{bmatrix}
+x_i \\
+x_{f_i} \\
+v_i \\
+v_{f_i} \\
+\end{bmatrix}
+,\quad
+X_c = \begin{bmatrix}
+-d_0-v_0 T \\
+0 \\
+v_0\\
+v_0 \\
+\end{bmatrix}
+,\quad
+\omega = \begin{bmatrix}
+v_0 \\
+v_0 \\
+0\\
+0\\
+\end{bmatrix}
+\end{equation*}
+
+\begin{equation*}
+A(\theta)
+=
+\begin{blockarray}{ccccc}
+& i & f_i & i & f_i \\
+\begin{block}{c[cccc]}
+i & 0 & 0 & 1 & 0 \\
+f_i & 0 & 0 & 0 & 1 \\
+i & -\theta_{i,3} & \theta_{i,3} & -\theta_{i,1}-\theta_{i,2}-\theta_{i,3} & \theta_{i,2} \\
+f_i & 0 & 0 & 0 & -\theta_{f_i,1} \\
+\end{block}
+\end{blockarray}
+\end{equation*}
+
+The lateral dynamics are in a similar form:
+\begin{equation*}
+\begin{bmatrix}
+\dot{y}_i \\
+\dot{\psi}_i \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+0 & v_i \\
+-\frac{\theta_{i,4} \theta_{i,5}}{v_i} & -\theta_{i,5}
+\end{bmatrix}
+\begin{bmatrix}
+y_i - y_{L_i} \\
+\psi_i - \psi_{L_i}
+\end{bmatrix}
++
+\begin{bmatrix}
+v_i\psi_{L_i} \\
+0
+\end{bmatrix}
+\end{equation*}
+Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \emph{i.e.} $\theta_{i,6}=v_i$, with constant bounds assumed for $v_i$ using an overset of the longitudinal interval predictor.
+
+
+\paragraph{Change of coordinates}
+In both cases, the obtained polytope centre $A_0$ is non-Metzler.
+We use the similarity transformation of coordinates of \citet{Efimov2013}. Precisely, we choose $\Theta$ such that for any $\theta\in\Theta$, $A(\theta)$ is always diagonalisable with real eigenvalues, and perform an eigendecomposition to compute its change of basis matrix $Z$. The transformed system $X'=Z^{-1}(X-X_c)$ verifies \eqref{eq:confidence} with $A_0$ Metlzer as required to apply the interval predictor of \Cref{prop:predictor}. Finally, the obtained predictor is transformed back to the original coordinates $Z$ by using the following lemma:
+\begin{lemma}[Interval arithmetic of \citealt{Efimov2012}]
+	\label{lem:interval} Let $x\in\mathbb{R}^{n}$ be a vector variable, $\underline{x}\le x\le\overline{x}$ for some $\underline{x},\overline{x}\in\mathbb{R}^{n}$. 
+	
+	\begin{enumerate}
+		\item If $A\in\Real^{m\times n}$ is a constant matrix, then
+		\begin{equation}
+		A^{+}\underline{x}-A^{-}\overline{x}\le Ax\le A^{+}\overline{x}-A^{-}\underline{x}.\label{eq:Interval1}
+		\end{equation}
+		\item If $A\in\Real^{m\times n}$ is a matrix variable and \textup{$\underline{A}\le A\le\overline{A}$} for some $\underline{A},\overline{A}\in\Real^{m\times n}$, then
+		\begin{gather}
+		\underline{A}^{+}\underline{x}^{+}-\overline{A}^{+}\underline{x}^{-}-\underline{A}^{-}\overline{x}^{+}+\overline{A}^{-}\overline{x}^{-}\leq Ax\label{eq:Interval2}\\
+		\leq\overline{A}^{+}\overline{x}^{+}-\underline{A}^{+}\overline{x}^{-}-\overline{A}^{-}\underline{x}^{+}+\underline{A}^{-}\underline{x}^{-}.\nonumber 
+		\end{gather}
+	\end{enumerate}
+\end{lemma}
 
 \section{A tighter conversion from ellipsoid to polytope}
 \label{sec:tight-polytope}
@@ -1065,172 +1248,5 @@ python experiments.py configs/<env>/env.json configs/<env>/agents/<agent>.json
 		\caption{From left to right: two simple models and corresponding u-values with optimal sequences in blue; the naive version of the robust values returns sub-optimal paths in red; our robust U-value properly recovers the robust policy in green.}
 		\label{fig:min-max-order}
 	\end{figure}
-
-\section{Experimental details}
-\label{sec:experimental-setting}
-
-In both experiments, we used $\gamma=0.9$,  $\delta=0.9$ and a planning budget $K=100$. The perturbations were sampled uniformly in $[-0.1, 0.1]^r$ while the measurements are Gaussian with covariance $\Sigma_r = 0.1 I_s$. 
-
-\subsection{Obstacle Avoidance}
-
-\paragraph{States}
-\paragraph{Actions}
-\paragraph{Reward}
-\paragraph{Dynamics}
-
-Note that \Cref{assumpt:metzler} is always verified. 
-
-\subsection{Autonomous Driving}
-
-In the following, we describe the structure of the dynamical system $f$ representing the couplings and interactions between several vehicles.
-
-\paragraph{States}
-
-In addition to the ego-vehicle, the scene contains $V$ other vehicles. Any vehicle $i\in[0,V]$ is represented by its position $(x_i, y_i)$, its forward velocity $v_i$ its heading $\psi_i$. The resulting joint state is the traffic description: $x = (x_i, y_i, v_i, psi_i)_{i\in[0,V]}\in\Real^{4V+4}$.
-
-\paragraph{Actions}
-
-The ego-vehicle is following a fixed path, and the tasks consists in adapting its velocity by means of three actions $\cA = \{$faster, constant velocity, slower$\}$. They are achieved by a longitudinal linear controller that tracks the desired velocity $v_0$, as described below in the system dynamics.
-
-\paragraph{Reward}
-
-The reward function $R$ is the following:
-\[
-R(x) = 
-\begin{cases}
-1 & \text{if the ego-vehicle is at full velocity;}\\
-0 & \text{if the ego-vehicle has collided with another vehicle;}\\
-0.5 & \text{else.}
-\end{cases}\]
-
-\paragraph{Dynamics}
-
-The kinematics of any vehicle $i\in[V]$ are represented by the Kinematic Bicycle Model:
-\begin{align}
-	\dot{x}_i &= v_i\cos(\psi_i), \nonumber\\
-	\dot{y}_i &= v_i\sin(\psi_i), \nonumber\\
-	\dot{v}_i &= a_i, \nonumber\\
-	\dot{\psi}_i &= \frac{v_i}{l}\sin(\beta_i), \nonumber
-\end{align}
-where $(x_i, y_i)$ is the vehicle position, $v_i$ is its forward velocity and $\psi_i$ is its heading, $l$ is the vehicle half-length, $a_i$ is the acceleration command and $\beta_i$ is the slip angle at the centre of gravity, used as a steering command.
-
-\paragraph{Longitudinal dynamics}
-Longitudinal behaviour is modelled by a linear controller using three features: a desired velocity, a braking term to drive slower than the front vehicle, and a braking term to respect a safe distance to the front vehicle.
-
-Denoting $f_i$ the index of the front vehicle preceding vehicle $i$, the acceleration command can be presented as follows:
-\begin{equation*}
-	a_i = \begin{bmatrix}
-	\theta_{i,1} & \theta_{i,2} & \theta_{i,3}
-	\end{bmatrix} \begin{bmatrix}
-		v_0 - v_i \\
-		-(v_{f_i}-v_i)^- \\
-		-(x_{f_i} - x_i - (d_0 + v_iT))^- \\
-	\end{bmatrix},
-	\label{eq:theta_a}
-\end{equation*}
-where $v_0, d_0$ and $T$ respectively denote the speed limit, jam distance and time gap given by traffic rules.
-
-\paragraph{Lateral dynamics}
-
-The lane $L_i$ with the lateral position $y_{L_i}$ and heading $\psi_{L_i}$ is tracked by a cascade controller of lateral position and heading $\beta_i$, which is selected in a way the closed-loop dynamics take the form:
-
-\begin{align}
-	\label{eq:heading-command}
-    \dot{\psi}_i &= \theta_{i,5}\left(\psi_{L_i}+\sin^{-1}\left(\frac{\tilde{v}_{i,y}}{v_i}\right)-\psi_i\right),\\
-    \tilde{v}_{i,y} &= \theta_{i,4} (y_{L_i}-y_i). \nonumber
-\end{align}
-We assume that the drivers choose their steering command $\beta_i$ such that \eqref{eq:heading-command} is always achieved: $\beta_i = \sin^{-1}(\frac{l}{v_i}\dot{\psi}_i)$.
-
-\paragraph{LPV formulation}
-
-The system presented so far is non-linear and must be cast into the LPV form. We approximate the non-linearities induced by the trigonometric operators through equilibrium linearisation around $y_i=y_{L_i}$ and $\psi_i=\psi_{L_i}$.
-
-This yields the following longitudinal dynamics:
-\begin{align*}
-\dot{x}_i &= v_i,\\
-\dot v_i &= \theta_{i,1} (v_0 - v_i) + \theta_{i,2} (v_{f_i} - v_i) + \theta_{i,3}(x_{f_i} - x_i - d_0 - v_i T),
-\end{align*}
-where $\theta_{i,2}$ and $\theta_{i,3}$ are set to $0$ whenever the corresponding features are not active.
-
-It can be rewritten in the form $$\dot{X} = A(\theta)(X-X_c) + \omega.$$ For example, in the case of two vehicles only:
-\begin{equation*}
-    X = \begin{bmatrix}
-x_i \\
-x_{f_i} \\
-v_i \\
-v_{f_i} \\
-\end{bmatrix}
-,\quad
-X_c = \begin{bmatrix}
--d_0-v_0 T \\
-0 \\
-v_0\\
-v_0 \\
-\end{bmatrix}
-,\quad
-\omega = \begin{bmatrix}
-v_0 \\
-v_0 \\
-0\\
-0\\
-\end{bmatrix}
-\end{equation*}
-
-\begin{equation*}
-A(\theta)
-=
-\begin{blockarray}{ccccc}
- & i & f_i & i & f_i \\
-\begin{block}{c[cccc]}
-i & 0 & 0 & 1 & 0 \\
-f_i & 0 & 0 & 0 & 1 \\
-i & -\theta_{i,3} & \theta_{i,3} & -\theta_{i,1}-\theta_{i,2}-\theta_{i,3} & \theta_{i,2} \\
-f_i & 0 & 0 & 0 & -\theta_{f_i,1} \\
-\end{block}
-\end{blockarray}
-\end{equation*}
-
-The lateral dynamics are in a similar form:
-\begin{equation*}
-\begin{bmatrix}
-\dot{y}_i \\
-\dot{\psi}_i \\
-\end{bmatrix}
-=
-\begin{bmatrix}
-0 & v_i \\
--\frac{\theta_{i,4} \theta_{i,5}}{v_i} & -\theta_{i,5}
-\end{bmatrix}
-\begin{bmatrix}
-y_i - y_{L_i} \\
-\psi_i - \psi_{L_i}
-\end{bmatrix}
-+
-\begin{bmatrix}
-v_i\psi_{L_i} \\
-0
-\end{bmatrix}
-\end{equation*}
-Here, the dependency in $v_i$ is seen as an uncertain parametric dependency, \emph{i.e.} $\theta_{i,6}=v_i$, with constant bounds assumed for $v_i$ using an overset of the longitudinal interval predictor.
-
-
-\paragraph{Change of coordinates}
-In both cases, the obtained polytope centre $A_0$ is non-Metzler.
-We use the similarity transformation of coordinates of \citet{Efimov2013}. Precisely, we choose $\Theta$ such that for any $\theta\in\Theta$, $A(\theta)$ is always diagonalisable with real eigenvalues, and perform an eigendecomposition to compute its change of basis matrix $Z$. The transformed system $X'=Z^{-1}(X-X_c)$ verifies \eqref{eq:confidence} with $A_0$ Metlzer as required to apply the interval predictor of \Cref{prop:predictor}. Finally, the obtained predictor is transformed back to the original coordinates $Z$ by using the following lemma:
-\begin{lemma}[Interval arithmetic of \citealt{Efimov2012}]
-	 \label{lem:interval} Let $x\in\mathbb{R}^{n}$ be a vector variable, $\underline{x}\le x\le\overline{x}$ for some $\underline{x},\overline{x}\in\mathbb{R}^{n}$. 
-	
-	\begin{enumerate}
-		\item If $A\in\Real^{m\times n}$ is a constant matrix, then
-		\begin{equation}
-		A^{+}\underline{x}-A^{-}\overline{x}\le Ax\le A^{+}\overline{x}-A^{-}\underline{x}.\label{eq:Interval1}
-		\end{equation}
-		\item If $A\in\Real^{m\times n}$ is a matrix variable and \textup{$\underline{A}\le A\le\overline{A}$} for some $\underline{A},\overline{A}\in\Real^{m\times n}$, then
-		\begin{gather}
-		\underline{A}^{+}\underline{x}^{+}-\overline{A}^{+}\underline{x}^{-}-\underline{A}^{-}\overline{x}^{+}+\overline{A}^{-}\overline{x}^{-}\leq Ax\label{eq:Interval2}\\
-		\leq\overline{A}^{+}\overline{x}^{+}-\underline{A}^{+}\overline{x}^{-}-\overline{A}^{-}\underline{x}^{+}+\underline{A}^{-}\underline{x}^{-}.\nonumber 
-		\end{gather}
-	\end{enumerate}
-\end{lemma}
 
 \end{document}

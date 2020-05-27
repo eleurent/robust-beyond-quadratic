@@ -3,7 +3,7 @@
     "env_preprocessors": [
         {
             "method":"set_route_at_intersection",
-            "args": "random"
+            "args": "minimum_error"
         }
     ],
     "budget": 100,
