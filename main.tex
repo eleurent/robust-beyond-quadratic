@@ -49,7 +49,7 @@
 
 
 
-\title{Robust-Adaptive Control of Linear Systems: beyond Quadratic Costs}
+\title{Robust-Adaptive Control of Linear Systems:\\ beyond Quadratic Costs}
 
 % The \author macro works with any number of authors. There are two commands
 % used to separate the names and addresses of multiple authors: \And and \AND.
@@ -95,9 +95,8 @@
 \maketitle
 
 \begin{abstract}
-%We develop a framework for the robust adaptive model predictive control (MPC) of a linear system with unknown parameters, in a critical setting where failures are costly. So far, this problem has been studied in the case of quadratic costs --the LQ problem--, which limits applications to stabilisation tasks. In this paper, we extend this setting to consider arbitrary bounded costs, including non-convex, that arise in many practical problems. To this end, we carefully select and bring together several tools from different communities, namely linear regression, recent results in interval prediction, and tree-based planning. Thanks to the non-trivial combination of theoretical guarantees at each layer, we provide the first end-to-end regret analysis in this setting. Finally, we relax our modelling assumptions in a multi-model extension based on a data-driven robust model selection mechanism. In addition to our theoretical results we strived to preserve tractable computations for practical applicability, as we illustrate on a two simulated applications.
 We consider the problem of robust and adaptive model predictive control (MPC) of a linear system, with unknown parameters that are learned on the way (adaptive), in a critical setting where failures are costly (robust).
-This problem has been studied from different perspectives by different communities. However, only the case of quadratic costs --the LQ problem-- has been considered, which limits applications to stabilisation tasks. In order to handle more general (bounded, non-convex) costs that naturally arise in many practical problems,
+This problem has been studied from different perspectives by different communities. However, only the case of quadratic costs --the LQ problem-- has been considered, which limits applications to stabilisation tasks only. In order to handle more general (bounded, non-convex) costs that naturally arise in many practical problems,
 we carefully select and bring together several tools from different communities, namely non-asymptotic linear regression, recent results in interval prediction, and tree-based planning. 
 Combining and adapting the theoretical guarantees at each layer is non trivial, and we provide the first end-to-end regret analysis for this setting.  
 Interestingly, our analysis naturally adapts to handle many models and combines with a data-driven robust model selection strategy, which enables to relax the modelling assumptions.
