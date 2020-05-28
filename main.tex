@@ -1003,19 +1003,34 @@ The attached \texttt{code} directory contains an implementation of \Cref{alg:ful
 \section{Experimental details}
 \label{sec:experimental-setting}
 
-In both experiments, we used $\gamma=0.9$,  $\delta=0.9$ and a planning budget $K=100$. The perturbations were sampled uniformly in $[-0.1, 0.1]^r$ while the measurements are Gaussian with covariance $\Sigma_r = 0.1 I_s$. 
+In both experiments, we used $\gamma=0.9$,  $\delta=0.9$ and a planning budget $K=100$. The perturbations were sampled uniformly in $[-0.1, 0.1]^r$ while the measurements are Gaussian with covariance $\Sigma_s = 0.1 I_s$. 
 
 \subsection{Obstacle Avoidance}
 
 \paragraph{States}
 
-
+The system is described by its position $(p_x,p_y)$ and velocity $(v_x, v_y)$:
+\begin{equation*}
+x = \begin{bmatrix}
+p_x & p_y & v_x & v_y
+\end{bmatrix}^\transp
+\end{equation*}
 
 \paragraph{Actions}
-\paragraph{Reward}
-\paragraph{Dynamics}
 
-$
+It is acted upon by means horizontal and vertical forces $u=(u_x, u_y)\in [-1,1]^2$.
+We discretise the action space into four constant controls, for each direction:
+\begin{equation*}
+\cA = \{(-1, -1), (-1, 1), (1, -1), (1, 1)\}
+\end{equation*}
+
+\paragraph{Reward}
+
+The reward encodes the task of navigating to reach a goal state $x_g$ while avoiding collisions with obstacles: $$R(x) = \delta(x)/(1 + \|x - x_g\|_2),$$  where $\delta(x)$ is $0$ whenever $x$ collides with an obstacle, $1$ otherwise.
+
+\paragraph{Dynamics}
+The system dynamics consist in a double integrator, with friction parameters $(\theta_x, \theta_y)$:
+$$
 \begin{bmatrix}
 \dot{p_x}\\
 \dot{p_y}\\
@@ -1041,7 +1056,7 @@ $
 {u_x}\\
 {u_y}\\
 \end{bmatrix}.
-$
+$$
 
 Note that \Cref{assumpt:metzler} is always verified. 
 
