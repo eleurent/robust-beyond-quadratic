@@ -109,7 +109,6 @@ publisher = {Curran Associates, Inc.},
 	keywords={Robustness; Sliding mode control; Dynamic feedback; Zero dynamics; Uniform ultimate boundedness},
 	abstract={A dynamic sliding mode controller design method is proposed for multiple input-output systems with additive uncertainties. A previous result on the stability of triangular systems is generalised to the case of uniform ultimate boundedness of controlled triangular systems. This is used to prove the stability of the overall closed-loop system. The uncertain system with appropriately chosen sliding mode control is shown to be ultimately bounded if the zero dynamics of the nominal system are uniformly asymptotically (exponentially) stable. The design method is demonstrated with two examples.},
 	issn={0167-6911},
-	url={http://www.sciencedirect.com/science/article/pii/S0167691197000613}
 }
 
 @INPROCEEDINGS{Lopez2019,
@@ -409,4 +408,61 @@ year = {1997}
 	year      = {2017},
 	archivePrefix = {arXiv},
 	eprint    = {1709.04047},
+}
+
+@article{Sastry1990,
+	abstract = {This volume surveys the major results and techniques of analysis in the field of adaptive control. Focusing on linear, continuous time, single-input, single-output systems, the authors offer a clear, conceptual presentation of adaptive methods, enabling a critical evaluation of these techniques and suggesting avenues of further development.},
+	author = {Sastry, Shankar and Bodson, Marc and Bartram, James F.},
+	doi = {10.1121/1.399905},
+	issn = {0001-4966},
+	journal = {The Journal of the Acoustical Society of America},
+	title = {{Adaptive Control: Stability, Convergence, and Robustness}},
+	year = {1990}
+}
+
+@article{Tanaskovic2014,
+	abstract = {An adaptive control algorithm for open-loop stable, constrained, linear, multiple input multiple output systems is presented. The proposed approach can deal with both input and output constraints, as well as measurement noise and output disturbances. The adaptive controller consists of an iterative set membership identification algorithm, that provides a set of candidate plant models at each time step, and a model predictive controller, that enforces input and output constraints for all the plants inside the model set. The algorithm relies only on the solution of standard convex optimization problems that are guaranteed to be recursively feasible. The experimental results obtained by applying the proposed controller to a quad-tank testbed are presented.},
+	author = {Tanaskovic, Marko and Fagiano, Lorenzo and Smith, Roy and Morari, Manfred},
+	doi = {10.1016/j.automatica.2014.10.036},
+	issn = {00051098},
+	journal = {Automatica},
+	keywords = {Adaptive control,Control of constrained systems,Impulse response,Learning control,Model predictive control,Self tuning control,Set membership identification},
+	title = {{Adaptive receding horizon control for constrained MIMO systems}},
+	year = {2014}
+}
+
+@Article{Lorenzen2017,
+	author={Lorenzen, Matthias
+	and Allg{\"o}wer, Frank
+	and Cannon, Mark},
+	title={Adaptive Model Predictive Control with Robust Constraint Satisfaction},
+	journal={IFAC-PapersOnLine},
+	year={2017},
+	month={Jul},
+	day={01},
+	volume={50},
+	number={1},
+	pages={3313-3318},
+	keywords={Model Predictive Control; Adaptive Control; Constraint Satisfaction Problems; Uncertain Linear Systems; System Identification},
+	abstract={Adaptive control for constrained, linear systems is addressed and a solution based on Model Predictive Control (MPC) and set-membership system identification is presented. The paper introduces a computationally tractable solution which uses observations of past state and input trajectories to update the model and improve control performance while maintaining guaranteed constraint satisfaction and recursive feasibility. The developed approach is applied to a stabilizing MPC scheme and practical stability under persistent, additive disturbance is proved. A numerical example and brief comparison with non-adaptive MPC is provided.},
+	issn={2405-8963}
+}
+
+@INPROCEEDINGS{Kohler2019,
+	author={J. {Köhler} and E. {Andina} and R. {Soloperto} and M. A. {Müller} and F. {Allgöwer}},
+	booktitle={2019 IEEE 58th Conference on Decision and Control (CDC)}, 
+	title={Linear robust adaptive model predictive control: Computational complexity and conservatism}, 
+	year={2019},
+	volume={},
+	number={},
+	pages={1383-1388},}
+
+@inproceedings{Lu2019,
+	abstract = {An adaptive Model Predictive Control (adaptive MPC) strategy is proposed for linear systems with constant unknown model parameters, bounded additive disturbances and state and control constraints. By combining online set-based identification and robust tube MPC, the proposed controller reduces the conservativeness of constraint handling, guarantees recursive feasibility and provides asymptotic bounds on the closed loop system state that depend explicitly on the the identified parameter set. Computational tractability is ensured by using fixed complexity polytopic sets to bound the model parameters and predicted states. Convex conditions for persistence of excitation are considered. The results are illustrated by a numerical example.},
+	author = {Lu, Xiaonan and Cannon, Mark},
+	booktitle = {Proceedings of the American Control Conference},
+	isbn = {9781538679265},
+	issn = {07431619},
+	title = {{Robust adaptive tube model predictive control}},
+	year = {2019}
 }
