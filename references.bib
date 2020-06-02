@@ -466,3 +466,62 @@ year = {1997}
 	title = {{Robust adaptive tube model predictive control}},
 	year = {2019}
 }
+
+@article{Fukushima2007,
+	abstract = {This paper proposes an adaptive model predictive control (MPC) algorithm for a class of constrained linear systems, which estimates system parameters on-line and produces the control input satisfying input/state constraints for possible parameter estimation errors. The key idea is to combine the robust MPC method based on the comparison model with an adaptive parameter estimation method suitable for MPC. To this end, first, a new parameter update method based on the moving horizon estimation is proposed, which allows to predict an estimation error bound over the prediction horizon. Second, an adaptive MPC algorithm is developed by combining the on-line parameter estimation with an MPC method based on the comparison model, suitably modified to cope with the time-varying case. This method guarantees feasibility and stability of the closed-loop system in the presence of state/input constraints. A numerical example is given to demonstrate its effectiveness. {\textcopyright} 2006 Elsevier Ltd. All rights reserved.},
+	author = {Fukushima, Hiroaki and Kim, Tae Hyoung and Sugie, Toshiharu},
+	doi = {10.1016/j.automatica.2006.08.026},
+	issn = {00051098},
+	journal = {Automatica},
+	keywords = {Adaptive estimation,Comparison principle,Constrained systems,Model predictive control,Robust stability},
+	title = {{Adaptive model predictive control for a class of constrained linear systems based on the comparison model}},
+	year = {2007}
+}
+
+@article{Adetola2009,
+	abstract = {In this paper, a method is proposed for the adaptive model predictive control of constrained nonlinear system. Rather than relying on the inherent robustness properties of standard NMPC, the developed technique explicitly account for the transient effect of parametric estimation error by combining a parameter adjustment mechanism with robust MPC algorithms. The parameter estimation routine employed guarantees non-increase of the estimation error vector. This means that the controller employs a process model which approaches that of the true system over time. These estimates are used to update the parameter uncertainty set at every time step, resulting in a gradual reduction in the conservative and/or computational effects of the incorporated robust features. {\textcopyright} 2008 Elsevier B.V. All rights reserved.},
+	author = {Adetola, Veronica and DeHaan, Darryl and Guay, Martin},
+	doi = {10.1016/j.sysconle.2008.12.002},
+	issn = {01676911},
+	journal = {Systems and Control Letters},
+	keywords = {Adaptive control,Model predictive control,Nonlinear systems,Robust control},
+	title = {{Adaptive model predictive control for constrained nonlinear systems}},
+	year = {2009}
+}
+
+@article{Aswani2013,
+	abstract = {Controller design faces a trade-off between robustness and performance, and the reliability of linear controllers has caused many practitioners to focus on the former. However, there is renewed interest in improving system performance to deal with growing energy constraints. This paper describes a learning-based model predictive control (LBMPC) scheme that provides deterministic guarantees on robustness, while statistical identification tools are used to identify richer models of the system in order to improve performance; the benefits of this framework are that it handles state and input constraints, optimizes system performance with respect to a cost function, and can be designed to use a wide variety of parametric or nonparametric statistical tools. The main insight of LBMPC is that safety and performance can be decoupled under reasonable conditions in an optimization framework by maintaining two models of the system. The first is an approximate model with bounds on its uncertainty, and the second model is updated by statistical methods. LBMPC improves performance by choosing inputs that minimize a cost subject to the learned dynamics, and it ensures safety and robustness by checking whether these same inputs keep the approximate model stable when it is subject to uncertainty. Furthermore, we show that if the system is sufficiently excited, then the LBMPC control action probabilistically converges to that of an MPC computed using the true dynamics. {\textcopyright} 2013 Elsevier Ltd. All rights reserved.},
+	author = {Aswani, Anil and Gonzalez, Humberto and Sastry, S. Shankar and Tomlin, Claire},
+	doi = {10.1016/j.automatica.2013.02.003},
+	issn = {00051098},
+	journal = {Automatica},
+	keywords = {Learning control,Predictive control,Robustness,Safety analysis,Statistics},
+	title = {{Provably safe and robust learning-based model predictive control}},
+	year = {2013}
+}
+
+@inproceedings{Amos2018,
+	abstract = {We present foundations for using Model Predictive Control (MPC) as a differentiable policy class for reinforcement learning in continuous state and action spaces. This provides one way of leveraging and combining the advantages of model-free and model-based approaches. Specifically, we differentiate through MPC by using the KKT conditions of the convex approximation at a fixed point of the controller. Using this strategy, we are able to learn the cost and dynamics of a controller via end-to-end learning. Our experiments focus on imitation learning in the pendulum and cartpole domains, where we learn the cost and dynamics terms of an MPC policy class. We show that our MPC policies are significantly more data-efficient than a generic neural network and that our method is superior to traditional system identification in a setting where the expert is unrealizable.},
+	archivePrefix = {arXiv},
+	arxivId = {1810.13400},
+	author = {Amos, Brandon and Rodriguez, Ivan Dario Jimenez and Sacks, Jacob and Boots, Byron and {Zico Kolter}, J.},
+	booktitle = {Advances in Neural Information Processing Systems},
+	eprint = {1810.13400},
+	issn = {10495258},
+	title = {{Differentiable MPC for end-to-end planning and control}},
+	year = {2018}
+}
+
+@inproceedings{Rosolia2019,
+	abstract = {We present a sample-based Learning Model Predictive Controller (LMPC) for constrained uncertain linear systems subject to bounded additive disturbances. The proposed controller builds on earlier work on LMPC for deterministic systems. First, we introduce the design of the safe set and value function used to guarantee safety and performance improvement. Afterwards, we show how these quantities can be approximated using noisy historical data. The effectiveness of the proposed approach is demonstrated through a numerical example. We show that the LMPC is able to safely explore the state space and to iteratively improve the worst-case closed-loop performance, while robustly satisfying state and input constraints.},
+	archivePrefix = {arXiv},
+	arxivId = {1904.06432},
+	author = {Rosolia, Ugo and Borrelli, Francesco},
+	booktitle = {Proceedings of the IEEE Conference on Decision and Control},
+	doi = {10.1109/CDC40024.2019.9030270},
+	eprint = {1904.06432},
+	isbn = {9781728113982},
+	issn = {07431546},
+	title = {{Sample-Based Learning Model Predictive Control for Linear Uncertain Systems}},
+	year = {2019}
+}
