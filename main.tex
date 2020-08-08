@@ -601,6 +601,7 @@ Beyond industrial perspectives, this work could be of general interest for risk-
 \bibliography{references}
 \bibliographystyle{icml2020}
 
+%\begin{comment}
 \clearpage
 \onecolumn
 \appendix
@@ -1074,7 +1075,7 @@ In the following, we describe the structure of the dynamical system $f$ represen
 
 \paragraph{States}
 
-In addition to the ego-vehicle, the scene contains $V$ other vehicles. Any vehicle $i\in[0,V]$ is represented by its position $(x_i, y_i)$, its forward velocity $v_i$ its heading $\psi_i$. The resulting joint state is the traffic description: $x = (x_i, y_i, v_i, psi_i)_{i\in[0,V]}\in\Real^{4V+4}$.
+In addition to the ego-vehicle, the scene contains $V$ other vehicles. Any vehicle $i\in[0,V]$ is represented by its position $(x_i, y_i)$, its forward velocity $v_i$ its heading $\psi_i$. The resulting joint state is the traffic description: $x = (x_i, y_i, v_i, \psi_i)_{i\in[0,V]}\in\Real^{4V+4}$.
 
 \paragraph{Actions}
 
@@ -1273,5 +1274,5 @@ We use the similarity transformation of coordinates of \citet{Efimov2013}. Preci
 		\caption{From left to right: two simple models and corresponding u-values with optimal sequences in blue; the naive version of the robust values returns sub-optimal paths in red; our robust U-value properly recovers the robust policy in green.}
 		\label{fig:min-max-order}
 	\end{figure}
-
+%\end{comment}
 \end{document}
