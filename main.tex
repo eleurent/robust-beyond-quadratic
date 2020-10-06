@@ -402,7 +402,7 @@ Hence, by using enough computational budget $K$ for planning we can get as close
 			\item a Lipschitz regularity assumption for the reward function $R$:
 			\item a stability condition: there exist $P>0,Q_0\in\Real^{p\times p}$, $\rho>0$, and $N_0\in\Natural$ such that
 			$$\forall N>N_0,\quad \begin{bmatrix}
-			A_N^\transp P + P A_N^\transp + Q_0 & P|D|  \\
+			A_N^\transp P + P A_N + Q_0 & P|D|  \\
 			|D|^\transp P & -\rho I_r \\
 			\end{bmatrix}< 0;$$
 		\end{enumerate}
@@ -423,7 +423,7 @@ This bound contains an input-dependent \hlb{estimation error} term, which can be
 		\exists \underline{\phi},\overline{\phi}>0: \forall n\geq n_0,\quad \underline{\phi}^2 \leq \lambda_{\min}(\Phi_{n}^\transp\Sigma_{p}^{-1}\Phi_{n}) \leq \overline{\phi}^2,
 		\end{align} the stability condition 2. of \Cref{thm:minimax-regret-bound} can be relaxed to its limit: there exist $P,Q_0,\rho$ such that
 		$$\begin{bmatrix}
-		A(\theta)^\transp P + P A(\theta)^\transp + Q_0 & P|D|  \\
+		A(\theta)^\transp P + P A(\theta) + Q_0 & P|D|  \\
 		|D|^\transp P & -\rho I_r \\
 		\end{bmatrix}< 0;$$
 		and the suboptimality bound takes the more explicit form
@@ -789,7 +789,7 @@ Then, we propagate this estimation error through the state prediction.
 		If there exist $P>0,Q_0\in\Real^{p\times p}$, $\rho>0$ such that
 		\begin{align*}
 		\begin{bmatrix}
-		A_N^\transp P + P A_N^\transp + Q_0 & P|D|  \\
+		A_N^\transp P + P A_N + Q_0 & P|D|  \\
 		|D|^\transp P & -\rho I_r \\
 		\end{bmatrix}< 0,
 		\end{align*}
@@ -811,7 +811,7 @@ Then, we propagate this estimation error through the state prediction.
 	\begin{align*}
 	\dot{V} ={}& X^\transp
 	\begin{bmatrix}
-	A_N^\transp P + P A_N^\transp + Q & P|D| & P|\Delta A| \\
+	A_N^\transp P + P A_N + Q & P|D| & P|\Delta A| \\
 	|D|^\transp P & -\rho I_r & 0\\
 	|\Delta A|^\transp P & 0 & -\alpha I_p
 	\end{bmatrix}
@@ -828,7 +828,7 @@ Then, we propagate this estimation error through the state prediction.
 	\underbrace{
 		\left[
 		\begin{array}{cc|c}
-		A_N^\transp P + P A_N^\transp + Q + 4\alpha I_p & P|D| & P|\Delta A| \\
+		A_N^\transp P + P A_N + Q + 4\alpha I_p & P|D| & P|\Delta A| \\
 		|D|^\transp P & -\rho I_r & 0\\
 		\hline
 		|\Delta A|^\transp P & 0 & -\alpha I_p
@@ -851,7 +851,7 @@ Then, we propagate this estimation error through the state prediction.
 	We now examine the condition $\Upsilon \leq 0$.
 	We resort to its Schur complement: given $\alpha > 0$, $\Upsilon \leq 0$ if and only if $R \geq S$, where $S= \alpha^{-1}\begin{bmatrix}|\Delta A|^\transp P & 0\end{bmatrix}^\transp \begin{bmatrix}|\Delta A|^\transp P & 0\end{bmatrix}$ and $R$ is the top-left block of $-\Upsilon$:
 	\[R = \begin{bmatrix}
-	-A_N^\transp P - P A_N^\transp - Q - 4\alpha I_p & -P|D|\\
+	-A_N^\transp P - P A_N - Q - 4\alpha I_p & -P|D|\\
 	-|D|^\transp P & \rho I_r\\
 	\end{bmatrix}\]
 	
@@ -867,7 +867,7 @@ Then, we propagate this estimation error through the state prediction.
 	\frac{1}{2}Q_0 & 0\\0 & 0
 	\end{bmatrix}$. Thus,
 	\[R-S \geq \begin{bmatrix}
-	-A_N^\transp P - P A_N^\transp - Q_0 & -P|D|\\
+	-A_N^\transp P - P A_N - Q_0 & -P|D|\\
 	-|D|^\transp P & \rho I_r\\
 	\end{bmatrix} > 0 \]
 	as it is assumed in the conditions of the lemma. Hence, under such a choice of $\alpha$ and $Q$, we recover $\Upsilon\leq 0$. \eqref{eq:lyap-bound} follows with $\mu = \frac{\lambda_{\min}(Q)}{\lambda_{\max}(P)} = \frac{\frac{1}{2}\lambda_{\min}(Q_0) - 4\alpha}{\lambda_{\max}(P)}$.
