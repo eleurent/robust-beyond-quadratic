@@ -5,14 +5,14 @@
 % before loading neurips_2020
 \PassOptionsToPackage{numbers, compress}{natbib}
 % ready for submission
- \usepackage{neurips_2020}
+% \usepackage{neurips_2020}
 
 % to compile a preprint version, e.g., for submission to arXiv, add add the
 % [preprint] option:
 %     \usepackage[preprint]{neurips_2020}
 
 % to compile a camera-ready version, add the [final] option, e.g.:
-%     \usepackage[final]{neurips_2020}
+     \usepackage[final]{neurips_2020}
 
 % to avoid loading the natbib package, add option nonatbib:
 %\usepackage[nonatbib]{neurips_2020}
@@ -62,34 +62,21 @@
 % \AND instead of \And before the third author name.
 
 \author{%
-	David S.~Hippocampus\thanks{Use footnote for providing further information
-		about author (webpage, alternative address)---\emph{not} for acknowledging
-		funding agencies.} \\
-	Department of Computer Science\\
-	Cranberry-Lemon University\\
-	Pittsburgh, PA 15213 \\
-	\texttt{hippo@cs.cranberry-lemon.edu} \\
+	Edouard~Leurent \\
+	Inria Lille Nord-Europe \& Renault\\
+	Paris, France\\
+	\texttt{edouard.leurent@inria.fr} \\
 	% examples of more authors
-	% \And
-	% Coauthor \\
-	% Affiliation \\
-	% Address \\
-	% \texttt{email} \\
-	% \AND
-	% Coauthor \\
-	% Affiliation \\
-	% Address \\
-	% \texttt{email} \\
-	% \And
-	% Coauthor \\
-	% Affiliation \\
-	% Address \\
-	% \texttt{email} \\
-	% \And
-	% Coauthor \\
-	% Affiliation \\
-	% Address \\
-	% \texttt{email} \\
+	 \And
+	 Denis~Efimov \\
+	 Inria Lille Nord-Europe, Valse team\\
+	 Lille, France\\
+	 \texttt{denis.efimov@inria.fr} \\
+	 \And
+	 Odalric-Ambrym~Maillard \\
+	 Inria Lille Nord-Europe, SequeL team\\
+	 Lille, France\\
+	 \texttt{odalric.maillard@inria.fr} \\
 }
 
 \begin{document}
@@ -181,7 +168,7 @@ The system dynamics are described in continuous time, but sensing and control ha
 
 \subsection{Related Work}
 
-The control of uncertain systems is a long-standing problem, to which a vast body of literature is dedicated. Existing work is mostly concerned with the problem of \emph{stabilisation} around a fixed reference state or trajectory, including approaches such as $\cH_\infty$ control \citep[][]{Basar1996}, sliding-mode control \citep{Lu1997} or system-level synthesis \citep{Dean2017,Dean2018}. This paper fits in the popular MPC framework, for which adaptive data-driven schemes have been developed to deal with model uncertainty \citep{Sastry1990,Tanaskovic2014,Amos2018}, but lack guarantees. The family of tube-MPC algorithms seeks to derive theoretical guarantees of \emph{robust constraint satisfaction}: the state $x$ is constrained in a safe region $\mathbb{X}$ around the origin, often chosen convex \citep{Fukushima2007,Adetola2009,Aswani2013,Turchetta2016,Lorenzen2017,Kohler2019,Lu2019}. %, their adaptive versions take also into account the possible parametric model uncertainty
+The control of uncertain systems is a long-standing problem, to which a vast body of literature is dedicated. Existing work is mostly concerned with the problem of \emph{stabilisation} around a fixed reference state or trajectory, including approaches such as $\cH_\infty$ control \citep[][]{Basar1996}, sliding-mode control \citep{Lu1997} or system-level synthesis \citep{Dean2017,Dean2018}. This paper fits in the popular MPC framework, for which adaptive data-driven schemes have been developed to deal with model uncertainty \citep{Sastry1990,Tanaskovic2014,Amos2018}, but lack guarantees. The family of tube-MPC algorithms seeks to derive theoretical guarantees of \emph{robust constraint satisfaction}: the state $x$ is constrained in a safe region $\mathbb{X}$ around the origin, often chosen convex \citep{Fukushima2007,Adetola2009,Aswani2013,Turchetta2016,Lorenzen2017,Kohler2019,Lu2019,Leurent2020robust}.
 Yet, many tasks cannot be framed as stabilisation problems (e.g. obstacle avoidance) and are better addressed with the minimax control objective, which can allow more flexible goal formulations. Minimax control has mostly been studied in two particular instances.
 
 \paragraph{Finite states} Minimax control of finite Markov Decision Processes with uncertain parameters was studied in \citep{Iyengar2005,Nilim2005,Wiesemann2013}, who showed that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies a certain rectangularity property. Since we consider continuous states, these methods do not apply.
@@ -413,7 +400,7 @@ Hence, by using enough computational budget $K$ for planning we can get as close
 		with probability at least $1-\delta$, where $V(a)$ is the optimal expected return after executing an action $a\in\cA$, $a_\star$ is an optimal action, and $\hlr{\Delta_\omega}$ is a constant which corresponds to an irreducible suboptimality suffered from being robust to instantaneous disturbances $\omega(t)$.
 \end{theorem}
 
-This bound contains an input-dependent \hlb{estimation error} term, which can be further bounded under an additional assumption that the features are sufficiently excited. 
+It is difficult to check the validity of the stability condition 2. since it applies to matrices $A_N$ produced by the algorithm rather than to the system parameters. A stronger but easier to check condition is that the polytope \eqref{eq:polytope} at some point becomes included in a set where this property is uniformly satisfied. For instance, if the features are sufficiently excited, the estimation converges to a neighbourhood of the true dynamics $A(\theta)$. This also allows to further bound the input-dependent \hlb{estimation error} term.
 
 \begin{corollary}[Asymptotic near-optimality]
 	\label{cor:pe}
@@ -437,21 +424,21 @@ This bound contains an input-dependent \hlb{estimation error} term, which can be
 \section{Multi-model Selection}
 \label{sec:multi-model}
 
-The procedure we developed in sections \ref{sec:estimation}, \ref{sec:prediction} and \ref{sec:control} relies on strong modelling assumptions, such as the linear dynamics \eqref{eq:dynamics} and \Cref{assumpt:structure}. But what if they are wrong?
+The procedure we developed in \Cref{sec:estimation,sec:prediction,sec:control} relies on strong modelling assumptions, such as the linear dynamics \eqref{eq:dynamics} and \Cref{assumpt:structure}. But what if they are wrong?
 
 \paragraph{Model adequacy}
 One of the major benefits of using the family of linear models, compared to richer model classes, is that they provide strict conditions allowing to quantify the adequacy of the modelling assumptions to the observations.
-Given $N-1$ observations, \Cref{sec:estimation} provides a polytopic confidence region \eqref{eq:polytope} that contains $A(\theta)$ with probability at least $1-\delta$. Since the dynamics are linear, we can propagate this confidence region to the next observation: $y_{N}$ must belong to the Minkowski sum of a polytope representing model uncertainty $\cP(A_{0} x_N + Bu_N, \Delta A_{1}x_N,\dots, \Delta A_{2^d}x_N)$ and a polytope $\cP(0_p, \underline{\eta}, \overline{\eta})$ bounding the disturbance and measurement noises. \citet{delos2015} provide a way to test this membership in polynomial time using linear programming. Whenever it is not verified, we can confidently reject the $(A,\phi)$-modelling \Cref{assumpt:structure}. This enables us to consider a rich set of potential features $\left((A^1, \phi^1), \dots, (A^M, \phi^M)\right)$ rather than relying on a single assumption, and only retain those that are consistent with the observations so far. Then, every remaining hypothesis must be considered during planning.
+Given $N-1$ observations, \Cref{sec:estimation} provides a polytopic confidence region \eqref{eq:polytope} that contains $A(\theta)$ with probability at least $1-\delta$. Since the dynamics are linear, we can propagate this confidence region to the next observation: $y_{N}$ must belong to the Minkowski sum of a polytope representing model uncertainty $\cP(A_{0} x_N + Bu_N, \Delta A_{1}x_N,\dots, \Delta A_{2^d}x_N)$ and a polytope $\cP(0_p, \underline{\eta}, \overline{\eta})$ bounding the disturbance and measurement noises. \citet{delos2015} provide a way to test this membership in polynomial time using linear programming. Whenever it is not verified, we can confidently reject the $(A,\phi)$-modelling \cref{assumpt:structure}. This enables us to consider a rich set of potential features $\left((A^1, \phi^1), \dots, (A^M, \phi^M)\right)$ rather than relying on a single assumption, and only retain those that are consistent with the observations so far. Then, every remaining hypothesis must be considered during planning.
 
 \paragraph{Robust selection}
 We temporarily ignore the parametric uncertainty on $\theta$ to simply consider several candidate dynamics models, which all correspond to different modelling assumptions. We also restrict to deterministic dynamics, which is the case of \eqref{eq:interval-predictor}.
 
 \begin{assumption}[Multi-model ambiguity]
 \label{assumpt:multi-model-ambiguity}
-The true dynamics $f$ lies within a finite set of candidate models $f^1, \dots, f^M$:
-$$
-\exists m\in[M]: \dot{x}(t) = f^m(x(t), u(t)), \forall t\geq 0.
-$$
+The dynamics $f$ lie in a finite set of candidates $(f^m)_{m\in[M]}$.
+%$
+%\exists m\in[M]: \dot{x}(t) = f^m(x(t), u(t)), \forall t\geq 0.
+%$
 \end{assumption}
 We adapt our planning algorithm to balance these concurrent hypotheses in a robust fashion, i.e. maximise a robust objective with discrete ambiguity:
 \begin{equation}
@@ -462,11 +449,11 @@ V^r = \sup_{a\in\cA^\Natural}\min_{m\in[M]} \sum_{n=N+1}^\infty \gamma^n R_n^m,
 where $R_n^m$ is the reward obtained by following the action sequence $a$ up to step $n$ under the dynamics $f^m$.
 This objective could be optimised in the same way as in \Cref{sec:control}, but this would result in a coarse and lossy approximation. Instead, we exploit the finite uncertainty structure of \Cref{assumpt:multi-model-ambiguity} to asymptotically recover the true $V^r$ by modifying the \texttt{OPD} algorithm in the following way:
 
-\begin{definition}[Robust sequence upper bounds] We replace the upper-bound \eqref{eq:opd} on sequence values in \texttt{OPD} by:
-$$
-%\label{eq:robust-b-values}
-B_a^r(k)  \eqdef \min_{m\in[M]} \sum_{n=0}^{h-1} \gamma^n R_n^m  + \frac{\gamma^h}{1-\gamma}. \refstepcounter{equation}\hfill(\theequation)\label{eq:robust-b-values}
-$$
+\begin{definition}[Robust UCB] We replace the upper-bound \eqref{eq:opd} on sequence values in \texttt{OPD} by:
+\begin{equation}
+\label{eq:robust-b-values}
+B_a^r(k)  \eqdef \min_{m\in[M]} \sum_{n=0}^{h-1} \gamma^n R_n^m  + \frac{\gamma^h}{1-\gamma}. 
+\end{equation}
 \end{definition}
 Note that it is not equivalent to solving each control problem independently and following the action with highest worst-case value, as we show in the Supplementary Material. We analyse the sample complexity of the corresponding robust planning algorithm.
 
@@ -582,10 +569,10 @@ We also study the evolution of the simple regret $V(x_N) - \hat{V}^r(x_N)$ with 
 
 \end{table}
 
-\paragraph{Motion planning for an autonomous vehicle}
+\textbf{Motion planning for an autonomous vehicle}~~
 We consider the \href{https://github.com/eleurent/highway-env}{highway-env} environment \citep{highway-env} for simulated driving decision problems. An autonomous vehicle with state $\chi_0\in\Real^4$ is approaching an intersection among $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \dots,\chi_V]^\top\in\Real^{4V+4}$. These vehicles follow parametrized behaviours $\dot{\chi}_i=f_i(x,\theta_i)$ with unknown parameters $\theta_i\in\Real^5$. We appreciate a first advantage of the structure imposed in \Cref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
 %This allows to scale to larger systems: in our experiments, we used a state space of dimension $44$ ($V=10$) where e.g. \citep{Dean2018,abeille18a} reported numerical experiments with states of dimensions 3 and 4, respectively.
-The system dynamics $f$, which describes the interactions between vehicles, can only be expressed in the form of \Cref{assumpt:structure} given the knowledge of the desired route for each vehicle, with features $\phi$ expressing deviations to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \Cref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. In \Cref{tab:driving}, we compare \Cref{alg:full} to a nominal agent planning with the estimated parameter $\theta_{N,\lambda}$, with two different modelling assumptions: we assume that Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error. As before, the robust approach is less efficient on average than planning with a nominal model, but it does better in terms of worst-case performance and manages to avoid collisions, contrary to the nominal baselines that suffer from model bias. Again, we also compare to the final policy of a DQN baseline trained over 3000 episodes, causing $1058\pm113$ collisions while training ($35\pm4\%$). We provide more details about the system and videos of the experiments in the Supplementary Material.
+The system dynamics $f$, which describes the interactions between vehicles, can only be expressed in the form of \Cref{assumpt:structure} given the knowledge of the desired route for each vehicle, with features $\phi$ expressing deviations to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \Cref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. In \Cref{tab:driving}, we compare \Cref{alg:full} to a nominal agent planning with two different modelling assumptions: Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error. Again we also compare to a DQN baseline trained over 3000 episodes, causing $1058\pm113$ collisions while training ($35\pm4\%$). We observe similar results as before: the robust agents has a higher worst-case performance and avoids collisions at all time, at the price of a decreased average performance. We provide more details about the system and videos of the experiments in the Supplementary Material.
 
 \section*{Conclusion}
 
@@ -599,6 +586,10 @@ We present a framework for the robust estimation, prediction and control of a pa
 The motivation behind this work is to enable the development of Reinforcement Learning solutions for industrial applications, when it has been mainly limited to simulated games so far. In particular, many industries already rely on non-adaptive control systems and could benefit from an increased efficiency, including Oil and Gas, robotics for industrial automation, Data Center cooling, etc. But more often than not, safety-critical constraints proscribe the use of exploration, and industrials are reluctant to turn to learning-based methods that lack accountability. This work addresses these concerns by focusing on risk-averse decisions and by providing worst-case guarantees. Note however that these guarantees are only as good as the validity of the underlying hypotheses, and \Cref{assumpt:structure} in particular should be submitted to a comprehensive validation procedure; otherwise, decisions formed on a wrong basis could easily lead to dramatic consequences in such critical settings.
 Beyond industrial perspectives, this work could be of general interest for risk-averse decision-making. For instance, parametrized epidemiological models have been used to represent the propagation of Covid\nobreakdash-19 and study the impact of lockdown policies. These model parameters are estimated from observational data and corresponding confidence intervals are often available, but rarely used in the decision-making loop. In contrast, our approach would enable evaluating and optimising the worst-case outcome of such public policies.
 
+
+\begin{ack}
+	This work was supported by the French Ministry of Higher Education and Research, and CPER Nord-Pas de Calais/FEDER DATA Advanced data science and technologies 2015-2020.
+\end{ack}
 
 \bibliography{references}
 \bibliographystyle{icml2020}
@@ -621,7 +612,7 @@ In \Cref{sec:proof}, we provide a proof for every novel result introduced in thi
 \subsection{Proof of \Cref{prop:regularized_solution}}
 
 \begin{proof}
-We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2$ as in  \eqref{eq:regression_min} with respect to $\theta$:
+We differentiate $J(\theta) = \sum_{n=1}^N \|y_n -\Phi_n\theta\|_{\Sigma_p^{-1}}^2 + \lambda\|\theta\|_{}^2$ as in \eqref{eq:regression_min} with respect to $\theta$:
 
 \begin{align*}
     \nabla_{\theta} J(\theta) &= \sum_{n=1}^N\nabla_{\theta} (y_n - \Phi_n\theta)^\transp\Sigma_p^{-1}(y_n - \Phi_n\theta) + \nabla_{\theta} \lambda\|\theta\|_{}^2\\
