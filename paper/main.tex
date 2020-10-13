@@ -597,7 +597,7 @@ Beyond industrial perspectives, this work could be of general interest for risk-
 \end{center}
 
 \paragraph{Outline}
-In \Cref{sec:proof}, we provide a proof for every novel result introduced in this paper. \Cref{sec:attachments} describes the attached video files and source code. \Cref{sec:experimental-setting} provides additional details on our experiments. \Cref{sec:tight-polytope} gives a better method of conversion from ellipsoid to polytope than that of \eqref{eq:polytope}. Finally, \Cref{sec:min-max-order} highlights the fact that robustness cannot be recovered by aggregating independent solutions to many optimal control problem. 
+In \Cref{sec:proof}, we provide a proof for every novel result introduced in this paper. \Cref{sec:experimental-setting} provides additional details on our experiments. \Cref{sec:tight-polytope} gives a better method of conversion from ellipsoid to polytope than that of \eqref{eq:polytope}. Finally, \Cref{sec:min-max-order} highlights the fact that robustness cannot be recovered by aggregating independent solutions to many optimal control problem. 
 
 \section{Proofs}
 \label{sec:proof}
@@ -906,10 +906,10 @@ Finally, we propagate the state prediction error bound to the pessimistic reward
 
 By \Cref{lem:dynamics-est-bound} and the above, the sequence $(A_N)_{N}$ converges to $A(\theta)$ in Frobenius norm. Thus, 
 $$M_n \eqdef \begin{bmatrix}
-A_N^\transp P + P A_N^\transp + Q_0 & P|D|  \\
+A_N^\transp P + P A_N + Q_0 & P|D|  \\
 |D|^\transp P & -\rho I_r \\
 \end{bmatrix}\text{ also converges to } M\eqdef\begin{bmatrix}
-A(\theta)^\transp P + P A(\theta)^\transp + Q_0 & P|D|  \\
+A(\theta)^\transp P + P A(\theta) + Q_0 & P|D|  \\
 |D|^\transp P & -\rho I_r \\
 \end{bmatrix},$$ which is assumed to be negative definite.
 
@@ -1007,15 +1007,6 @@ We now turn to the proof of the theorem.
 		\item If $\kappa = 1$, then $K \leq n_0 + c(d_K-d_0)$, hence we have $r_K = O\left(\gamma^{Kc}\right)$.
 	\end{itemize}
 \end{proof}
-
-\section{Description of attached files}
-\label{sec:attachments}
-
-\paragraph{Videos}
-The \texttt{video} folder contains videos comparing trajectories of the oracle planner and \Cref{alg:full}. The oracle planner has access to the true dynamics and follows aggressive trajectories that nearly saturate the collision constraints. In contrast, the \Cref{alg:full} produces more conservative trajectories. In the obstacle experiment, we show the confidence ellipsoid over $\theta = (\theta_x,\theta_y)$ in the right panel. In the driving experiment, we show the multi-model rejection and robust selection procedure through the display of several trajectory hulls for all possible destinations of the observed vehicles.
-
-\paragraph{Source code}
-The attached \texttt{code} directory contains an implementation of \Cref{alg:full}. The \texttt{README.md} file relates the algorithmic steps of this paper to their location in the source code, and contains instructions to reproduce our experimental results.
 
 \section{Experimental details}
 \label{sec:experimental-setting}
