@@ -84,7 +84,7 @@
 \maketitle
 
 \begin{abstract}
-We consider the problem of robust and adaptive model predictive control (MPC) of a linear system, with unknown parameters that are learned along the way (adaptive), in a critical setting where failures must be prevented (robust). This problem has been studied from different perspectives by different communities. However, the existing theory deals only with the case of quadratic costs (the LQ problem), which limits applications to stabilisation and tracking tasks only. In order to handle more general (non-convex) costs that naturally arise in many practical problems, we carefully select and bring together several tools from different communities, namely non-asymptotic linear regression, recent results in interval prediction, and tree-based planning. Combining and adapting the theoretical guarantees at each layer is non trivial, and we provide the first end-to-end regret analysis for this setting. Interestingly, our analysis naturally adapts to handle many models and combines with a data-driven robust model selection strategy, which enables to relax the modelling assumptions. Last, we strive to preserve tractability at any stage of the method, that we illustrate on two challenging simulated environments.\footnote{Source code and videos are available in the Supplementary Material.}
+We consider the problem of robust and adaptive model predictive control (MPC) of a linear system, with unknown parameters that are learned along the way (adaptive), in a critical setting where failures must be prevented (robust). This problem has been studied from different perspectives by different communities. However, the existing theory deals only with the case of quadratic costs (the LQ problem), which limits applications to stabilisation and tracking tasks only. In order to handle more general (non-convex) costs that naturally arise in many practical problems, we carefully select and bring together several tools from different communities, namely non-asymptotic linear regression, recent results in interval prediction, and tree-based planning. Combining and adapting the theoretical guarantees at each layer is non trivial, and we provide the first end-to-end regret analysis for this setting. Interestingly, our analysis naturally adapts to handle many models and combines with a data-driven robust model selection strategy, which enables to relax the modelling assumptions. Last, we strive to preserve tractability at any stage of the method, that we illustrate on two challenging simulated environments.\footnote{Code and videos available at  \url{https://eleurent.github.io/robust-beyond-quadratic/}.}
 \end{abstract}	
 
 
@@ -169,19 +169,13 @@ The system dynamics are described in continuous time, but sensing and control ha
 \subsection{Related Work}
 
 The control of uncertain systems is a long-standing problem, to which a vast body of literature is dedicated. Existing work is mostly concerned with the problem of \emph{stabilisation} around a fixed reference state or trajectory, including approaches such as $\cH_\infty$ control \citep[][]{Basar1996}, sliding-mode control \citep{Lu1997} or system-level synthesis \citep{Dean2017,Dean2018}. This paper fits in the popular MPC framework, for which adaptive data-driven schemes have been developed to deal with model uncertainty \citep{Sastry1990,Tanaskovic2014,Amos2018}, but lack guarantees. The family of tube-MPC algorithms seeks to derive theoretical guarantees of \emph{robust constraint satisfaction}: the state $x$ is constrained in a safe region $\mathbb{X}$ around the origin, often chosen convex \citep{Fukushima2007,Adetola2009,Aswani2013,Turchetta2016,Lorenzen2017,Kohler2019,Lu2019,Leurent2020robust}.
-Yet, many tasks cannot be framed as stabilisation problems (e.g. obstacle avoidance) and are better addressed with the minimax control objective, which can allow more flexible goal formulations. Minimax control has mostly been studied in two particular instances.
+Yet, many tasks cannot be framed as stabilisation problems (e.g. obstacle avoidance) and are better addressed with the minimax control objective, which allows more flexible goal formulations. Minimax control has mostly been studied in two particular instances.
 
 \paragraph{Finite states} Minimax control of finite Markov Decision Processes with uncertain parameters was studied in \citep{Iyengar2005,Nilim2005,Wiesemann2013}, who showed that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies a certain rectangularity property. Since we consider continuous states, these methods do not apply.
 
 \paragraph{Linear dynamics and quadratic costs} Several approaches have been proposed for cumulative regret minimisation in the LQ problem. In the \emph{Optimism in the Face of Uncertainty} paradigm, the best possible dynamics within a high-confidence region is selected under a controllability constraint, to compute the corresponding optimal control in closed-form by solving a Riccati equation. The results of 	\citep{abbasi-yadkori11a,Ibrahimi2013,Faradonbeh2017} show that this procedure achieves a $\tilde{\cO}\left(N^{1/2}\right)$ regret. Posterior sampling algorithms \citep{Ouyang2017,abeille18a} select candidate dynamics randomly instead, and obtain the same result. Other works use noise injection for exploration such as \citep{Dean2017,Dean2018}. However, neither optimism nor random exploration fit a critical setting, where ensuring safety requires instead to consider pessimistic outcomes. The work of \citet{Dean2017} is close to our setting: after an offline estimation phase, they estimate a simple regret between a minimax controller and the optimal performance. Our work differs in that it addresses a generic shape cost. 
 Another work of interest is \citep{Rosolia2019} where worst-case generic costs are considered. However, they assume the knowledge of the dynamics, and their rollout-based solution only produces inner-approximations and does not yield any guarantee. In this paper, interval prediction is used to produce oversets, while a near-optimal control is found using a tree-based planning procedure.
 
-%While there exists a vast body of literature on the control of uncertain systems, its majority is only concerned with the problem of stabilisation around a fixed reference state or trajectory, including $\cH_\infty$ control \citep[see, e.g.][]{Basar1996}, sliding-mode control \citep{Lu1997}, tube-MPC \citep{Limon2010} or system-level synthesis \citep{Dean2017,Dean2018}. Yet, we argue that many tasks cannot be framed as stabilisation problems (e.g. obstacle avoidance) and are better addressed in our setting of maximising an arbitrary utility function, where no prior result exists to our knowledge. Other safety frameworks exist, such as constraining the state $x$ in a given region $\mathbb{X}$ often chosen convex \citep[e.g.][]{Turchetta2016}, which again is not suitable for many tasks (e.g. these of \Cref{sec:experiments}). Therefore, we limit references to focus only on two lines of work closest to ours.
-%
-%\paragraph{Linear systems with quadratic costs} Several approaches have been proposed for cumulative regret minimisation in the LQ problem. In the \emph{Optimism in the Face of Uncertainty} paradigm, the best possible dynamics within a high-confidence region is selected under a controllability constraint, to compute the corresponding optimal control in closed-form by solving a Riccati equation. \citep{abbasi-yadkori11a,Ibrahimi2013,Faradonbeh2017} show that this procedure achieves a $\tilde{\cO}\left(N^{1/2}\right)$ regret. Posterior sampling algorithms \citep{Ouyang2017,abeille18a} select candidate dynamics randomly instead, and obtain the same result. Other works use noise injection for exploration such as \citep{Dean2017,Dean2018}. However, neither optimism nor random exploration fit a critical setting, where ensuring safety requires instead to consider pessimistic outcomes. The work of \citet{Dean2017} is closest to our setting: after an offline estimation phase, they estimate a simple regret between a robust controller and the optimal performance. Our work mainly differs in that it addresses generic costs.
-%
-%\paragraph{Robust Dynamic Programming with generic costs}
-%Robust optimisation with generic costs has been studied in the context of finite Markov Decision Processes with uncertain parameters by \citet{Iyengar2005}, \citet{Nilim2005} and \citet{Wiesemann2013}. They showed that the main results of Dynamic Programming can be extended to their robust counterparts only when the dynamics ambiguity set verifies a certain rectangularity property, related to time-varying uncertainty. Since our setting considers continuous states and time-invariant uncertainty, these methods do not apply.
 
 \section{Model Estimation}
 
@@ -340,8 +334,6 @@ ensures the inclusion property \eqref{eq:inclusion-property} with confidence lev
 
 \Cref{fig:predictor_example} compares the performance of the predictors \eqref{eq:predictor-naive} and \eqref{eq:interval-predictor} in a simple example. It suggests to always prefer \eqref{eq:interval-predictor} whenever \Cref{assumpt:metzler} is verified, and only fallback to \eqref{eq:predictor-naive} as a last resort.
 
-% Limitations: set-based method assumes time-varying uncertainty where we have time-invariant uncertainty: $A(\theta)$ is fixed vs $A(\theta)$ can vary in $\cC_\delta$ at each step. Consequence: conservative overset.
-
 \section{Robust Control}
 
 \label{sec:control}
@@ -444,7 +436,6 @@ We adapt our planning algorithm to balance these concurrent hypotheses in a robu
 \begin{equation}
 \label{eq:robust-objective-discrete}
 V^r = \sup_{a\in\cA^\Natural}\min_{m\in[M]} \sum_{n=N+1}^\infty \gamma^n R_n^m, 
-%\refstepcounter{equation}\hfill(\theequation)\label{eq:robust-objective-discrete}
 \end{equation}
 where $R_n^m$ is the reward obtained by following the action sequence $a$ up to step $n$ under the dynamics $f^m$.
 This objective could be optimised in the same way as in \Cref{sec:control}, but this would result in a coarse and lossy approximation. Instead, we exploit the finite uncertainty structure of \Cref{assumpt:multi-model-ambiguity} to asymptotically recover the true $V^r$ by modifying the \texttt{OPD} algorithm in the following way:
@@ -473,6 +464,8 @@ This result is of independent interest: the solution of a robust objective \eqre
 
 \section{Experiments}
 \label{sec:experiments}
+
+Videos and code are available at \url{https://eleurent.github.io/robust-beyond-quadratic/}.
 
 \paragraph{Obstacle avoidance with unknown friction}
 We first consider a simple illustrative example, shown in \Cref{fig:prediction}: the control of a 2D system %with position $(p_x,p_y)$ and velocity $(v_x, v_y)$ 
@@ -566,13 +559,13 @@ We also study the evolution of the simple regret $V(x_N) - \hat{V}^r(x_N)$ with 
 		\bottomrule
 	\end{tabular}
 }
-
+\vspace*{-0.5cm}
 \end{table}
 
 \textbf{Motion planning for an autonomous vehicle}~~
 We consider the \href{https://github.com/eleurent/highway-env}{highway-env} environment \citep{highway-env} for simulated driving decision problems. An autonomous vehicle with state $\chi_0\in\Real^4$ is approaching an intersection among $V$ other vehicles with states $\chi_i\in\Real^4$, resulting in a joint traffic state $x = [\chi_0, \dots,\chi_V]^\top\in\Real^{4V+4}$. These vehicles follow parametrized behaviours $\dot{\chi}_i=f_i(x,\theta_i)$ with unknown parameters $\theta_i\in\Real^5$. We appreciate a first advantage of the structure imposed in \Cref{assumpt:structure}: the uncertainty space of $\theta$ is $\Real^{5V}$. In comparison, the traditional LQ setting where the whole state matrix $A$ is estimated would have resulted in a much larger parameter space $\theta\in\Real^{16V^2}$.
 %This allows to scale to larger systems: in our experiments, we used a state space of dimension $44$ ($V=10$) where e.g. \citep{Dean2018,abeille18a} reported numerical experiments with states of dimensions 3 and 4, respectively.
-The system dynamics $f$, which describes the interactions between vehicles, can only be expressed in the form of \Cref{assumpt:structure} given the knowledge of the desired route for each vehicle, with features $\phi$ expressing deviations to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \Cref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. In \Cref{tab:driving}, we compare \Cref{alg:full} to a nominal agent planning with two different modelling assumptions: Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error. Again we also compare to a DQN baseline trained over 3000 episodes, causing $1058\pm113$ collisions while training ($35\pm4\%$). We observe similar results as before: the robust agents has a higher worst-case performance and avoids collisions at all time, at the price of a decreased average performance. We provide more details about the system and videos of the experiments in the Supplementary Material.
+The system dynamics $f$, which describes the interactions between vehicles, can only be expressed in the form of \Cref{assumpt:structure} given the knowledge of the desired route for each vehicle, with features $\phi$ expressing deviations to the centerline of the followed lane. Since these intentions are unknown to the agent, we adopt the multi-model perspective of \Cref{sec:multi-model} and consider one model per possible route for every observed vehicle before an intersection. In \Cref{tab:driving}, we compare \Cref{alg:full} to a nominal agent planning with two different modelling assumptions: Nominal 1 has access to the true followed route for each vehicle, while Nominal 2 does not and picks the model with minimal prediction error. Again we also compare to a DQN baseline trained over 3000 episodes, causing $1058\pm113$ collisions while training ($35\pm4\%$). As before, the robust agent has a higher worst-case performance and avoids collisions at all time, at the price of a decreased average performance..
 
 \section*{Conclusion}
 
@@ -592,7 +585,7 @@ Beyond industrial perspectives, this work could be of general interest for risk-
 \end{ack}
 
 \bibliography{references}
-\bibliographystyle{icml2020}
+\bibliographystyle{biblio}
 
 %\begin{comment}
 \clearpage
