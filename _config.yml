@@ -1,0 +1,7 @@
+theme: jekyll-theme-cayman
+title: "Robust-Adaptive Control of Linear Systems: beyond Quadratic Costs"
+description: Edouard Leurent, Denis Efimov, Odalric-Ambrym Maillard
+
+github:
+  repository_url: https://github.com/eleurent/robust-beyond-quadratic
+  paper_url: https://github.com/eleurent/robust-beyond-quadratic
