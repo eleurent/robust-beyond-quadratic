@@ -63,19 +63,18 @@
 
 \author{%
 	Edouard~Leurent \\
-	Inria Lille Nord-Europe \& Renault\\
-	Paris, France\\
+	Univ. Lille, Inria, CNRS, Centrale Lille, UMR 9189 – CRIStAL, Renault\\
+	F-59000 Lille, France\\
 	\texttt{edouard.leurent@inria.fr} \\
-	% examples of more authors
 	 \And
 	 Denis~Efimov \\
-	 Inria Lille Nord-Europe, Valse team\\
-	 Lille, France\\
+	 Univ. Lille, Inria, CNRS, Centrale Lille, UMR 9189 – CRIStAL\\
+	 F-59000 Lille, France\\
 	 \texttt{denis.efimov@inria.fr} \\
 	 \And
 	 Odalric-Ambrym~Maillard \\
-	 Inria Lille Nord-Europe, SequeL team\\
-	 Lille, France\\
+	 Univ. Lille, Inria, CNRS, Centrale Lille, UMR 9189 – CRIStAL\\
+	 F-59000 Lille, France\\
 	 \texttt{odalric.maillard@inria.fr} \\
 }
 
@@ -392,7 +391,7 @@ Hence, by using enough computational budget $K$ for planning we can get as close
 		with probability at least $1-\delta$, where $V(a)$ is the optimal expected return after executing an action $a\in\cA$, $a_\star$ is an optimal action, and $\hlr{\Delta_\omega}$ is a constant which corresponds to an irreducible suboptimality suffered from being robust to instantaneous disturbances $\omega(t)$.
 \end{theorem}
 
-It is difficult to check the validity of the stability condition 2. since it applies to matrices $A_N$ produced by the algorithm rather than to the system parameters. A stronger but easier to check condition is that the polytope \eqref{eq:polytope} at some point becomes included in a set where this property is uniformly satisfied. For instance, if the features are sufficiently excited, the estimation converges to a neighbourhood of the true dynamics $A(\theta)$. This also allows to further bound the input-dependent \hlb{estimation error} term.
+It is difficult to check the validity of the stability condition 2. since it applies to matrices $A_N$ produced by the algorithm rather than to the system parameters. A stronger but easier to check condition is that the polytope \eqref{eq:polytope} at some iteration becomes included in a set where this property is uniformly satisfied. For instance, if the features are sufficiently excited, the estimation converges to a neighbourhood of the true dynamics $A(\theta)$. This also allows to further bound the input-dependent \hlb{estimation error} term.
 
 \begin{corollary}[Asymptotic near-optimality]
 	\label{cor:pe}
