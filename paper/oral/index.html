@@ -36,6 +36,7 @@
 					<img data-src="images/cristal.svg" height="50">
 					<img data-src="images/renault.png" height="50">
 				</footer>
+				<aside class="notes">Hi everyone, my name is Edouard, and I will be presenting our joint work with Denis and Odalric about the robust adaptive control of linear systems, beyond quadratic costs.</aside>
 			</section>
 
 			<section>
@@ -53,23 +54,25 @@
 						<li class="fragment"><span class="green">Learn</span> from observations to improve performance</li>
 					</ul>
 				</p>
+				<aside class="notes">Our motivation comes from the observation that most RL algorithms rely on trial and error, through either 📝 random exploration, 📝 or optimism in the face of uncertainty<br>📝However, we argue that none of these two approaches are suitable for a safety-critical application, where failures are costly and must be avoided at all time.<br>📝In this work, we wish on the contrary to be pessimistic in the face of uncertainty in order to ensure safety, 📝but we still want to be able to learn from our observations to reduce uncertainty and improve performance.</aside>
 			</section>
 
 			<section>
 				<header><h3>Setting</h3></header>
-				<p class="fragment">Linear dynamics with structured uncertainty
+				<p>Linear dynamics with structured uncertainty<br><br>
+						$
+						\dot{{x}}(t)  = \color{orange}{A(\theta)}x(t) + Bu(t) + \omega(t),
+						$
 					<span class="fragment">
-						$$
-						\begin{aligned}
-						\dot{{x}}(t)  = \color{orange}{A(\theta)}x(t) + Bu(t) + \omega(t),\\
-						\text{where }\color{orange}{A(\theta)}  = A + \sum_{i=1}^d\color{orange}{\theta_i}\phi_i,
-						\end{aligned}
-						$$
-					</span>
-					<span class="fragment">
+						$
+						\quad\text{ where }\color{orange}{A(\theta)}  = A + \sum_{i=1}^d\color{orange}{\theta_i}\phi_i,
+						$
+					<br>
+					<br>
 						$A,\phi$ are <strong>known</strong>, and the disturbance $\omega(t)$ is <strong>bounded</strong>.
 					</span>
 				</p>
+				<aside class="notes">Our setting is the following: we consider a linear system with state x, action u, bounded disturbances \omega, 📝 and in which the dynamics depend on a parameter \theta that is unknown.</aside>
 			</section>
 
 			<section>
@@ -82,6 +85,10 @@
 						\[\color{limegreen}{\sup_{u}} \underbrace{\color{crimson}{\inf_{\substack{\theta \in \mathcal{C}_{N,\delta}\\ \omega\in[\underline\omega,\overline\omega]}}} \expectedvalue \left[\sum_{n=0}^\infty \gamma^n R(x(t_n)) \middle| \color{limegreen}{u}, \color{crimson}{{\theta}}, \color{crimson}{\omega}\right]}_{\color{crimson}{V^r(u)}}\]
 					</li>
 				</ol>
+				<aside class="notes">In order to ensure safety, we follow the robust control framework.<br>
+					📝First, rather than a point estimate of the dynamics, we build an entire confidence region that contains the true parameter with high probability.<br>
+					📝Second, we plan robustly wrt this uncertainty, that is, we maximise the worst-case performance for all admissible dynamical parameters \theta and disturbances \omega. This worst-case return is called the robust value V^r.
+				</aside>
 			</section>
 			<section>
 				<h3>Related work</h3>
@@ -92,8 +99,15 @@
 				<br>
 				<br>
 				<p class="fragment">We only require the rewards $R$ to be <strong>bounded</strong>.</p>
+				<aside class="notes">Prior works in the literature attempt to solve this minimax control problem, including<br>
+					📝Robust dynamic programming techniques, but they are only applicable for finite state space<br>
+					📝and the LQ setting, where the costs are assumed to be quadratic, which limits applications to stabilization problems only.<br>
+					📝In this work, we relax this assumption and only require the reward function to be bounded. In particular, we handle non-convex and even discontinuous reward functions, which allows to tackle a wider variety of problems.
+				</aside>
 			</section>
-			<section><h3>Algorithm</h3></section>
+			<section><h3>Algorithm</h3>
+				<aside class="notes">Our Algorithm is composed of 3 steps.</aside>
+			</section>
 			<section style="font-size: 80%">
 				<header><h3>1. Model Estimation</h3></header>
 				<div class="container">
@@ -118,14 +132,16 @@
 						</div>
 					</div>
 				</div>
+				<aside class="notes">First, 📝we leverage the literature of non-asymptotic linear regression and adapt a result by Abbasi-Yadkori et al from 2011 to build a confidence ellipsoid for the dynamical parameters \theta. This ellipsoid shinks as we collect more and more data📝📝📝.
+				</aside>
 			</section>
 			<section>
 				<header><h3>2. Interval Prediction</h3></header>
 				<div class="container">
-					<div style="flex: 2;">
+					<div style="flex: 2;" class="fragment" data-fragment-index="0">
 						<p style="font-size: 80%">
-							<span class="fragment" data-fragment-index="0">Propagate uncertainty $\color{crimson}{\theta\in\cC_{N,\delta}}$ through time</span> <span class="fragment" data-fragment-index="0">and bound the reachable states</span><br><span class="fragment" data-fragment-index="4"><a href="https://arxiv.org/abs/1904.04727">(Leurent et al., 2019)</a>
-							\[\color{lightskyblue}{\underline x(t)} \leq x(t) \leq \color{lightskyblue}{\overline x(t)}\]</span>
+							Propagate uncertainty $\color{crimson}{\theta\in\cC_{N,\delta}}$ through time and bound the reachable states
+							\[\color{lightskyblue}{\underline x(t)} \leq x(t) \leq \color{lightskyblue}{\overline x(t)}\]
 						</p>
 					</div>
 					<div class="col r-stack">
@@ -136,6 +152,18 @@
 						<img class="fragment"  data-fragment-index="4" data-src="images/interval-hull_4.svg" width=100%>
 					</div>
 				</div>
+				<p style="font-size: 0.7em" align="left" class="fragment" data-fragment-index="4">
+					<a href="https://arxiv.org/abs/1904.04727">(Leurent et al., 2019)</a>
+					\[
+					\scriptsize
+					\begin{aligned}
+					\color{lightskyblue}{\dot{\underline{x}}(t)} & = \color{crimson}{A(\theta_N)}\color{lightskyblue}{\underline{x}(t)}-\color{crimson}{\Delta A_{+}}\underline{x}^{-}(t)-\color{crimson}{\Delta A_{-}}\overline{x}^{+}(t) +Bu(t)+D^{+}\underline{\omega}(t)-D^{-}\overline{\omega}(t),\\
+					\color{lightskyblue}{\dot{\overline{x}}(t)} & = \color{crimson}{A(\theta_N)}\color{lightskyblue}{\overline{x}(t)}+\color{crimson}{\Delta A_{+}}\overline{x}^{+}(t)+\color{crimson}{\Delta A_{-}}\underline{x}^{-}(t) +Bu(t)+D^{+}\overline{\omega}(t)-D^{-}\underline{\omega}(t), \\
+					\end{aligned}
+					\]
+				</p>
+				<aside class="notes">Second, 📝we propagate this model uncertainty 📝through📝 time📝 to bound the set of reachable states📝 within an interval 📝, denoted lower-bar x,  and upper-bar x, computed with a set-predictor that we introduced in prior work.
+				</aside>
 			</section>
 			<section>
 				<header><h3>3. Pessimistic planning</h3></header>
@@ -153,19 +181,28 @@
 						<img class="fragment" data-src="images/planning.svg" width=100%>
 					</div>
 				</div>
+				<aside class="notes">Third, we leverage these predicted intervals to build a surrogate objective, that evaluates the minimum of the reward function over the admissible state interval.<br>
+					📝This surrogate objective is easy to evaluate, and thus can be optimised by traditional techniques such as Monte-Carlo Tree Search.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Results</h3></header>
-				<p class="theorem fragment"><strong>Theorem (Lower bound)</strong>
-					\[
-					\small
+				<div class="theorem fragment"><strong><p>Theorem (Lower bound)</strong></p>
+					<p>
+					$
 					\color{orange}{\underbrace{\hat{V}^r(u)}_{\substack{\text{surrogate}\\\text{value}}}}
 					\leq
-					\color{crimson}{\underbrace{{V}^r(u)}_{\substack{\text{robust}\\\text{value}}}}
-					\leq
-					\color{limegreen}{\underbrace{{V}(u)}_{\substack{\text{true}\\\text{performance}}}}
-					\]
-				</p>
+					\color{crimson}{\underbrace{{V}^r(u)}_{\substack{\text{robust}\\\text{value}}}}$
+					<span class="fragment">
+					$\leq
+					\color{limegreen}{\underbrace{{V}(u)}_{\substack{\text{true}\\\text{performance}}}}$
+					<span>
+					</p>
+				</span>
+				<aside class="notes">📝As a first result, we prove that the surrogate objective that we optimize is a lower-bound of the robust value, and that is because we have been conservative in every approximation that we made.<br>
+				📝The robust value is in turn a lower-bound of the true performance, by virtue of being pessimistic.
+				However because of our approximations, there exists a gap between the surrogate and the robust values, which can cause suboptimal behaviour.
+				</aside>
 			</section>
 			<section style="font-size: .7em">
 				<header><h3>Bounded suboptimality</h3></header>
@@ -184,12 +221,16 @@
 					<p align="left" class="fragment">
 						with probability $1-\delta$,
 						\[
-						\underbrace{V(a_\star) - V(a_K)}_{\substack{\text{subptimality}}} \leq
+						\underbrace{V(a_\star) - V(a_K)}_{\substack{\text{suboptimality}}} \leq
 						\color{crimson}{\underbrace{\Delta_\omega}_{\substack{\text{robustness to}\\ \text{disturbances}}}} + \color{lightskyblue}{\underbrace{\mathcal{O}\left(\frac{\beta_N(\delta)^2}{\lambda_{\min}(G_{N,\lambda})}\right)}_{\text{estimation error}}} +
 						\color{limegreen}{\underbrace{\mathcal{O}\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right)}_{\text{planning error}}}
 						\]
 					</p>
 				</div>
+				<aside class="notes">In our second result, we bound this gap and resulting suboptimality under two conditions: namely, 📝a smoothness assumption for the reward, 📝and a stability condition for the estimated dynamics, in the form of a Linear Matrix Inequality.<br>
+					📝Then, the suboptimality is bounded by three term: there is a constant which comes from the robustness to instantaneous disturbances, an estimation error term related to the size of the confidence ellipsoid, and a planning error term, which comes from the fact that we are optimizing with a finite computational budget.<br>
+					A limitation of this result is that the validity of the stability condition n°2. is difficult to check because applies to matrices that are produced by our algorithm, rather than to the system parameters. Moreover, the estimation error term in the bound is input-dependent, and since we are being pessimistic, we are not actively exploring, so this term is not guaranteed to converge to 0 in general.
+				</aside>
 			</section>
 			<section style="font-size: .7em">
 				<header><h3>Asymptotic Near-optimality</h3></header>
@@ -197,7 +238,7 @@
 					<p align="left"><strong>Corollary</strong> Under an additional <strong>persistent excitation</strong> (PE) assumption:
 						\[\exists \underline{\phi},\overline{\phi}>0: \forall n\geq n_0,\quad \underline{\phi}^2 \leq \lambda_{\min}(\Phi_{n}^\top\Sigma_{p}^{-1}\Phi_{n}) \leq \overline{\phi}^2,\]
 						<span class="fragment" data-fragment-index="1">
-							the stability condition 2. can be relaxed to its limit:
+							the stability condition 2. can be relaxed to:
 							$$\begin{bmatrix}
 							\color{orange}{A(\theta)}^\top P + P \color{orange}{A(\theta)} + Q_0 & P|D|  \\
 							|D|^\top P & -\rho I_r \\
@@ -214,28 +255,36 @@
 						<span class="fragment shrink tiny" data-fragment-index="4">$\color{limegreen}{{\mathcal{O}\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right)}}$</span>
 					</p>
 				</div>
+				<aside class="notes">These concerns are partially adressed in a corollary, which states that under the lucky event that the features are sufficiently excited, 📝 we can relax the stability condition to apply to the true system rather than our estimates, 📝and the estimation error term in the bound takes a more explicit form which ensures asymptotic near optimality as the number of samples N📝 and the planning budget K📝 go to infinity.
+				</aside>
 			</section>
-			<section><h3>Experiments</h3></section>
+			<section><h3>Experiments</h3>
+				<aside class="notes">We demonstrate the applicability of our methods in two experiments.</aside>
+			</section>
 			<!-- <section>
 				<header><h3>Experiment: obstacle avoidance</h3></header>
 				<figure>
-					<video data-autoplay muted loop data-src="videos/robust/1_oracle.mp4" type="video/mp4"></video>
+					<video class="js-play-toggle" muted loop data-src="videos/robust/1_oracle.mp4" type="video/mp4"></video>
 					<figcaption>Oracle dynamics $\color{orange}{A(\theta)}$</figcaption>
 				</figure>
 			</section> -->
 			<section>
 				<header><h3>Obstacle avoidance</h3></header>
 				<figure>
-					<video data-autoplay muted loop data-src="videos/robust/1_plan_nominal.mp4" type="video/mp4"></video>
+					<video class="js-play-toggle" muted loop data-src="videos/robust/1_plan_nominal.mp4" type="video/mp4"></video>
 					<figcaption>Estimated dynamics $\color{orange}{A({\theta}_{N})}$</figcaption>
 				</figure>
+				<aside class="notes">First, we consider an obstacle avoidance problem with unknown friction coefficients. When planning with the estimated parameters, the model bias leads to prediction errors, and eventually to collisions.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Obstacle avoidance</h3></header>
 				<figure>
-					<video data-autoplay muted loop data-src="videos/robust/1_robust.mp4" type="video/mp4"></video>
+					<video class="js-play-toggle" muted loop data-src="videos/robust/1_robust.mp4" type="video/mp4"></video>
 					<figcaption>Robust planning with $\color{crimson}{\cC_{N,\delta}}$</figcaption>
 				</figure>
+				<aside class="notes">In contrast, when planning robustly with respect to model uncertainty, our confidence intervals over trajectories ensure that we never get too close to an obstacle and reach the goal safely.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Results</h3></header>
@@ -275,6 +324,8 @@
 						</tr>
 					</tbody>
 				</table>
+				<aside class="notes">Over 100 simulations, our proposed robust agent manages to avoid collisions at all time and achieves the highest minimum return, at the price of a loss of average performance compared to the nominal approach that plans with the estimated dynamics.
+				</aside>
 			</section>
 			<section style="font-size: 90%;">
 				<header><h3>Multi-model extension</h3></header>
@@ -282,22 +333,28 @@
 					<div class="col">
 						<p>Use <strong>multiple</strong> models $\color{lightskyblue}{(A,\phi)}$, through<br>a robust selection mechanism</p>
 						<figure><img data-fragment-index="0" width="400" data-src="images/robust/multi-model.svg">
-						<figcaption><em>Multimodal predictions</em></figcaption>
+							<figcaption><em>Multimodal predictions</em></figcaption>
 						</figure>
 					</div>
 				</div>
+				<aside class="notes">We also propose an extension of our framework in which multiple modelling assumptions are considered and balanced through a robust selection mechanism. This provides the robust agent with the ability to make multimodal predictions.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Driving</h3></header>
 				<figure>
-					<video data-autoplay muted data-src="videos/robust/v_1_robust.mp4" type="video/mp4" width="50%"></video>
+					<video class="js-play-toggle" muted data-src="videos/robust/v_1_robust.mp4" type="video/mp4" width="50%"></video>
 				</figure>
+				<aside class="notes">And we illustrate this ability in a simulated driving experiment, where an autonomous vehicle must cross an unsignalized intersection while driving among other vehicles whose destinations and driving styles are unknown.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Driving</h3></header>
 				<figure>
-					<video data-autoplay muted data-src="videos/robust/v_9_robust.mp4" type="video/mp4" width="50%"></video>
+					<video class="js-play-toggle" muted data-src="videos/robust/v_9_robust.mp4" type="video/mp4" width="50%"></video>
 				</figure>
+				<aside class="notes">Here is another episode, where the agent confidently identifies a sufficient gap, and merges into traffic.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Results</h3></header>
@@ -343,10 +400,13 @@
 						</tr>
 					</tbody>
 				</table>
+				<aside class="notes">As before, over 100 runs the robust agent manages to ensure safety at all times contrary to other baselines, at the price of a decreased average performance.
+				</aside>
 			</section>
 			<section>
 				<header><h3>Thank You!</h3></header>
 				<p><em>I am looking for a postdoctoral position.</em></p>
+				<aside class="notes">Thank you for your attention, and I would like to take this opportunity to mention that I am looking for a postdoctoral position.
 			</section>
 		</div>
 	</div>
@@ -363,6 +423,7 @@
 		// - https://revealjs.com/initialization/
 		// - https://revealjs.com/config/
 		Reveal.initialize({
+			autoPlayMedia: true,
 			hash: true,
 			math: {
 				mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
@@ -376,6 +437,10 @@
 		  },
 			// Learn about plugins: https://revealjs.com/plugins/
 			plugins: [ RevealSearch, RevealHighlight, RevealNotes, RevealMath, RevealZoom ]
+		});
+
+		Reveal.addEventListener( 'slidechanged', function( e ) {
+			e.currentSlide.querySelectorAll('.js-play-toggle').forEach(v => v.play());
 		});
 	</script>
 </body>
