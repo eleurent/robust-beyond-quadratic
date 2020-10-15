@@ -1,0 +1,382 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Safe and Efficient Reinforcement Learning for Behavioural Planning in Autonomous Driving</title>
+
+	<link rel="stylesheet" href="dist/reset.css">
+	<link rel="stylesheet" href="dist/reveal.css">
+	<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+	<link rel="stylesheet" href="css/custom.css">
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+
+
+</head>
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<section class="title">
+				<h3>Robust-Adaptive Control<br>of Linear Systems:</h3>
+				<h4>beyond Quadratic Costs</h4>
+				<br>
+				<p class="authors">
+					<medium><a style="font-weight: bold;" href="http://edouardleurent.com">Edouard Leurent</a>, </medium><br>
+					<medium><a href="http://researchers.lille.inria.fr/~efimov/">Denis Efimov</a>, </medium><br>
+					<medium><a href="http://odalricambrymmaillard.neowordpress.fr/">Odalric-Ambrym Maillard</a></medium>
+				</p>
+				<footer>
+					<img data-src="images/univ.png" height="50">
+					<img data-src="images/inria.png" height="50">
+					<img data-src="images/cnrs.png" height="50">
+					<img data-src="images/centrale.png" height="50">
+					<img data-src="images/cristal.svg" height="50">
+					<img data-src="images/renault.png" height="50">
+				</footer>
+			</section>
+
+			<section>
+				<header><h3>Motivation</h3></header>
+				<p align="left">Most RL algorithms rely on trial and <span class="red">error</span>
+					<ul>
+						<li class="fragment"><span class="blue">Random</span> exploration</li>
+						<li class="fragment"><span class="green">Optimism</span> in the face of uncertainty</li>
+					</ul>
+				</p>
+				<br>
+				<p  align="left" class="fragment">None are suitable for a <span class="blue">safety-critical</span> application
+					<ul>
+						<li class="fragment"><span class="red">Pessimism</span> in the face of uncertainty</li>
+						<li class="fragment"><span class="green">Learn</span> from observations to improve performance</li>
+					</ul>
+				</p>
+			</section>
+
+			<section>
+				<header><h3>Setting</h3></header>
+				<p class="fragment">Linear dynamics with structured uncertainty
+					<span class="fragment">
+						$$
+						\begin{aligned}
+						\dot{{x}}(t)  = \color{orange}{A(\theta)}x(t) + Bu(t) + \omega(t),\\
+						\text{where }\color{orange}{A(\theta)}  = A + \sum_{i=1}^d\color{orange}{\theta_i}\phi_i,
+						\end{aligned}
+						$$
+					</span>
+					<span class="fragment">
+						$A,\phi$ are <strong>known</strong>, and the disturbance $\omega(t)$ is <strong>bounded</strong>.
+					</span>
+				</p>
+			</section>
+
+			<section>
+				<header><h3>Robust control framework</h3></header>
+				<ol>
+					<li class="fragment"> Build a confidence <strong>region</strong> for the dynamics
+						\[\mathbb{P}\left[\color{orange}{\theta}\in\color{crimson}{\mathcal{C}_{N,\delta}}\right]\geq 1-\delta\]
+					</li>
+					<li class="fragment"> Plan <strong>robustly</strong> against the worst case outcome $\color{crimson}{V^r}$
+						\[\color{limegreen}{\sup_{u}} \underbrace{\color{crimson}{\inf_{\substack{\theta \in \mathcal{C}_{N,\delta}\\ \omega\in[\underline\omega,\overline\omega]}}} \expectedvalue \left[\sum_{n=0}^\infty \gamma^n R(x(t_n)) \middle| \color{limegreen}{u}, \color{crimson}{{\theta}}, \color{crimson}{\omega}\right]}_{\color{crimson}{V^r(u)}}\]
+					</li>
+				</ol>
+			</section>
+			<section>
+				<h3>Related work</h3>
+				<ul>
+					<li class="fragment">Robust Dynamic Programming <span class="fragment red">⮕ finite $\mathcal{S}$</span></li>
+					<li class="fragment">Quadratic costs (LQ) <span class="fragment red">⮕ stabilization only</span></li>
+				</ul>
+				<br>
+				<br>
+				<p class="fragment">We only require the rewards $R$ to be <strong>bounded</strong>.</p>
+			</section>
+			<section><h3>Algorithm</h3></section>
+			<section style="font-size: 80%">
+				<header><h3>1. Model Estimation</h3></header>
+				<div class="container">
+					<div style="flex: 2;">
+						<p class="fragment" data-fragment-index="0">Confidence ellipsoid $\color{crimson}{\cC_{N,\delta}}$ from<br><a href="https://papers.nips.cc/paper/4417-improved-algorithms-for-linear-stochastic-bandits">(Abbasi-Yadkori et al., 2011)</a><!-- non-asymptotic linear regression -->
+							\[\small \mathbb{P}\left[\|\color{orange}{\theta}-\color{crimson}{\theta_{N}}\|_{\color{crimson}{G_{N}}} \leq \color{crimson}{\beta_N(\delta)}\right]\geq 1-\delta\]
+							<!-- $
+							\scriptsize
+							\begin{aligned}
+							\theta_{N,\lambda} & = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\top \Sigma_p^{-1} y_n,\\
+							G_{N, \lambda} &= \sum_{n=1}^N \Phi_{n}^\top\Sigma_p^{-1}\Phi_{n}  + \lambda I_d
+							\end{aligned}
+							$ -->
+						</p>
+					</div>
+					<div class="col" style="align-items: center;align-self: center;">
+						<div class="r-stack">
+							<img class="fragment fade-in-then-out" data-fragment-index="0" data-src="images/ellipsoid_0.svg" width=100%>
+							<img class="fragment fade-in-then-out" data-fragment-index="1" data-src="images/ellipsoid_1.svg" width=100%>
+							<img class="fragment fade-in-then-out" data-fragment-index="2" data-src="images/ellipsoid_2.svg" width=100%>
+							<img class="fragment fade-in-then-out" data-fragment-index="3" data-src="images/ellipsoid_3.svg" width=100%>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section>
+				<header><h3>2. Interval Prediction</h3></header>
+				<div class="container">
+					<div style="flex: 2;">
+						<p style="font-size: 80%">
+							<span class="fragment" data-fragment-index="0">Propagate uncertainty $\color{crimson}{\theta\in\cC_{N,\delta}}$ through time</span> <span class="fragment" data-fragment-index="0">and bound the reachable states</span><br><span class="fragment" data-fragment-index="4"><a href="https://arxiv.org/abs/1904.04727">(Leurent et al., 2019)</a>
+							\[\color{lightskyblue}{\underline x(t)} \leq x(t) \leq \color{lightskyblue}{\overline x(t)}\]</span>
+						</p>
+					</div>
+					<div class="col r-stack">
+						<img class="fragment"  data-fragment-index="3" data-src="images/interval-hull_3.svg" width=100%>
+						<img class="fragment"  data-fragment-index="0" data-src="images/interval-hull_0.svg" width=100%>
+						<img class="fragment"  data-fragment-index="1" data-src="images/interval-hull_1.svg" width=100%>
+						<img class="fragment"  data-fragment-index="2" data-src="images/interval-hull_2.svg" width=100%>
+						<img class="fragment"  data-fragment-index="4" data-src="images/interval-hull_4.svg" width=100%>
+					</div>
+				</div>
+			</section>
+			<section>
+				<header><h3>3. Pessimistic planning</h3></header>
+				<div class="container">
+					<div style="flex: 2;">
+						<p>Use the predicted <strong>intervals</strong> in a <span class="orange">surrogate</span> pessimistic objective
+							<span>
+								\[\small
+								\color{orange}{\hat{V}^r(u)} = \sum_{n=N+1}^\infty \gamma^n \color{orange}{\min_{\color{lightskyblue}{\underline{x}(t_n)}\leq x \leq\color{lightskyblue}{\overline{x}(t_n)}}  R(x)}
+								\]
+							</span>
+						</p>
+					</div>
+					<div class="col r-stack">
+						<img class="fragment" data-src="images/planning.svg" width=100%>
+					</div>
+				</div>
+			</section>
+			<section>
+				<header><h3>Results</h3></header>
+				<p class="theorem fragment"><strong>Theorem (Lower bound)</strong>
+					\[
+					\small
+					\color{orange}{\underbrace{\hat{V}^r(u)}_{\substack{\text{surrogate}\\\text{value}}}}
+					\leq
+					\color{crimson}{\underbrace{{V}^r(u)}_{\substack{\text{robust}\\\text{value}}}}
+					\leq
+					\color{limegreen}{\underbrace{{V}(u)}_{\substack{\text{true}\\\text{performance}}}}
+					\]
+				</p>
+			</section>
+			<section style="font-size: .7em">
+				<header><h3>Bounded suboptimality</h3></header>
+				<div class="theorem">
+					<p align="left"><strong>Theorem</strong> Under two conditions:
+						<ol>
+							<li class="fragment">Lipschitz reward $R$;</li>
+							<li class="fragment">Stability condition: there exist $P>0,\,Q_0,\,\rho,\,N_0$ such that
+								\[\forall \color{orange}{N}>N_0,\quad\begin{bmatrix}
+								\color{orange}{A({\theta}_{N})}^\top P + P \color{orange}{A({\theta}_{N})} + Q_0 & P|D|  \\
+								|D|^\top P & -\rho I_r \\
+								\end{bmatrix}< 0;\]
+							</li>
+						</ol>
+					</p>
+					<p align="left" class="fragment">
+						with probability $1-\delta$,
+						\[
+						\underbrace{V(a_\star) - V(a_K)}_{\substack{\text{subptimality}}} \leq
+						\color{crimson}{\underbrace{\Delta_\omega}_{\substack{\text{robustness to}\\ \text{disturbances}}}} + \color{lightskyblue}{\underbrace{\mathcal{O}\left(\frac{\beta_N(\delta)^2}{\lambda_{\min}(G_{N,\lambda})}\right)}_{\text{estimation error}}} +
+						\color{limegreen}{\underbrace{\mathcal{O}\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right)}_{\text{planning error}}}
+						\]
+					</p>
+				</div>
+			</section>
+			<section style="font-size: .7em">
+				<header><h3>Asymptotic Near-optimality</h3></header>
+				<div class="theorem">
+					<p align="left"><strong>Corollary</strong> Under an additional <strong>persistent excitation</strong> (PE) assumption:
+						\[\exists \underline{\phi},\overline{\phi}>0: \forall n\geq n_0,\quad \underline{\phi}^2 \leq \lambda_{\min}(\Phi_{n}^\top\Sigma_{p}^{-1}\Phi_{n}) \leq \overline{\phi}^2,\]
+						<span class="fragment" data-fragment-index="1">
+							the stability condition 2. can be relaxed to its limit:
+							$$\begin{bmatrix}
+							\color{orange}{A(\theta)}^\top P + P \color{orange}{A(\theta)} + Q_0 & P|D|  \\
+							|D|^\top P & -\rho I_r \\
+							\end{bmatrix}< 0;$$
+						</span>
+						<span class="fragment" data-fragment-index="2">
+							and the bound takes the more explicit form
+						</span>
+					</p>
+					<p class="fragment" data-fragment-index="2">
+						${V(a_\star)} - {V(a_K)} \leq
+						\color{crimson}{\Delta_\omega} +$
+						<span class="fragment shrink tiny" data-fragment-index="3">$\color{lightskyblue}{{\mathcal{O}\left(\frac{\log\left(N^{d/2}/\delta\right)}{N}\right)}}$</span>$ + $
+						<span class="fragment shrink tiny" data-fragment-index="4">$\color{limegreen}{{\mathcal{O}\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right)}}$</span>
+					</p>
+				</div>
+			</section>
+			<section><h3>Experiments</h3></section>
+			<!-- <section>
+				<header><h3>Experiment: obstacle avoidance</h3></header>
+				<figure>
+					<video data-autoplay muted loop data-src="videos/robust/1_oracle.mp4" type="video/mp4"></video>
+					<figcaption>Oracle dynamics $\color{orange}{A(\theta)}$</figcaption>
+				</figure>
+			</section> -->
+			<section>
+				<header><h3>Obstacle avoidance</h3></header>
+				<figure>
+					<video data-autoplay muted loop data-src="videos/robust/1_plan_nominal.mp4" type="video/mp4"></video>
+					<figcaption>Estimated dynamics $\color{orange}{A({\theta}_{N})}$</figcaption>
+				</figure>
+			</section>
+			<section>
+				<header><h3>Obstacle avoidance</h3></header>
+				<figure>
+					<video data-autoplay muted loop data-src="videos/robust/1_robust.mp4" type="video/mp4"></video>
+					<figcaption>Robust planning with $\color{crimson}{\cC_{N,\delta}}$</figcaption>
+				</figure>
+			</section>
+			<section>
+				<header><h3>Results</h3></header>
+				<table>
+					<thead>
+						<tr>
+							<th>Performance</th>
+							<th>failures</th>
+							<th>min</th>
+							<th>avg $\pm$ std</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Oracle</td>
+							<td>$0\%$</td>
+							<td>$11.6$</td>
+							<td>$14.2 \pm 1.3$</td>
+						</tr>
+						<tr>
+							<td>Nominal</td>
+							<td>$4\%$</td>
+							<td>$2.8$</td>
+							<td><span class="fragment highlight-blue" data-fragment-index="1">$13.8 \pm 2.0$</span></td>
+						</tr>
+						<tr>
+							<td>DQN (trained)</td>
+							<td>$6\%$</td>
+							<td>$1.7$</td>
+							<td>$12.3 \pm 2.5$</td>
+						</tr>
+						<tr>
+							<td>Robust</td>
+							<td><span class="fragment highlight-blue" data-fragment-index="0">$0\%$</span></td>
+							<td><span class="fragment highlight-blue" data-fragment-index="0">$10.4$</span></td>
+							<td>$13.0 \pm 1.5$</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+			<section style="font-size: 90%;">
+				<header><h3>Multi-model extension</h3></header>
+				<div class="container">
+					<div class="col">
+						<p>Use <strong>multiple</strong> models $\color{lightskyblue}{(A,\phi)}$, through<br>a robust selection mechanism</p>
+						<figure><img data-fragment-index="0" width="400" data-src="images/robust/multi-model.svg">
+						<figcaption><em>Multimodal predictions</em></figcaption>
+						</figure>
+					</div>
+				</div>
+			</section>
+			<section>
+				<header><h3>Driving</h3></header>
+				<figure>
+					<video data-autoplay muted data-src="videos/robust/v_1_robust.mp4" type="video/mp4" width="50%"></video>
+				</figure>
+			</section>
+			<section>
+				<header><h3>Driving</h3></header>
+				<figure>
+					<video data-autoplay muted data-src="videos/robust/v_9_robust.mp4" type="video/mp4" width="50%"></video>
+				</figure>
+			</section>
+			<section>
+				<header><h3>Results</h3></header>
+				<table>
+					<thead>
+						<tr>
+							<th>Performance</th>
+							<th>failures</th>
+							<th>min</th>
+							<th>avg $\pm$ std</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>Oracle</td>
+							<td>$0\%$</td>
+							<td>$6.9$</td>
+							<td>$7.4 \pm 0.5$</td>
+						</tr>
+						<tr>
+							<td>Nominal 1</td>
+							<td>$4\%$</td>
+							<td>$5.2$</td>
+							<td><strong>$7.3 \pm 1.5$</strong></td>
+						</tr>
+						<tr>
+							<td>Nominal 2</td>
+							<td>$33\%$</td>
+							<td>$3.5$</td>
+							<td>$6.4 \pm 0.3$</td>
+						</tr>
+						<tr>
+							<td>DQN (trained)</td>
+							<td>$3\%$</td>
+							<td>$5.4$</td>
+							<td>$6.3 \pm 0.6$</td>
+						</tr>
+						<tr>
+							<td>Robust</td>
+							<td><strong>$0\%$</strong></td>
+							<td><strong>$6.8$</strong></td>
+							<td>$7.1 \pm 0.3$</td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+			<section>
+				<header><h3>Thank You!</h3></header>
+				<p><em>I am looking for a postdoctoral position.</em></p>
+			</section>
+		</div>
+	</div>
+
+	<script src="dist/reveal.js"></script>
+	<script src="plugin/notes/notes.js"></script>
+	<script src="plugin/search/search.js"></script>
+	<script src="plugin/highlight/highlight.js"></script>
+	<script src="plugin/math/math.js"></script>
+	<script src="plugin/zoom/zoom.js"></script>
+	<script async defer src="https://buttons.github.io/buttons.js"></script>
+	<script>
+		// More info about initialization & config:
+		// - https://revealjs.com/initialization/
+		// - https://revealjs.com/config/
+		Reveal.initialize({
+			hash: true,
+			math: {
+				mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
+				config: 'TeX-AMS_HTML-full',
+		      // pass other options into `MathJax.Hub.Config()`
+		      TeX: { Macros: {
+		      	Real: "{\\mathbb{R}}",
+		      	cC: "{\\mathcal{C}}",
+		      	expectedvalue: "\\mathop{\\mathbb{E}}",
+		      }}
+		  },
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: [ RevealSearch, RevealHighlight, RevealNotes, RevealMath, RevealZoom ]
+		});
+	</script>
+</body>
+</html>
