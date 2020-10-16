@@ -37,7 +37,7 @@
 					<img data-src="images/renault.png" height="50">
 				</footer>
 				<aside class="notes">
-				Hi everyone, my name is Edouard, and I will be presenting our joint work with Denis and Odalric about the robust adaptive control of linear systems, beyond quadratic costs.</aside>
+				Hi, my name is Edouard, and I will present our joint work with Denis Efimov and Odalric-Ambrym Maillard about the robust adaptive control of linear systems, beyond quadratic costs.</aside>
 			</section>
 
 			<section>
@@ -52,11 +52,11 @@
 				<p  align="left" class="fragment">None are suitable for a <span class="blue">safety-critical</span> application
 					<ul>
 						<li class="fragment"><span class="red">Pessimism</span> in the face of uncertainty</li>
-						<li class="fragment"><span class="green">Learn</span> from observations to improve performance</li>
+						<!-- <li class="fragment"><span class="green">Learn</span> from observations to improve performance</li> -->
 					</ul>
 				</p>
 				<aside class="notes">
-					Our motivation comes from the observation that most Reinforcement Learning algorithms rely on trial and error, through either 📝 random exploration, 📝 or optimism in the face of uncertainty<br>📝However, we argue that none of these two approaches are suitable for a safety-critical application, where failures are costly and must be avoided at all times.<br>📝In this work, we wish on the contrary to be pessimistic in the face of uncertainty in order to ensure safety,📝 and to learn from our observations to improve performance over time.
+					Our motivation comes from the observation that most Reinforcement Learning algorithms rely on trial and error, through either 📝 random exploration, 📝 or optimism in the face of uncertainty<br>📝However, we argue that none of these approaches are suitable for a safety-critical application, where failures must be avoided at all times.<br>📝In this work, we wish on the contrary to be pessimistic in order to ensure safety.
 				</aside>
 			</section>
 
@@ -73,7 +73,7 @@
 					</span>
 				</p>
 				<aside class="notes">
-					Our setting is the following: we consider a linear system whose dynamics depends on a parameter \theta that is unknown.
+					We consider a linear system whose dynamics depends on a parameter \theta that is unknown.
 				</aside>
 			</section>
 
@@ -88,8 +88,8 @@
 					</li>
 				</ol>
 				<aside class="notes">
-					In order to ensure safety, we follow the robust control framework.<br>
-					📝First, rather than a mere point estimate of the dynamics, we build an entire confidence region that contains the true parameter with high probability.<br>
+					To ensure safety, we follow the robust control framework.<br>
+					📝First, rather than a mere point estimate, we build an entire confidence region around the true dynamics.<br>
 					📝Second, we plan robustly and maximise the worst-case performance with respect to this model uncertainty.
 				</aside>
 			</section>
@@ -102,8 +102,8 @@
 				<br>
 				<p class="fragment">We only require the rewards $R$ to be <strong>bounded</strong>.</p>
 				<aside class="notes">
-					A popular approach to solve this robust control problem 📝relies on the assumption that the costs are quadratic 📝which limits applications to stabilization problems only
-					📝In this work, we relax this assumption and only require the reward function to be bounded.
+					This minimax control problem is difficult to solve, and a popular approach 📝relies on the assumption that the costs are quadratic 📝which limits applications to stabilization problems only
+					📝In this work, we relax this assumption and only require the reward function to be bounded. To achieve this, we bring together results from control theory and sequential decision making.
 				</aside>
 			</section>
 			<section><h3>Algorithm</h3>
@@ -135,7 +135,7 @@
 					</div>
 				</div>
 				<aside class="notes">
-					First, 📝we use non-asymptotic linear regression to build a confidence ellipsoid around \theta, which shinks as we collect more and more data📝📝📝.
+					First, 📝we use non-asymptotic linear regression to build a confidence ellipsoid around \theta, which shrinks as we collect more and more data📝📝📝.
 				</aside>
 			</section>
 			<section>
@@ -198,9 +198,9 @@
 					</p>
 				</div>
 				<aside class="notes">
-					📝As a first result, we prove that our surrogate objective is a lower-bound of the robust value and the true performance, by virtue of being pessimistic.
-					This is valuable in that if we manage to plan a trajectory that is predicted to be safe, we are guaranteed that is will also be safe for the true system.
-					However because of our approximations, there exists a gap between the surrogate and the robust values, which can cause suboptimal behaviour.
+					📝As a first result, we show that our surrogate objective is a lower-bound of the true performance.
+					This is valuable since a planned trajectory predicted to be safe is guaranteed to also be safe for the true system.
+					However, there is a gap between the two, which can cause suboptimal behaviour.
 				</aside>
 			</section>
 			<section style="font-size: .7em">
@@ -223,8 +223,8 @@
 					</p>
 				</div>
 				<aside class="notes">
-					In our second result, we bound this gap under two conditions: 📝a smoothness assumption for the reward, 📝and a stability condition for the estimated dynamics<br>
-					📝Our bound contains three terms: a constant for robustness to disturbances, an estimation error term related to the size of the confidence ellipsoid, and a planning error term, that stems from optimizing with a finite computational budget.
+					We bound this gap under two conditions: 📝a smoothness assumption for the reward, 📝and a stability condition for the estimated dynamics<br>
+					📝Our bound contains three terms for robustness to disturbances, an estimation error term related to the size of the confidence ellipsoid, and a planning error term that stems from optimizing with a finite computational budget.
 				</aside>
 			</section>
 			<section><h3>Experiments</h3>
@@ -235,7 +235,7 @@
 					<video class="js-play-toggle" muted loop data-src="../../supplementary/videos/2_driving/9_robust.mp4" type="video/mp4" width="100%"></video>
 					<p><small>Autonomous Driving</small></p></div></div>
 				<aside class="notes">
-				We demonstrate the applicability of our method in two experiments. In both cases, the robust agent manages to ensure safety at all times, contrary to a nominal baseline. However, this comes at the price of a decreased average performance.</aside>
+				We demonstrate the applicability of our method in two experiments. In both cases, the robust agent manages to ensure safety at all times at the price of a decreased average performance.</aside>
 			</section>
 			<section>
 				<header><h2>Thank You!</h2></header>

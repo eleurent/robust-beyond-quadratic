@@ -37,7 +37,7 @@
 					<img data-src="images/renault.png" height="50">
 				</footer>
 				<aside class="notes">
-				Hi everyone, my name is Edouard, and I will be presenting our joint work with Denis and Odalric about the robust adaptive control of linear systems, beyond quadratic costs.</aside>
+				Hi, my name is Edouard, and I will be presenting our joint work with Denis Efimov and Odalric-Ambrym Maillard about the robust adaptive control of linear systems, beyond quadratic costs.</aside>
 			</section>
 
 			<section>
@@ -92,7 +92,7 @@
 				</ol>
 				<aside class="notes">
 					In order to ensure safety, we follow the robust control framework.<br>
-					📝First, rather than a mere point estimate of the dynamics, we build an entire confidence region that contains the true parameter with high probability.<br>
+					📝First, rather than a mere point estimate of the dynamics, we must build an entire confidence region that contains the true parameter with high probability.<br>
 					📝Second, we plan robustly wrt this uncertainty, that is, we maximise the worst-case performance for all admissible dynamical parameters \theta and disturbances \omega. This worst-case return is called the robust value V^r.
 				</aside>
 			</section>
@@ -106,10 +106,11 @@
 				<br>
 				<p class="fragment">We only require the rewards $R$ to be <strong>bounded</strong>.</p>
 				<aside class="notes">
-					There are several lines of work in the literature attempting to solve this minimax control problem. They include<br>
+					This minimax control problems is very challenging to solve and previous attempts in the literature have focused on more specific settings. This includes<br>
 					📝Robust dynamic programming techniques, 📝but these are only applicable for finite state spaces<br>
 					📝and the LQ setting where the costs are assumed to be quadratic, 📝which limits applications to stabilization problems only.<br>
 					📝In this work, we relax this assumption and only require the reward function to be bounded. In particular, we handle non-convex and even discontinuous reward functions, which allows to tackle a wider variety of problems.
+					To achieve this, we had to put together several results from the different communities of control theory and sequential decision making.
 				</aside>
 			</section>
 			<section><h3>Algorithm</h3>
@@ -141,7 +142,7 @@
 					</div>
 				</div>
 				<aside class="notes">
-					First, 📝we leverage the literature of non-asymptotic linear regression and adapt a result by Abbasi-Yadkori et al from 2011 to build a confidence ellipsoid for the dynamical parameters \theta. This ellipsoid shinks as we collect more and more data📝📝📝.
+					First, 📝we leverage the literature of non-asymptotic linear regression. We adapt a result by Abbasi-Yadkori et al from 2011 which provides a confidence ellipsoid for the dynamical parameters \theta, that we had to extend to our setting where the features are matricial rather than vectorial. This ellipsoid shrinks as we collect more and more data📝📝📝.
 				</aside>
 			</section>
 			<section>
@@ -180,6 +181,21 @@
 				</aside>
 			</section>
 			<section>
+				<header><h3>2. Interval Prediction (stability)</h3></header>
+				<div
+				<figure>
+					<img data-src="images/robust/observer_dark.svg" width="50%" style="margin-bottom: 0"></object>
+					<figcaption><small>Naive solution</small></figcaption>
+				</figure>
+				<figure>
+					<img data-src="images/robust/predictor_dark.svg" width="50%" style="margin-bottom: 0"></object>
+					<figcaption><small>Our predictor</small></figcaption>
+				</figure>
+				<aside class="notes">
+					Note that special care was put into the design of this interval predictor to prevent a buildup of uncertainty and preserve stability.
+				</aside>
+			</section>
+			<section>
 				<header><h3>3. Pessimistic planning</h3></header>
 				<div class="container">
 					<div style="flex: 2;">
@@ -197,7 +213,7 @@
 				</div>
 				<aside class="notes">
 					Third, we leverage these state intervals to build a pessimistic surrogate objective, which evaluates at each time-step the minimum of the reward function over the predicted interval.<br>
-					📝This surrogate objective is easy to evaluate, and thus can be optimised by traditional techniques such as Monte-Carlo Tree Search.
+					📝This surrogate objective is easy to evaluate, so it can be optimised by traditional techniques such as Monte-Carlo Tree Search.
 				</aside>
 			</section>
 			<section>
@@ -247,7 +263,7 @@
 				<aside class="notes">
 					In our second result, we bound this gap and resulting suboptimality under two conditions: namely, 📝a smoothness assumption for the reward, 📝and a stability condition for the estimated dynamics, in the form of a Linear Matrix Inequality.<br>
 					📝Then, the suboptimality is bounded by three term: there is a constant which comes from the robustness to instantaneous disturbances, an estimation error term related to the size of the confidence ellipsoid, and a planning error term, which comes from the fact that we are optimizing with a finite computational budget.<br><br>
-					A limitation of this result is that the validity of the stability condition n°2. is difficult to check because it applies to matrices that are produced by our algorithm, rather than to the system parameters. Moreover, the estimation error term in the bound is input-dependent, and since we are being pessimistic, we are not actively exploring, so this term is not guaranteed to converge to 0 in general.
+					A limitation of this result is that the validity of the stability condition n°2. seems difficult to check because it applies to matrices that are produced by our algorithm, rather than to the system parameters. Moreover, the estimation error term in the bound is input-dependent, and since we are being pessimistic, we are not actively exploring, so this term is not guaranteed to converge to 0 in general.
 				</aside>
 			</section>
 			<section style="font-size: .7em">
@@ -274,7 +290,7 @@
 					</p>
 				</div>
 				<aside class="notes">
-					These concerns are partially adressed in a corollary, which states that under the favorable event that the features are sufficiently excited, 📝 we can relax the stability condition to apply to the true system rather than our estimates, 📝and the estimation error term in the bound takes a more explicit form which ensures asymptotic near optimality as the number of samples N📝 and the planning budget K📝 go to infinity.
+					Thankfully, we adress some of these concerns in a corollary, which states that under the favorable event that the features are sufficiently excited, 📝 we can relax the stability condition to apply to the true system rather than our estimates, 📝and the estimation error term in the bound takes a more explicit form which ensures asymptotic near optimality as the number of samples N📝 and the planning budget K📝 go to infinity.
 				</aside>
 			</section>
 			<section><h3>Experiments</h3>
@@ -377,7 +393,8 @@
 				<aside class="notes">
 					In this figure, we plot the average suboptimality for each agent, along with its associated 95% confidence interval, with respect to the number N of observed transitions. The suboptimality is evaluated as follows: in each state of a trajectory, we substract the empirical return achieved by the agent from the optimal return that it would have obtained had it acted optimally, which is computed by running a oracle planner with access to the true dynamics and a high computational budget in parallel.
 
-					This graph shows that, despite the fact that the assumptions of our Theorem do not hold, since for example the rewards are discontinuous at collision states, the suboptimality of the robust agent still decreases with the number of observations. Thus, as we desired, the agent gets more efficient as it is more confident, while acting safely at all times.
+					This graph shows that, despite the fact that the assumptions of our Theorem do not hold, since for example the rewards are discontinuous at collision states, the suboptimality of the robust agent still decreases with the number of observations. And this is what we wanted: the agent gets more efficient as it is more confident, while acting safely at all times.
+
 					The nominal agent performs better on average, but has a higher variance and suffers collisions from time to time.
 				</aside>
 			</section>
@@ -504,6 +521,7 @@
 		// - https://revealjs.com/config/
 		Reveal.initialize({
 			autoPlayMedia: true,
+			slideNumber: true,
 			hash: true,
 			math: {
 				mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
