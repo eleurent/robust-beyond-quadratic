@@ -1,0 +1,284 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+	<title>Safe and Efficient Reinforcement Learning for Behavioural Planning in Autonomous Driving</title>
+
+	<link rel="stylesheet" href="dist/reset.css">
+	<link rel="stylesheet" href="dist/reveal.css">
+	<link rel="stylesheet" href="dist/theme/black.css" id="theme">
+	<link rel="stylesheet" href="css/custom.css">
+
+	<!-- Theme used for syntax highlighted code -->
+	<link rel="stylesheet" href="plugin/highlight/monokai.css" id="highlight-theme">
+
+
+</head>
+<body>
+	<div class="reveal">
+		<div class="slides">
+			<section class="title">
+				<h3>Robust-Adaptive Control<br>of Linear Systems:</h3>
+				<h4>beyond Quadratic Costs</h4>
+				<br>
+				<p class="authors">
+					<medium><a style="font-weight: bold;" href="http://edouardleurent.com">Edouard Leurent</a>, </medium><br>
+					<medium><a href="http://researchers.lille.inria.fr/~efimov/">Denis Efimov</a>, </medium><br>
+					<medium><a href="http://odalricambrymmaillard.neowordpress.fr/">Odalric-Ambrym Maillard</a></medium>
+				</p>
+				<footer>
+					<img data-src="images/univ.png" height="50">
+					<img data-src="images/inria.png" height="50">
+					<img data-src="images/cnrs.png" height="50">
+					<img data-src="images/centrale.png" height="50">
+					<img data-src="images/cristal.svg" height="50">
+					<img data-src="images/renault.png" height="50">
+				</footer>
+				<aside class="notes">
+				Hi everyone, my name is Edouard, and I will be presenting our joint work with Denis and Odalric about the robust adaptive control of linear systems, beyond quadratic costs.</aside>
+			</section>
+
+			<section>
+				<header><h3>Motivation</h3></header>
+				<p align="left">Most RL algorithms rely on trial and <span class="red">error</span>
+					<ul>
+						<li class="fragment"><span class="blue">Random</span> exploration</li>
+						<li class="fragment"><span class="green">Optimism</span> in the face of uncertainty</li>
+					</ul>
+				</p>
+				<br>
+				<p  align="left" class="fragment">None are suitable for a <span class="blue">safety-critical</span> application
+					<ul>
+						<li class="fragment"><span class="red">Pessimism</span> in the face of uncertainty</li>
+						<li class="fragment"><span class="green">Learn</span> from observations to improve performance</li>
+					</ul>
+				</p>
+				<aside class="notes">
+					Our motivation comes from the observation that most Reinforcement Learning algorithms rely on trial and error, through either 📝 random exploration, 📝 or optimism in the face of uncertainty<br>📝However, we argue that none of these two approaches are suitable for a safety-critical application, where failures are costly and must be avoided at all times.<br>📝In this work, we wish on the contrary to be pessimistic in the face of uncertainty in order to ensure safety,📝 and to learn from our observations to improve performance over time.
+				</aside>
+			</section>
+
+			<section>
+				<header><h3>Setting</h3></header>
+				<p>Linear dynamics with structured uncertainty<br><br>
+					$
+					\dot{{x}}(t)  = \color{orange}{A(\theta)}x(t) + Bu(t) + \omega(t),
+					$
+					<span>
+						$
+						\quad\text{ where }\color{orange}{A(\theta)}  = A + \sum_{i=1}^d\color{orange}{\theta_i}\phi_i,
+						$
+					</span>
+				</p>
+				<aside class="notes">
+					Our setting is the following: we consider a linear system whose dynamics depends on a parameter \theta that is unknown.
+				</aside>
+			</section>
+
+			<section>
+				<header><h3>Robust control framework</h3></header>
+				<ol>
+					<li class="fragment"> Build a confidence <strong>region</strong> for the dynamics
+						\[\mathbb{P}\left[\color{orange}{\theta}\in\color{crimson}{\mathcal{C}_{N,\delta}}\right]\geq 1-\delta\]
+					</li>
+					<li class="fragment"> Plan <strong>robustly</strong> against the worst case outcome $\color{crimson}{V^r}$
+						\[\color{limegreen}{\sup_{u}} \underbrace{\color{crimson}{\inf_{\substack{\theta \in \mathcal{C}_{N,\delta}\\ \omega\in[\underline\omega,\overline\omega]}}} \expectedvalue \left[\sum_{n=0}^\infty \gamma^n R(x(t_n)) \middle| \color{limegreen}{u}, \color{crimson}{{\theta}}, \color{crimson}{\omega}\right]}_{\color{crimson}{V^r(u)}}\]
+					</li>
+				</ol>
+				<aside class="notes">
+					In order to ensure safety, we follow the robust control framework.<br>
+					📝First, rather than a mere point estimate of the dynamics, we build an entire confidence region that contains the true parameter with high probability.<br>
+					📝Second, we plan robustly and maximise the worst-case performance with respect to this model uncertainty.
+				</aside>
+			</section>
+			<section>
+				<h3>Related work</h3>
+				<ul>
+					<li class="fragment">Quadratic costs (Robust LQ) <span class="fragment red">⮕ stabilization only</span></li>
+				</ul>
+				<br>
+				<br>
+				<p class="fragment">We only require the rewards $R$ to be <strong>bounded</strong>.</p>
+				<aside class="notes">
+					A popular approach to solve this robust control problem 📝relies on the assumption that the costs are quadratic 📝which limits applications to stabilization problems only
+					📝In this work, we relax this assumption and only require the reward function to be bounded.
+				</aside>
+			</section>
+			<section><h3>Algorithm</h3>
+				<aside class="notes">
+				Our Algorithm is composed of 3 steps.</aside>
+			</section>
+			<section style="font-size: 80%">
+				<header><h3>1. Model Estimation</h3></header>
+				<div class="container">
+					<div style="flex: 2;">
+						<p class="fragment" data-fragment-index="0">Confidence ellipsoid $\color{crimson}{\cC_{N,\delta}}$ from<br><a href="https://papers.nips.cc/paper/4417-improved-algorithms-for-linear-stochastic-bandits">(Abbasi-Yadkori et al., 2011)</a><!-- non-asymptotic linear regression -->
+							\[\small \mathbb{P}\left[\|\color{orange}{\theta}-\color{crimson}{\theta_{N}}\|_{\color{crimson}{G_{N}}} \leq \color{crimson}{\beta_N(\delta)}\right]\geq 1-\delta\]
+							<!-- $
+							\scriptsize
+							\begin{aligned}
+							\theta_{N,\lambda} & = G_{N, \lambda}^{-1} \sum_{n=1}^N \Phi_n^\top \Sigma_p^{-1} y_n,\\
+							G_{N, \lambda} &= \sum_{n=1}^N \Phi_{n}^\top\Sigma_p^{-1}\Phi_{n}  + \lambda I_d
+							\end{aligned}
+							$ -->
+						</p>
+					</div>
+					<div class="col" style="align-items: center;align-self: center;">
+						<div class="r-stack">
+							<img class="fragment fade-in-then-out" data-fragment-index="0" data-src="images/ellipsoid_0.svg" width=100%>
+							<img class="fragment fade-in-then-out" data-fragment-index="1" data-src="images/ellipsoid_1.svg" width=100%>
+							<img class="fragment fade-in-then-out" data-fragment-index="2" data-src="images/ellipsoid_2.svg" width=100%>
+							<img class="fragment fade-in-then-out" data-fragment-index="3" data-src="images/ellipsoid_3.svg" width=100%>
+						</div>
+					</div>
+				</div>
+				<aside class="notes">
+					First, 📝we use non-asymptotic linear regression to build a confidence ellipsoid around \theta, which shinks as we collect more and more data📝📝📝.
+				</aside>
+			</section>
+			<section>
+				<header><h3>2. Interval Prediction</h3></header>
+				<div class="container">
+					<div style="flex: 2;">
+						<p style="font-size: 80%">
+							<span class="fragment" data-fragment-index="0">
+							Propagate uncertainty $\color{crimson}{\theta\in\cC_{N,\delta}}$ through time and bound the reachable states
+							</span>
+							<span class="fragment" data-fragment-index="0">
+							\[\color{lightskyblue}{\underline x(t)} \leq x(t) \leq \color{lightskyblue}{\overline x(t)}\]
+							</span>
+						</p>
+					</div>
+					<div class="col r-stack">
+						<img class="fragment"  data-fragment-index="3" data-src="images/interval-hull_3.svg" width=100%>
+						<img class="fragment"  data-fragment-index="0" data-src="images/interval-hull_0.svg" width=100%>
+						<img class="fragment"  data-fragment-index="1" data-src="images/interval-hull_1.svg" width=100%>
+						<img class="fragment"  data-fragment-index="2" data-src="images/interval-hull_2.svg" width=100%>
+						<img class="fragment"  data-fragment-index="4" data-src="images/interval-hull_4.svg" width=100%>
+					</div>
+				</div>
+				<aside class="notes">
+					Second, 📝we propagate this model uncertainty 📝through📝 time📝 to bound the set of reachable states📝 within an interval
+				</aside>
+			</section>
+			<section>
+				<header><h3>3. Pessimistic planning</h3></header>
+				<div class="container">
+					<div style="flex: 2;">
+						<p>Use the predicted <strong>intervals</strong> in a pessimistic <span class="orange">surrogate</span> objective
+							<span>
+								\[\small
+								\color{orange}{\hat{V}^r(u)} = \sum_{n=N+1}^\infty \gamma^n \color{orange}{\min_{\color{lightskyblue}{\underline{x}(t_n)}\leq x \leq\color{lightskyblue}{\overline{x}(t_n)}}  R(x)}
+								\]
+							</span>
+						</p>
+					</div>
+					<div class="col r-stack">
+						<img class="fragment" data-src="images/planning.svg" width=100%>
+					</div>
+				</div>
+				<aside class="notes">
+					Third, we leverage these state intervals to build a pessimistic surrogate objective, that is easy to evaluate and can be optimised by Monte-Carlo Tree Search.
+				</aside>
+			</section>
+			<section>
+				<header><h3>Results</h3></header>
+				<div class="theorem fragment"><p><strong>Theorem (Lower bound)</strong></p>
+					<p>
+						$
+						\color{orange}{\underbrace{\hat{V}^r(u)}_{\substack{\text{surrogate}\\\text{value}}}}
+						\leq
+						\color{crimson}{\underbrace{{V}^r(u)}_{\substack{\text{robust}\\\text{value}}}}$
+						<span>
+							$\leq
+							\color{limegreen}{\underbrace{{V}(u)}_{\substack{\text{true}\\\text{performance}}}}$
+						</span>
+					</p>
+				</div>
+				<aside class="notes">
+					📝As a first result, we prove that our surrogate objective is a lower-bound of the robust value and the true performance, by virtue of being pessimistic.
+					This is valuable in that if we manage to plan a trajectory that is predicted to be safe, we are guaranteed that is will also be safe for the true system.
+					However because of our approximations, there exists a gap between the surrogate and the robust values, which can cause suboptimal behaviour.
+				</aside>
+			</section>
+			<section style="font-size: .7em">
+				<header><h3>Bounded suboptimality</h3></header>
+				<div class="theorem">
+					<p align="left"><strong>Theorem</strong> Under two conditions:
+						<ol>
+							<li class="fragment">Lipschitz reward $R$;</li>
+							<li class="fragment">Stability condition for $\color{orange}{A({\theta}_{N})}$</li>
+							</li>
+						</ol>
+					</p>
+					<p align="left" class="fragment">
+						with probability $1-\delta$,
+						\[
+						\underbrace{V(a_\star) - V(a_K)}_{\substack{\text{suboptimality}}} \leq
+						\color{crimson}{\underbrace{\Delta_\omega}_{\substack{\text{robustness to}\\ \text{disturbances}}}} + \color{lightskyblue}{\underbrace{\mathcal{O}\left(\frac{\beta_N(\delta)^2}{\lambda_{\min}(G_{N,\lambda})}\right)}_{\text{estimation error}}} +
+						\color{limegreen}{\underbrace{\mathcal{O}\left(K^{-\frac{\log 1/\gamma}{\log \kappa}}\right)}_{\text{planning error}}}
+						\]
+					</p>
+				</div>
+				<aside class="notes">
+					In our second result, we bound this gap under two conditions: 📝a smoothness assumption for the reward, 📝and a stability condition for the estimated dynamics<br>
+					📝Our bound contains three terms: a constant for robustness to disturbances, an estimation error term related to the size of the confidence ellipsoid, and a planning error term, that stems from optimizing with a finite computational budget.
+				</aside>
+			</section>
+			<section><h3>Experiments</h3>
+				<div class="container"><div style="flex:2;">
+					<video class="js-play-toggle" muted loop data-src="../../supplementary/videos/1_obstacle/1_robust.mp4" type="video/mp4" width=100%></video>
+					<p><small>Obstacle avoidance</small></p></div>
+				<div style="flex: 1;">
+					<video class="js-play-toggle" muted loop data-src="../../supplementary/videos/2_driving/9_robust.mp4" type="video/mp4" width="100%"></video>
+					<p><small>Autonomous Driving</small></p></div></div>
+				<aside class="notes">
+				We demonstrate the applicability of our method in two experiments. In both cases, the robust agent manages to ensure safety at all times, contrary to a nominal baseline. However, this comes at the price of a decreased average performance.</aside>
+			</section>
+			<section>
+				<header><h2>Thank You!</h2></header>
+				<br>
+				<p>Code available at<br><small><img data-src="images/octocat.png" width="32px" style="margin:0"><a href="http://eleurent.github.io/robust-beyond-quadratic/">eleurent.github.io/robust-beyond-quadratic</a></small></p>
+				<p><em>I am looking for a postdoctoral position.</em></p>
+				<aside class="notes">
+					Thank you for your attention!
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/search/search.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script src="plugin/math/math.js"></script>
+		<script src="plugin/zoom/zoom.js"></script>
+		<script async defer src="https://buttons.github.io/buttons.js"></script>
+		<script>
+		// More info about initialization & config:
+		// - https://revealjs.com/initialization/
+		// - https://revealjs.com/config/
+		Reveal.initialize({
+			autoPlayMedia: true,
+			hash: true,
+			math: {
+				mathjax: 'https://cdn.jsdelivr.net/gh/mathjax/mathjax@2.7.8/MathJax.js',
+				config: 'TeX-AMS_HTML-full',
+		      // pass other options into `MathJax.Hub.Config()`
+		      TeX: { Macros: {
+		      	Real: "{\\mathbb{R}}",
+		      	cC: "{\\mathcal{C}}",
+		      	expectedvalue: "\\mathop{\\mathbb{E}}",
+		      }}
+		  },
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: [ RevealSearch, RevealHighlight, RevealNotes, RevealMath, RevealZoom ]
+		});
+
+		Reveal.addEventListener( 'slidechanged', function( e ) {
+			e.currentSlide.querySelectorAll('.js-play-toggle').forEach(v => v.play());
+		});
+	</script>
+</body>
+</html>

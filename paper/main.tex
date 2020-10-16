@@ -351,7 +351,7 @@ Such a substitution makes this pessimistic reward $\underline{R_n}$ \emph{not Ma
 \label{prop:lower-bound}
 The surrogate objective  \eqref{eq:surrogate-objective} is a lower bound of the objective  \eqref{eq:robust-control}.
 \begin{equation*}
-\hat{V}^r(\bu) \leq V^r(\bu)
+\hat{V}^r(\bu) \leq V^r(\bu) \leq V(\bu)
 \end{equation*}
 \end{theorem}
 Consequently, since all our approximations are conservative, if we manage to find a control sequence such that no \textit{``bad event''} (e.g. a collision) happens according to the surrogate objective $\hat{V}^r$, they are \emph{guaranteed} not to happen either when the controls are executed on the true system. 

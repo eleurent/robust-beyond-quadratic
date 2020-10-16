@@ -56,7 +56,7 @@
 					</ul>
 				</p>
 				<aside class="notes">
-					Our motivation comes from the observation that most Reinforcement Learning algorithms rely on trial and error, through either 📝 random exploration, 📝 or optimism in the face of uncertainty<br>📝However, we argue that none of these two approaches are suitable for a safety-critical application, where failures are costly and must be avoided at all times.<br>📝In this work, we wish on the contrary to be pessimistic in the face of uncertainty in order to ensure safety, 📝but we still want to be able to learn from our observations to reduce uncertainty and improve performance as time goes by.
+					Our motivation comes from the observation that most Reinforcement Learning algorithms rely on trial and error, through either 📝 random exploration, 📝 or optimism in the face of uncertainty<br>📝However, we argue that none of these two approaches are suitable for a safety-critical application, where failures are costly and must be avoided at all times.<br>📝In this work, we wish on the contrary to be pessimistic in the face of uncertainty in order to ensure safety, 📝but we still want to be able to learn from our observations to reduce uncertainty and improve performance over time.
 				</aside>
 			</section>
 
@@ -216,8 +216,9 @@
 				</div>
 				<aside class="notes">
 					📝As a first result, we prove that the surrogate objective that we optimize is a lower-bound of the robust value, and that is because we are conservative in every approximation that we make.<br>
-					📝The robust value is in turn a lower-bound of the true performance, by virtue of being pessimistic.
-					However because of our approximations, there exists a gap between the surrogate and the robust values, which can cause suboptimal behaviour.
+					📝The robust value is in turn a lower-bound of the true performance, by virtue of being pessimistic.<br>
+					This is valuable in that if we manage during the planning phase to find a tajectory that attains a desired level of performance, such that no bad event occurs like a collision, then we are guaranteed that it won't happen either when executed on the true system.<br>
+					However because of our approximations, there may be a gap between the surrogate and the robust values, which can cause suboptimal behaviour.
 				</aside>
 			</section>
 			<section style="font-size: .7em">
@@ -325,7 +326,7 @@
 					<figcaption>Robust planning with $\color{crimson}{\cC_{N,\delta}}$</figcaption>
 				</figure>
 				<aside class="notes">
-					and the robust agent in the same scene.
+					and here is the robust agent in the same scene.
 				</aside>
 			</section>
 			<section>
@@ -348,20 +349,20 @@
 						</tr>
 						<tr>
 							<td>Nominal</td>
-							<td>$4\%$</td>
+							<td><span class="fragment highlight-red" data-fragment-index="0">$4\%$</span></td>
 							<td>$2.8$</td>
-							<td><span class="fragment highlight-blue" data-fragment-index="1">$13.8 \pm 2.0$</span></td>
+							<td><span class="fragment highlight-green" data-fragment-index="1">$13.8 \pm 2.0$</span></td>
 						</tr>
 						<tr>
 							<td>DQN (trained)</td>
-							<td>$6\%$</td>
+							<td><span class="fragment highlight-red" data-fragment-index="0">$6\%$</span></td>
 							<td>$1.7$</td>
 							<td>$12.3 \pm 2.5$</td>
 						</tr>
 						<tr>
 							<td>Robust</td>
-							<td><span class="fragment highlight-blue" data-fragment-index="0">$0\%$</span></td>
-							<td><span class="fragment highlight-blue" data-fragment-index="0">$10.4$</span></td>
+							<td><span class="fragment highlight-green" data-fragment-index="0">$0\%$</span></td>
+							<td><span class="fragment highlight-green" data-fragment-index="0">$10.4$</span></td>
 							<td>$13.0 \pm 1.5$</td>
 						</tr>
 					</tbody>
@@ -384,7 +385,7 @@
 				<header><h3>Multi-model extension</h3></header>
 				<div class="container">
 					<div class="col">
-						<p>What is our modelling assumption<br> $\color{orange}{A(\theta)} = \color{lightskyblue}{A} + \sum_{i=1}^d\color{orange}{\theta_i}\color{lightskyblue}{\phi_i}$ is <span class="red">wrong</span>?
+						<p>What if our modelling assumption<br> $\color{orange}{A(\theta)} = \color{lightskyblue}{A} + \sum_{i=1}^d\color{orange}{\theta_i}\color{lightskyblue}{\phi_i}$ is <span class="red">wrong</span>?
 							<ul>
 								<li class="fragment idea" data-fragment-index="0">The <strong>adequacy</strong> of a model $\color{lightskyblue}{(A,\phi)}$ can be evaluated</li>
 								<li class="fragment imply" data-fragment-index="1">Use <strong>multiple</strong> models $\color{lightskyblue}{(A^m,\phi^m)}$, <br>through a robust selection mechanism</li>
@@ -450,26 +451,26 @@
 						</tr>
 						<tr>
 							<td>Nominal 1</td>
-							<td>$4\%$</td>
+							<td><span class="red">$4\%$</span></td>
 							<td>$5.2$</td>
-							<td><strong>$7.3 \pm 1.5$</strong></td>
+							<td><span class="green">$7.3 \pm 1.5$</span></td>
 						</tr>
 						<tr>
 							<td>Nominal 2</td>
-							<td>$33\%$</td>
+							<td><span class="red">$33\%$</span></td>
 							<td>$3.5$</td>
 							<td>$6.4 \pm 0.3$</td>
 						</tr>
 						<tr>
 							<td>DQN (trained)</td>
-							<td>$3\%$</td>
+							<td><span class="red">$3\%$</span></td>
 							<td>$5.4$</td>
 							<td>$6.3 \pm 0.6$</td>
 						</tr>
 						<tr>
 							<td>Robust</td>
-							<td><strong>$0\%$</strong></td>
-							<td><strong>$6.8$</strong></td>
+							<td><span class="green">$0\%$</span></td>
+							<td><span class="green">$6.8$</span></td>
 							<td>$7.1 \pm 0.3$</td>
 						</tr>
 					</tbody>
