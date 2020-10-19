@@ -13,9 +13,12 @@ We consider the problem of robust and adaptive model predictive control (MPC) of
 # Paper and Bibtex
 
 <div style="display: flex;">
-<div style="flex: 0 0 15em;;">
-	<a href="https://arxiv.org/abs/1603.08511"><img class="layered-paper-big" src="./assets/images/thumbnail.png"></a>
-<br><h2><a href="">[Paper]</a></h2>
+<div style="flex: 0 0 15em;">
+	<a href="">
+		<img class="layered-paper-big" src="./assets/images/thumbnail.png">
+		<br>
+		<h2>[Paper]</h2>
+	</a>
 </div>
 <div style="flex: auto" markdown="1">
 
