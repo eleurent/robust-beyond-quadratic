@@ -1,7 +1,24 @@
 theme: jekyll-theme-cayman
 title: "Robust-Adaptive Control of Linear Systems: beyond Quadratic Costs"
-description: Edouard Leurent, Denis Efimov, Odalric-Ambrym Maillard
+# description: "beyond Quadratic Costs"
 
 github:
   repository_url: https://github.com/eleurent/robust-beyond-quadratic
   paper_url: https://github.com/eleurent/robust-beyond-quadratic
+
+publication:
+  name: NeurIPS 2020 (oral)
+  url: https://nips.cc/Conferences/2020/
+
+authors:
+  - name: Edouard Leurent
+    url: http://edouardleurent.com
+    affiliation: INRIA SEQUEL & VALSE,<br>Renault
+
+  - name: Denis Efimov
+    affiliation: INRIA VALSE
+    affiliation_url: https://team.inria.fr/valse/
+
+  - name: Odalric-Ambrym Maillard
+    affiliation: INRIA SEQUEL
+    affiliation_url: https://team.inria.fr/sequel/

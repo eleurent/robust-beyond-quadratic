@@ -284,3 +284,5 @@ TSWLatexianTemp*
 #*Notes.bib
 
 tmp/
+_site
+Gemfile*
