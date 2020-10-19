@@ -4,11 +4,14 @@ title: "Robust-Adaptive Control of Linear Systems: beyond Quadratic Costs"
 
 github:
   repository_url: https://github.com/eleurent/robust-beyond-quadratic
-  paper_url: https://github.com/eleurent/robust-beyond-quadratic
+
 
 publication:
   name: NeurIPS 2020 (oral)
   url: https://nips.cc/Conferences/2020/
+
+paper_url: https://github.com/eleurent/robust-beyond-quadratic
+slides_url: paper/oral/
 
 authors:
   - name: Edouard Leurent

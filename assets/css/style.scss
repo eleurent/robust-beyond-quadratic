@@ -155,15 +155,25 @@ body {
 }
 
 a:link, a:visited {
-    color: #1367a7;
-    text-decoration: none;
+  color: #1367a7;
+  text-decoration: none;
 }
 a:hover {
-	color: blue;
+	color: #208799;;
 }
 
 .btn {
 	font-size: 28px;
+  color: inherit;
+  background-color: inherit;
+  border-style: none;
+  transition: inherit;
+}
+.btn:hover {
+  color: #208799;;
+  text-decoration:inherit;
+  background-color:inherit;
+  border-color:inherit;
 }
 
 .main-content hr {

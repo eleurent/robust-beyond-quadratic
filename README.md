@@ -13,28 +13,28 @@ We consider the problem of robust and adaptive model predictive control (MPC) of
 # Paper and Bibtex
 
 <div style="display: flex;">
-<div style="flex: 1;">
+<div style="flex: 0 0 15em;;">
 	<a href="https://arxiv.org/abs/1603.08511"><img class="layered-paper-big" src="./assets/images/thumbnail.png"></a>
 <br><h2><a href="">[Paper]</a></h2>
 </div>
-<div style="flex: 0 0 25em;" markdown="1">
+<div style="flex: auto" markdown="1">
 
 ## Citation
 
 Leurent, E., Efimov, D., and Maillard, O-A., 2020.<br>
 *Robust-Adaptive Control of Linear Systems: beyond Quadratic Costs.* In Advances in Neural Information Processing Systems.
 
-## [Bibtex]
+## [[Bibtex]]()
 
 ```
 @incollection{leurent2020robust,
-    title={Robust-Adaptive Control of Linear
-    	Systems: beyond Quadratic Costs},
-    author={Edouard Leurent and Denis Efimov
-    	and Odalric-Ambrym Maillard},
+    title={Robust-Adaptive Control of Linear Systems:
+    	beyond Quadratic Costs},
+    author={Edouard Leurent and Denis Efimov and
+    	Odalric-Ambrym Maillard},
     booktitle={Advances in Neural Information
     	Processing Systems 33},
-    publisher = {Curran Associates, Inc.},
+    publisher={Curran Associates, Inc.},
     year={2020},
 }
 ```
