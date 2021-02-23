@@ -49,13 +49,17 @@ Leurent, E., Efimov, D., and Maillard, O-A., 2020.<br>
 
 ## Installation
 
-1. Install the [highway-env](https://github.com/eleurent/highway-env) environment
-
-`pip install --user git+https://github.com/eleurent/highway-env`
-
-2. Install the [rl-agents](https://github.com/eleurent/rl-agents) implementations, and clone the repository.
+1. Install the [rl-agents](https://github.com/eleurent/rl-agents) implementations, and clone the repository.
 
 `pip install --user git+https://github.com/eleurent/rl-agents`
+
+2. Install the [obstacle-env](https://github.com/eleurent/obstacle-env) environment
+
+`pip install --user git+https://github.com/eleurent/obstacle-env`
+
+3. Install the [highway-env](https://github.com/eleurent/highway-env) environment
+
+`pip install --user git+https://github.com/eleurent/highway-env`
 
 ## Instructions
 
