@@ -68,9 +68,9 @@ cd <path-to-rl-agents>/scripts
 ### Obstacle avoidance with unknown friction
 
 ```
-python experiments.py configs/ObstacleEnv/env.json configs/ObstacleEnv/agents/oracle.json
-python experiments.py configs/ObstacleEnv/env.json configs/ObstacleEnv/agents/nominal.json
-python experiments.py configs/ObstacleEnv/env.json configs/ObstacleEnv/agents/robust-epc.json
+python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/oracle.json
+python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/nominal.json
+python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/robust-epc.json
 ```
 
 ### Motion planning for an autonomous vehicle
