@@ -76,10 +76,10 @@ python experiments.py configs/ObstacleEnv/env.json configs/ObstacleEnv/agents/ro
 ### Motion planning for an autonomous vehicle
 
 ```
-python experiments.py configs/IntersectionEnv/env.json configs/IntersectionEnv/agents/oracle.json
-python experiments.py configs/IntersectionEnv/env.json configs/IntersectionEnv/agents/known_route.json
-python experiments.py configs/IntersectionEnv/env.json configs/IntersectionEnv/agents/minimum_error_route.json
-python experiments.py configs/IntersectionEnv/env.json configs/IntersectionEnv/agents/robust-epc.json
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/oracle.json
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/known_route.json
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/minimum_error_route.json
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/robust-epc.json
 ```
 
 The results will appear in the `scripts/out` directory.
