@@ -72,18 +72,18 @@ cd <path-to-rl-agents>/scripts
 ### Obstacle avoidance with unknown friction
 
 ```
-python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/oracle.json
-python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/nominal.json
-python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/robust-epc.json
+python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/oracle.json --test
+python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/nominal.json --train
+python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/robust-epc.json --train
 ```
 
 ### Motion planning for an autonomous vehicle
 
 ```
-python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/oracle.json
-python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/known_route.json
-python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/minimum_error_route.json
-python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/robust-epc.json
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/oracle.json --test
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/known_route.json --train
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/minimum_error_route.json --train
+python experiments.py configs/IntersectionEnv/env_multi_model.json configs/IntersectionEnv/agents/Robust/robust-epc.json --train
 ```
 
 The results will appear in the `scripts/out` directory.
