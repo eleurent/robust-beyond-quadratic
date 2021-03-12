@@ -14,7 +14,7 @@ We consider the problem of robust and adaptive model predictive control (MPC) of
 
 <div style="display: flex;">
 <div style="flex: 0 0 15em;">
-	<a href="">
+	<a href="{{ site.paper_url }}">
 		<img class="layered-paper-big" src="./assets/images/thumbnail.png">
 		<br>
 		<h2>[Paper]</h2>
@@ -49,29 +49,25 @@ Leurent, E., Efimov, D., and Maillard, O-A., 2020.<br>
 
 ## Installation
 
+```shell
+pip install -r requirements.txt
+```
+
 1. Install the [rl-agents](https://github.com/eleurent/rl-agents) implementations, and clone the repository.
-
-`pip install --user git+https://github.com/eleurent/rl-agents`
-
-2. Install the [obstacle-env](https://github.com/eleurent/obstacle-env) environment
-
-`pip install --user git+https://github.com/eleurent/obstacle-env`
-
-3. Install the [highway-env](https://github.com/eleurent/highway-env) environment
-
-`pip install --user git+https://github.com/eleurent/highway-env`
+2. Install the [highway-env](https://github.com/eleurent/highway-env) environment
+3. Install the [obstacle-env](https://github.com/eleurent/obstacle-env) environment
 
 ## Instructions
 
 The experiments can be reproduced by running:
 
-```
+```shell
 cd <path-to-rl-agents>/scripts
 ```
 
 ### Obstacle avoidance with unknown friction
 
-```
+```shell
 python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/oracle.json --test
 python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/nominal.json --train
 python experiments.py configs/ObstacleEnv/env_obs_state.json configs/ObstacleEnv/agents/robust-epc.json --train
